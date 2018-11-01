@@ -36,6 +36,7 @@ Packet:
 -	How many total |sequence|
 -	number in sequence 
 -	acknowledgement flag
+- Data 
 
 Flow:
 -	ALG being used
