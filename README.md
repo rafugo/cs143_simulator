@@ -34,7 +34,7 @@ Packet:
 -	Where from 
 -	Where to
 -	How many total |sequence|
--	# in sequence 
+-	number in sequence 
 -	acknowledgement flag
 
 Flow:
