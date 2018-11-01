@@ -9,6 +9,7 @@ Link:
 -	Conn1
 -	Conn2
 -	Static cost
+
 TODO:
 -	Has to be able to transfer packets 
 -	Reno and fast models.
@@ -16,6 +17,7 @@ TODO:
 Host:
 -	IP
 -	1 link ID 
+
 TODO:
 -	Send packets
 -	Receive packets
@@ -25,6 +27,7 @@ TODO:
 Router:
 -	IP
 -	Routing Table
+
 TODO:
 -	Know where other routers are
 -	Update routing table
@@ -45,6 +48,8 @@ Flow:
 -	Destination
 -	Data amount
 -	Flow start time
+
+Routing Table: 
 
 Track:
 -	link rate
