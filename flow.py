@@ -1,13 +1,14 @@
 class Flow:
-    def __init__(self, id, source, destination, amount, start):
+    def __init__(self, id, source, destination, amount, start, congestioncontrol):
         self.id = id
         self.source = source
         self.destination = destination
         self.amount = amount
         self.start = start
+        self.packets = []
+        self.congestioncontrol = congestioncontrol
+
         # TODO:
-        #       - flow as a list of packets.
-        #       - store congestion control algorithm to be used.
         #       - add other fields as necessary for the implementation of
         #         congestion control algorithms.
 
