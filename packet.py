@@ -1,3 +1,4 @@
+import globals
 class Packet:
     # TODO: figure out how to represent data, most notably being the routing
     #       tables which must be communicated between the routers.
