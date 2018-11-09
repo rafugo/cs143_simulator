@@ -5,8 +5,6 @@ from simulator import Simulator
 
 # initialize all the global variables
 globals.initialize()
-
-print(globals.systime)
 globals.systime += 1
 
 # create the simulator with the given filename

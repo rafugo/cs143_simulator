@@ -1,11 +1,12 @@
 import globals
+
 class Packet:
     # TODO: figure out how to represent data, most notably being the routing
     #       tables which must be communicated between the routers.
-    def __init__(self, source, flow, destination, number_in_sequence, sequence_size, ack_flag, data = ''):
-        self.source = source
-        self.flow = flow
-        self.destination = destination
+    def __init__(self, sourceid, flowid, destinationid, number_in_sequence, sequence_size, ack_flag, data = ''):
+        self.sourceid = sourceid
+        self.flowid = flowid
+        self.destinationid = destinationid
         self.number_in_sequence = number_in_sequence
         self.sequence_size = sequence_size
         self.ack_flag = ack_flag
