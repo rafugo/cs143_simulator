@@ -1,3 +1,5 @@
+import globals
+
 class Flow:
     def __init__(self, id, source, destination, amount, \
                     start, congestion_control, window_size, min_rtt):

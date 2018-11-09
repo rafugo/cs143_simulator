@@ -1,3 +1,6 @@
+import globals
+from packet import Packet
+
 class Link:
     def __init__(self, id, connection1, connection2, rate, delay, buffersize):
         global t

@@ -1,4 +1,5 @@
-import packet import Packet
+import globals
+from packet import Packet
 
 class Host:
     def __init__(self, id, linkid):

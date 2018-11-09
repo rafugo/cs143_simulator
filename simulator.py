@@ -1,3 +1,5 @@
+import globals
+
 class Simulator:
     # I'm not actually sure that the things that we thought would be fields of
     # the simulator class should be. I think we need them to be global variables,
@@ -8,9 +10,12 @@ class Simulator:
     def __init__(self, filename):
         # TODO:
         #       - read contents of the file.
+        pass
 
     def run():
-    #TODO
+        #TODO
+        pass
 
     def plot_metrics():
-    #TODO
+        #TODO
+        pass
