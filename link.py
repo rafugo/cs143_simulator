@@ -26,6 +26,10 @@ class Link:
         # current time and self.delay.
         if (len(buffer) == 1):
             self.next_packet_send_time = t + self.delay
+
+        # RAFA: i dont think we need this else statement. We shouldnt be
+        # changing the next_packet_send_time unless it's the first packet
+        # or we just sent a packet. (I didnt change anything though)
         else:
             self.next_packet_send_time = self.next_packet_send_time + dt
 
