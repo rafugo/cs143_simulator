@@ -1,6 +1,12 @@
 import globals
 from packet import Packet
 
+# Something to think about- right now, we are considering an entire packet to
+# be in the buffer until it has finished transmitting. I don't know if this is
+# sufficient or if we need to free space in the buffer as we transmit the
+# the packet. It seems like that might be more detailed than necessary, so for
+# now I am leaving it as is, but especially if we notice unexpected packet loss
+# or buffer size metrics later, perhaps we should reconsider.
 class Link:
     def __init__(self, id, connection1, connection2, rate, delay, buffersize, \
                   cost):
@@ -11,8 +17,9 @@ class Link:
                       buffersize, cost), connection2: HalfLink(id, connection1,\
                       rate, delay, buffersize, cost)}
 
+    # Now when we call add_to_buffer()
     def add_to_buffer(self, packet, sender):
-        self.links[sender].add_to_buffer
+        self.links[sender].add_to_buffer(packet)
 
     def send_packet(self):
         for link in self.links.values():

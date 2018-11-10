@@ -1,7 +1,7 @@
 # this file will store the global variables yay!
 # just import the globals file and access like this:
 #       `globals.systime`
-# 
+#
 # worth noting that globals.initialize() only has to be called in the main
 # function, and then anything that is created inside of the main function will
 # have access to these variables.
@@ -24,3 +24,6 @@ def initialize():
     # the id : object mapping of the objects in the network
     global idmapping
     idmapping = {}
+
+    global statistics
+    statistics = {}
