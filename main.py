@@ -8,4 +8,5 @@ globals.initialize()
 globals.systime += 1
 
 # create the simulator with the given filename
-Simulator('<insert filename here>')
+sim = Simulator('<insert filename here>')
+sim.run()

@@ -19,7 +19,7 @@ def initialize():
 
     # the time increment settings
     global dt
-    dt = 1
+    dt = 1 * (10**-4)
 
     # the id : object mapping of the objects in the network
     global idmapping

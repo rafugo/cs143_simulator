@@ -12,6 +12,14 @@ class Packet:
         self.ack_flag = ack_flag
         self.data = data
 
+        self.size = 0
+
+        # set the packet size in bits
+        if ack_flag:
+            self.size = globals.ACKSIZE
+        else:
+            self.size = globals.PACKETSIZE
+
     def is_ack(self):
         return self.ack_flag
 
@@ -32,3 +40,6 @@ class Packet:
 
     def get_data(self):
         return self.data
+
+    def get_size(self):
+        return self.size
