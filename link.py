@@ -7,6 +7,7 @@ from packet import Packet
 # the packet. It seems like that might be more detailed than necessary, so for
 # now I am leaving it as is, but especially if we notice unexpected packet loss
 # or buffer size metrics later, perhaps we should reconsider.
+
 class Link:
     def __init__(self, id, connection1, connection2, rate, delay, buffersize, \
                   cost):
@@ -17,14 +18,19 @@ class Link:
                       buffersize, cost), connection2: HalfLink(id, connection1,\
                       rate, delay, buffersize, cost)}
 
-    # Now when we call add_to_buffer()
+    # Now when we call add_to_buffer() on a Link, we need to identify which of
+    # its HalfLinks we should be adding the packet to and add it appropriately.
     def add_to_buffer(self, packet, sender):
         self.links[sender].add_to_buffer(packet)
 
+    # Now, when we call send_packet() at every time step, we need to try to
+    # send a packet on both of the HalfLinks corresponding to the Link
     def send_packet(self):
         for link in self.links.values():
             link.send_packet
 
+# This class will represent one direction of the Link. (i.e. all packets
+# travelling across a given HalfLink will be going to the same destination).
 class HalfLink:
     def __init__(self, id, destination, rate, delay, buffersize, cost):
         self.id = id
@@ -37,11 +43,19 @@ class HalfLink:
         self.buffer = []
         self.destination = destination
         self.cost = cost
+        # The first time we should try to send a packet is at the next time step.
         self.next_packet_send_time = globals.systime + globals.dt
+        # A list representing the packets that have been sent by this HalfLink
+        # but have not yet reached their destination.
         self.packets_in_transmission = []
+        # A list representing the times that the packets that are still in
+        # transmission should be arriving at their destination.
         self.packet_arrival_times = []
 
     def add_to_buffer(self, packet):
+        """This function will try to add the Packet packet to the buffer. It
+        will only add packet to the buffer if there is still space in the
+        buffer for it. Otherwise, the packet will be dropped."""
         is_ack = packet.is_ack()
 
         if (is_ack and ACKSIZE >= self.buffersize):
@@ -50,7 +64,13 @@ class HalfLink:
         elif ((not is_ack) and PACKETSIZE >= self.buffersize):
             self.buffersize = self.buffersize - PACKETSIZE
             self.buffer.append(packet)
+        else:
+            # here we should update the metrics to indicate we dropped a packet
+            return
 
+        # if there is only one item in the buffer and we just added it, then
+        # we need to update the time to start sending the next packet, which
+        # will be the next timestep.
         if (len(self.buffer) == 1):
             self.next_packet_send_time = globals.systime + globals.dt
 
@@ -81,6 +101,7 @@ class HalfLink:
                 # update the time to send the next packet.
                 if (self.next_packet_send_time + self.rate * current_packet_size <= globals.systime):
                     packet_to_send = self.buffer.pop()
+                    self.buffersize = self.buffersize + current_packet_size
                     self.packets_in_transmission.append(packet_to_send)
                     self.packet_arrival_times.append(globals.systime + self.delay)
                     self.next_packet_send_time = self.next_packet_send_time + globals.dt
