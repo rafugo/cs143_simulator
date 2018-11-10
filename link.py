@@ -58,11 +58,11 @@ class HalfLink:
         buffer for it. Otherwise, the packet will be dropped."""
         is_ack = packet.is_ack()
 
-        if (is_ack and ACKSIZE >= self.buffersize):
-            self.buffersize = self.buffersize - ACKSIZE
+        if (is_ack and globals.ACKSIZE >= self.buffersize):
+            self.buffersize = self.buffersize - globals.ACKSIZE
             self.buffer.append(packet)
-        elif ((not is_ack) and PACKETSIZE >= self.buffersize):
-            self.buffersize = self.buffersize - PACKETSIZE
+        elif ((not is_ack) and globals.PACKETSIZE >= self.buffersize):
+            self.buffersize = self.buffersize - globals.PACKETSIZE
             self.buffer.append(packet)
         else:
             # here we should update the metrics to indicate we dropped a packet
@@ -89,9 +89,9 @@ class HalfLink:
             # the buffer.
             else:
                 is_ack = self.buffer[0].is_ack()
-                current_packet_size = PACKETSIZE
+                current_packet_size = globals.PACKETSIZE
                 if (is_ack):
-                    current_packet_size = ACKSIZE
+                    current_packet_size = globals.ACKSIZE
 
                 # If we have finished transmitting the packet in the last dt,
                 # we should remove the packet at the beginning of the buffer

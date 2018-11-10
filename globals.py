@@ -27,3 +27,9 @@ def initialize():
 
     global statistics
     statistics = {}
+
+    global PACKETSIZE
+    PACKETSIZE = 1024*8
+
+    global ACKSIZE
+    ACKSIZE = 64*8
