@@ -1,5 +1,10 @@
 import globals
 
+# Packet size in bits
+PACKETSIZE = 1024*8
+# Acknowledgement packet size in bits
+ACKSIZE = 64*8
+
 class Packet:
     # TODO: figure out how to represent data, most notably being the routing
     #       tables which must be communicated between the routers.
