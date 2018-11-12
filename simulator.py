@@ -30,10 +30,6 @@ class Simulator:
         packet0 = Packet("H0", "0", "H1", 0, 1, False, data = '143 rox!')
 
         host0.send_packet(packet0)
-        link01.send_packet()
-
-        globals.systime = 7
-        link01.send_packet()
 
         for i in range(100000):
             link01.send_packet()
