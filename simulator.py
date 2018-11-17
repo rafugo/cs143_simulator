@@ -2,6 +2,8 @@ import globals
 from host import Host
 from link import Link
 from packet import Packet
+import json
+from pprint import pprint
 
 class Simulator:
     # I'm not actually sure that the things that we thought would be fields of
@@ -13,26 +15,45 @@ class Simulator:
     def __init__(self, filename):
         self.filename = filename
 
+        # import the network object parameters
+        with open(self.filename) as f:
+            network_objects = json.load(f)
+
+        # create the network objects
+        # create links
+        for l in network_objects['links']:
+            # clear the variable
+            link = None
+
+            # add to idmapping
+            link = Link(l['id'], l['connection1'], l['connection2'], \
+                        l['rate'], l['delay'], l['buffersize'], l['cost'])
+            globals.idmapping['links'][l['id']] = link
+
+        # create hosts
+        for h in network_objects['hosts']:
+            # clear the variable
+            host = None
+
+            # add to idmapping
+            host = Host(h['id'], h['ip'], h['linkid'])
+            globals.idmapping['hosts'][h['id']] = host
+
+
     def run(self):
-        # for now, just make two hosts and a link to connect them, and then
-        # try to send a packet
-
-        host0 = Host("H0", "L01")
-        globals.idmapping["H0"] = host0
-
-        host1 = Host("H1", "L01")
-        globals.idmapping["H1"] = host1
-
-        link01 = Link("L01", "H0", "H1", 100, 5, 1000, 9)
-        globals.idmapping["L01"] = link01
 
         # make a packet
-        packet0 = Packet("H0", "0", "H1", 0, 1, False, data = '143 rox!')
+        packet0 = Packet("H0", "0", "H1", 0, False, globals.STANDARDPACKET, \
+                            data = '143 rox!')
+
+        host0 = globals.idmapping['hosts']['H0']
 
         host0.send_packet(packet0)
 
         for i in range(100000):
-            link01.send_packet()
+            for link in globals.idmapping['links'].values():
+                link.send_packet()
+
             globals.systime += globals.dt
 
     def plot_metrics(self):

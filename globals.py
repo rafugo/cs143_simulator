@@ -21,9 +21,17 @@ def initialize():
     global dt
     dt = 1 * (10**-4)
 
-    # the id : object mapping of the objects in the network
+    # the type: {id : object} mapping of the objects in the network
     global idmapping
-    idmapping = {}
+    idmapping = {
+        'hosts' : {},
+
+        'links' : {},
+
+        'routers' : {},
+
+        'flows' : {}
+    }
 
     global statistics
     statistics = {}
@@ -33,3 +41,19 @@ def initialize():
 
     global ACKSIZE
     ACKSIZE = 64*8
+
+    global STANDARDPACKET
+    STANDARDPACKET = 'standard_packet'
+
+    global ACKPACKET
+    ACKPACKET = 'ack_packet'
+
+    global ROUTINGPACKET
+    ROUTINGPACKET = 'routing_packet'
+
+    global SYNPACKET
+    SYNPACKET = 'syn_packet'
+
+    global SYNACK 
+    SYNACK = 'syn_ack'
+

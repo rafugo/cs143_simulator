@@ -1,6 +1,7 @@
 class Router:
-    def __init__(self, id, links):
+    def __init__(self, id, ip, links):
         self.id = id
+        self.ip = ip
         self.links = links
         # TODO:
         #       - each router needs a routing table.

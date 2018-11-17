@@ -3,15 +3,14 @@ import globals
 class Packet:
     # TODO: figure out how to represent data, most notably being the routing
     #       tables which must be communicated between the routers.
-    def __init__(self, sourceid, flowid, destinationid, number_in_sequence, sequence_size, ack_flag, data = ''):
+    def __init__(self, sourceid, flowid, destinationid, number_in_sequence, packet_type, ack_flag, data = ''):
         self.sourceid = sourceid
         self.flowid = flowid
         self.destinationid = destinationid
         self.number_in_sequence = number_in_sequence
-        self.sequence_size = sequence_size
         self.ack_flag = ack_flag
         self.data = data
-
+        self.packet_type = packet_type
         self.size = 0
 
         # set the packet size in bits
@@ -32,11 +31,8 @@ class Packet:
     def get_destination(self):
         return self.destination
 
-    def get_number_in_sequence(self):
-        return self.number_in_sequence
-
-    def get_sequence_size(self):
-        return self.get_sequence_size
+    def get_packet_type(self):
+        return self.packet_type
 
     def get_data(self):
         return self.data

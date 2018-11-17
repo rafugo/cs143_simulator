@@ -8,5 +8,5 @@ globals.initialize()
 globals.systime += 1
 
 # create the simulator with the given filename
-sim = Simulator('<insert filename here>')
+sim = Simulator('input_file.json')
 sim.run()

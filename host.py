@@ -3,15 +3,16 @@ from packet import Packet
 from link import Link
 
 class Host:
-    def __init__(self, id, linkid):
-        self.id = id
+    def __init__(self, hostid, ip, linkid):
+        self.id = hostid
+        self.ip = ip
         self.linkid = linkid
 
     # sends the packet by adding (or attempting to add) the packet the link
     # buffer
     def send_packet(self, p):
         # get the actual link object
-        connected_link = globals.idmapping[self.linkid]
+        connected_link = globals.idmapping['links'][self.linkid]
 
         # add the packet to the link buffer
         connected_link.add_to_buffer(p, self.id)

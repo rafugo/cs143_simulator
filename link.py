@@ -9,13 +9,13 @@ from packet import Packet
 # or buffer size metrics later, perhaps we should reconsider.
 
 class Link:
-    def __init__(self, id, connection1, connection2, rate, delay, buffersize, \
+    def __init__(self, linkid, connection1, connection2, rate, delay, buffersize, \
                   cost):
         # note: self.links will be a dictionary of the form ID: link where ID
         # specifies the ID of the object that will be sending things along the
         # link.
-        self.links = {connection1: HalfLink(id, connection2, rate, delay, \
-                      buffersize, cost), connection2: HalfLink(id, connection1,\
+        self.links = {connection1: HalfLink(linkid, connection2, rate, delay, \
+                      buffersize, cost), connection2: HalfLink(linkid, connection1,\
                       rate, delay, buffersize, cost)}
 
     # Now when we call add_to_buffer() on a Link, we need to identify which of
@@ -136,7 +136,14 @@ class HalfLink:
                 self.packet_arrival_times.pop(0)
 
                 # deliver it
-                receiver = globals.idmapping[self.destination]
+                dest_type = ''
+                # if first letter is an H
+                if self.destination[0] == 'H':
+                    dest_type = 'hosts'
+                else: 
+                    dest_type = 'routers'
+
+                receiver = globals.idmapping[dest_type][self.destination]
                 receiver.receive_packet(packet_to_send)
 
                 print("packet delivered")
