@@ -20,7 +20,7 @@ class Host:
 
     # this is in charge of sending acknowledgements of packets received
     # (as well as notifying the correct flow about the packet)
-    def receive_packet(self, p):
+    def receive_packet(self, p, linkid):
         # TODO:
 
         # check whether packet or acknowledgement

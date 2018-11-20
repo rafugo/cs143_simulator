@@ -1,0 +1,25 @@
+{
+    "hosts": [
+        {
+            "id": "H0",
+            "ip": "000.000.000.000",
+            "linkid" : "L01"
+        },
+        {
+            "id": "H1",
+            "ip": "000.000.000.001",
+            "linkid" : "L01"
+        }
+    ],
+    "links": [
+        {
+            "id": "L01",
+            "connection1" : "H0",
+            "connection2" : "H1",
+            "rate" : 100,
+            "delay" : 5,
+            "buffersize" : 1000,
+            "cost" : 9
+        }
+    ]
+}

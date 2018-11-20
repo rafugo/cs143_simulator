@@ -12,7 +12,7 @@ class Router:
     #         communicate routing tables.
     #       - recieve and correctly route (send) packets.
 
-    def recieve_packet(self, h):
+    def recieve_packet(self, h, linkid):
         if (h.handshake_flag):
             # Do whatever needs to be done if the packet is receiving a handshake (send awknoledgement back)
 
