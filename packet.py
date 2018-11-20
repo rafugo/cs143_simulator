@@ -3,7 +3,7 @@ import globals
 class Packet:
     # TODO: figure out how to represent data, most notably being the routing
     #       tables which must be communicated between the routers.
-    def __init__(self, sourceid, flowid, destinationid, number_in_sequence, packet_type, ack_flag, data = ''):
+    def __init__(self, sourceid, flowid, destinationid, number_in_sequence, packet_type, ack_flag, handshake_flag, data = ''):
         self.sourceid = sourceid
         self.flowid = flowid
         self.destinationid = destinationid
@@ -11,11 +11,14 @@ class Packet:
         self.ack_flag = ack_flag
         self.data = data
         self.packet_type = packet_type
+        self.handshake_flag = handshake_flag
         self.size = 0
 
         # set the packet size in bits
         if ack_flag:
             self.size = globals.ACKSIZE
+        elif handshake_flag:
+            self.size = globals.HANDSIZE
         else:
             self.size = globals.PACKETSIZE
 
@@ -39,3 +42,6 @@ class Packet:
 
     def get_size(self):
         return self.size
+
+    def get_handshake_flag(self):
+        return self.handshake_flag

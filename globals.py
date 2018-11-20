@@ -42,6 +42,9 @@ def initialize():
     global ACKSIZE
     ACKSIZE = 64*8
 
+    global HANDSIZE
+    HANDSIZE = 64 * 8
+
     global STANDARDPACKET
     STANDARDPACKET = 'standard_packet'
 
