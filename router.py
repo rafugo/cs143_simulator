@@ -30,7 +30,7 @@ class Router:
             # Determine the Link Cost Here (Using Link_Delay and Transmit_Time):
             cur_time = globals.systime
             transmit_time = cur_time - router_details[1]
-            link_delay = globals.idmapping['links'][linkid].delay
+            link_delay = linkid.delay
             link_cost = link_delay + transmit_time
 
 
@@ -43,7 +43,9 @@ class Router:
             calc_routing_table(packet.data)
 
         else:
-            dest_details = routing_table.get(packet.destinationid)
+            link_path = routing_table.get(packet.destinationid)[0]
+
+            link_path.add_to_buffer(packet)
 
 
 
@@ -63,7 +65,7 @@ class Router:
 
         # send out the handshake packet along every adjacent link
         for l in self.links:
-            l.add_to_buffer(self.id, handshake_packet)
+            l.add_to_buffer(handshake_packet)
 
 
 
