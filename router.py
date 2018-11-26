@@ -14,6 +14,7 @@ class Router:
 
     def recieve_packet(self, packet, linkid):
 
+
         # Preform different actions depending on what type of packet is sent to the router
         if (packet.handshake_flag):
             # Send back an awknoledgement packet if it recieves a handshake
