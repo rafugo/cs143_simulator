@@ -23,6 +23,8 @@ class Flow:
         self.total = amount
         # time at which the flow simulation starts, in ms
         self.start = start
+        # next time to send a packet
+        self.next_packet_send_time = start
         # list of actual packets to be sent
         self.packets = []
         for i in range(0, amount):
@@ -51,6 +53,7 @@ class Flow:
         assert packet.source == self.destination
         assert packet.destination == self.source
 
+        print("received ack from " + str(p.data))
         # remove the packet from the list of packets that need to be sent
         # p.data contains the id of the next packet it needs
         if (p.data >  self.next_packet):
@@ -61,17 +64,25 @@ class Flow:
 
     # attempts to send window_size amount of packets through the host
     def send_packets(self):
-        # check to see if more than 0 packets exist need to be sent
-        assert(self.amount > 0)
-        # assumes packet id is the same as its index in the list
-        # send a window size of packets
-        print(self.next_packet)
-        print(self.next_packet + self.window_size)
-        for p in range(self.next_packet, self.next_packet + self.window_size):
-            self.source.send_packet(self.packets[p])
+        # if sending first packet in the flow
+        # SEND SYNC PACKET FIRST
+        #if (self.next_packet = 0):
 
-        # log if the flow is completed
-        # log when the acknowledgement is received
+        # need to check when to send the next window size of packets
+        if (globals.systime >= self.start and \
+            globals.systime >= self.next_packet_send_time):
+
+            # check to see if more than 0 packets exist need to be sent
+            assert(self.amount > 0)
+            # assumes packet id is the same as its index in the list
+            # send a window size of packets
+            #if ()
+            for p in range(self.next_packet, self.next_packet + self.window_size):
+                self.source.send_packet(self.packets[p])
+
+            self.next_packet_send_time += self.min_rtt
+            # log if the flow is completed
+            # log when the acknowledgement is received
 
     def completed(self):
         return self.done

@@ -116,13 +116,15 @@ class HalfLink:
             self.next_packet_send_time = \
                 globals.systime + (1 / self.rate) * (packet.get_size())
 
+            # print('what we add to systime ' + str(((1 / self.rate) * (packet.get_size()))))
+
 
     def send_packet(self):
 
         # print(self.id)
-        # print(len(self.buffer))
-        # print(self.next_packet_send_time)
-        # print(globals.systime)
+        # print('buffer length ' + str(len(self.buffer)))
+        # print('next packet send time ' + str(self.next_packet_send_time))
+        # print('systime ' + str(globals.systime))
 
         # If we are at or have passed the time at which we should send the next
         # packet, we should try to send the next packet.
@@ -131,7 +133,7 @@ class HalfLink:
             # send at this time.
 
 
-            
+
 
             if (len(self.buffer) == 0):
                 self.next_packet_send_time = \
@@ -165,7 +167,7 @@ class HalfLink:
                     if (len(self.buffer) > 0):
                         next_packet_size = self.buffer[0].get_size()
                         self.next_packet_send_time = \
-                            globals.systime + self.rate * (1 / next_packet_size)
+                            globals.systime + 1/self.rate * (next_packet_size)
 
                     else:
                         self.next_packet_send_time = \

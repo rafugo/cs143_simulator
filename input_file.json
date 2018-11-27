@@ -16,9 +16,9 @@
             "id": "L01",
             "connection1" : "H0",
             "connection2" : "H1",
-            "rate" : 100,
+            "rate" : 10000000000000000,
             "delay" : 5,
-            "buffersize" : 1000,
+            "buffersize" : 1000000,
             "cost" : 9
         }
     ],
