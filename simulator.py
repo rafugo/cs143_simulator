@@ -3,6 +3,7 @@ from host import Host
 from link import Link
 from packet import Packet
 from router import Router
+from flow import Flow
 import json
 from pprint import pprint
 
@@ -51,6 +52,13 @@ class Simulator:
             router = Router(r['id'], r['ip'], link_list)
             globals.idmapping['routers'][r['id']] = router
 
+        for f in network_objects['flows']:
+            # clear the variable
+            flow = None
+            # add to idmapping
+            flow = Flow(f['id'], f['source'], f['destination'], f['amount'], \
+                f['start'], f['congestion_control'], f['window_size'], f['min_rtt'])
+            globals.idmapping['flows'][f['id']] = flow
 
     def run(self):
 
@@ -62,8 +70,11 @@ class Simulator:
         host0.send_packet(packet0)
 
         for i in range(100000):
+            for flow in globals.idmapping['flows'].values():
+                flow.send_packets()
             for link in globals.idmapping['links'].values():
                 link.send_packet()
+
 
             globals.systime += globals.dt
         # print(globals.statistics)

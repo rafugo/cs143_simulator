@@ -8,7 +8,7 @@ class Host:
         self.ip = ip
         self.linkid = linkid
 
-        # NOTE: this is the dictionary of flows to packets seen 
+        # NOTE: this is the dictionary of flows to packets seen
         # say there are 3 flows
         #       'flow1id' : [0, 1, 2, 3]
         #       'flow2id' : [0, 1, 2, 3, 4, 6, 7, 8, 9]
@@ -29,7 +29,7 @@ class Host:
     # this is in charge of sending acknowledgements of packets received
     # (as well as notifying the correct flow about the packet)
     def receive_packet(self, p, linkid):
-        
+
         # needs to keep track of what flows it's a part of
         flowid = p.get_flowid();
 
@@ -41,7 +41,7 @@ class Host:
                             globals.HANDSHAKEACK, data = data)
 
             self.send_packet(ack)
-            
+
             print("handshake acknowledgement sent from " + self.id)
 
 
@@ -52,7 +52,7 @@ class Host:
         # needs to give any acknowledgements to appropriate flows
 
         # needs to send acknowledgements for packets it receives
-        # if it's a packet without 
+        # if it's a packet without
 
 
 
