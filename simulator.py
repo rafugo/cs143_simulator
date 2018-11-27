@@ -37,7 +37,7 @@ class Simulator:
             host = Host(h['id'], h['ip'], h['linkid'])
             globals.idmapping['hosts'][h['id']] = host
 
-        # create hosts
+        # create routers
         for r in network_objects['routers']:
             # clear the variable
             router = None
