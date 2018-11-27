@@ -17,6 +17,7 @@ class Packet:
                     1: an acknowledgement packet
                     2: a handshake acknowledgement packet
                     3: a handshake packet
+                    4: a routing table packet
                 - data : the data to be sent in the packet"""
         self.sourceid = sourceid
         self.flowid = flowid
@@ -64,3 +65,6 @@ class Packet:
 
     def is_handshake_ack(self):
         return (self.packet_type == 2)
+
+    def is_routing(self):
+        return (self.packet_type == 4)
