@@ -14,7 +14,6 @@ class Router:
 
     def recieve_packet(self, packet, linkid):
 
-
         # Preform different actions depending on what type of packet is sent to the router
         if (packet.handshake_flag):
             # Send back an awknoledgement packet if it recieves a handshake
@@ -44,16 +43,18 @@ class Router:
             calc_routing_table(packet.data)
 
         else:
-            link_path = routing_table.get(packet.destinationid)[0]
-
-            link_path.add_to_buffer(packet)
-
+            foward_packet(packet)
+            
 
 
 
 
 
+    # Function to manage forwarding packets along the routing table
     def foward_packet(self, packet):
+        link_path = routing_table.get(packet.destinationid)[0]
+
+        link_path.add_to_buffer(packet)
 
 
 
@@ -78,10 +79,45 @@ class Router:
     #
     def calc_routing_table(self, table_2):
         # 1) Determine Cost of link between "self" router and table_2 router, and the Link ID that it was sent on
-        
-        # 2) Add cost to every cost value in the table_2 routing table
+        updated = False
+        con_link_id = table2.get(router_id)[0]
+        cost_between = table_2.get(router_id)[1]
 
-        # 
+
+        # Add link cost to all cost values in table_2 routing table
+        for key in table_2:
+            table_2[key][1] += cost_between
+
+        for key in self.routing_table:
+
+
+        # For each key in table_2, check if it is in the routing table or has a smaller value than the current path
+        for key in table_2:
+            t2_cost = table_2.get(key)[1]
+            rt_cost = self.routing_table.get(key, [0, "not_in"])[1]
+
+            # if the destination is currently not in the routing table
+            if (rt_cost == "not_in"):
+                self.routing_table[key] = [con_link_id, t2_cost]
+
+            # If the destination is in the current routing table but table_2 provides a quicker route
+            elif (t2_cost < rt_cost):
+                self.routing_table[key] = [con_link_id, t2_cost]
+                updated = True
+
+        # If we updated our routing table, send out our new routing table as a packet to all neighboring routers
+
+
+
+
+
+
+
+
+
+
+
+
         
 
 
