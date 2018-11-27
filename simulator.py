@@ -39,6 +39,10 @@ class Simulator:
 
     def run(self):
 
+        
+
+
+
         # make a packet
         packet0 = Packet("H0", "0", "H1", None, 0, data = '143 rox!')
 

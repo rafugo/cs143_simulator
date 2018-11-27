@@ -12,6 +12,7 @@ class Router:
     #         communicate routing tables.
     #       - recieve and correctly route (send) packets.
 
+
     # Cortland- Here, you accessed the elements stored in the packets (i.e.
     # packet.handshake_flag, packet.source, packet.data, etc.). We should not
     # access these fields directly. Instead, I have created functions in the
@@ -47,21 +48,26 @@ class Router:
             self.routing_table[router_details[0]] = [linkid, link_cost]
 
 
-        '''elif(packet.routing_table_flag):
+        '''
+        elif(packet.routing_table_flag):
             # calculate the new routing table based on the old one
             calc_routing_table(packet.data)
 
         else:
-            link_path = routing_table.get(packet.destinationid)[0]
+            foward_packet(packet)
+            
 
-            link_path.add_to_buffer(packet)
         '''
 
 
 
 
 
+    # Function to manage forwarding packets along the routing table
     def foward_packet(self, packet):
+        link_path = routing_table.get(packet.destinationid)[0]
+
+        link_path.add_to_buffer(packet)
 
 
 
@@ -87,6 +93,51 @@ class Router:
     def calc_routing_table(self, table_2):
         pass 
         # 1) Determine Cost of link between "self" router and table_2 router, and the Link ID that it was sent on
+        updated = False
+        con_link_id = table2.get(router_id)[0]
+        cost_between = table_2.get(router_id)[1]
+
+
+        # Add link cost to all cost values in table_2 routing table
+        for key in table_2:
+            table_2[key][1] += cost_between
+
+        for key in self.routing_table:
+
+
+        # For each key in table_2, check if it is in the routing table or has a smaller value than the current path
+        for key in table_2:
+            t2_cost = table_2.get(key)[1]
+            rt_cost = self.routing_table.get(key, [0, "not_in"])[1]
+
+            # if the destination is currently not in the routing table
+            if (rt_cost == "not_in"):
+                self.routing_table[key] = [con_link_id, t2_cost]
+
+            # If the destination is in the current routing table but table_2 provides a quicker route
+            elif (t2_cost < rt_cost):
+                self.routing_table[key] = [con_link_id, t2_cost]
+                updated = True
+
+        # If we updated our routing table, send out our new routing table as a packet to all neighboring routers
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+        # If the routing
+
+
 
         # 2) Add cost to every cost value in the table_2 routing table
 
