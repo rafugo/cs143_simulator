@@ -31,7 +31,7 @@ class Router:
         if (packet.is_handshake()):
             # Send back an awknoledgement packet if it recieves a handshake
             data = self.id + " " + str(globals.systime)
-            ack = Packet(self.id, None, packet.get_source(), None, 2, data = data)
+            ack = Packet(self.id, None, packet.get_source(), None, globals.HANDSHAKEACK, data = data)
             print ("HANDSHAKE RECIEVED")
             # Add the acknowledgement packet to the buffer on the link that sent the data
 
@@ -81,7 +81,7 @@ class Router:
     def init_routing_table(self):
 
         # Define the handshake packet with the router id as its data
-        handshake_packet = Packet(self.id, None, None, None, 3, data = (self.id))
+        handshake_packet = Packet(self.id, None, None, None, globals.HANDSHAKEPACKET, data = (self.id))
 
         # send out the handshake packet along every adjacent link
         for l in self.links:

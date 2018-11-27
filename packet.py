@@ -30,12 +30,12 @@ class Packet:
 
         # sets the acknowledgement flag to be true if the packet is either a
         # normal acknowledgment or a handshake acknoweledgement packet.
-        self.ack_flag = (packet_type == 1 or packet_type == 2)
+        self.ack_flag = (packet_type == globals.ACKPACKET or packet_type == globals.HANDSHAKEACK)
 
         # set the packet size in bits according to its type.
-        if packet_type == 1 or packet_type == 2:
+        if packet_type == globals.ACKPACKET or packet_type == globals.HANDSHAKEACK:
             self.size = globals.ACKSIZE
-        elif packet_type == 3:
+        elif packet_type == globals.HANDSHAKEPACKET:
             self.size = globals.HANDSIZE
         else:
             self.size = globals.PACKETSIZE
@@ -43,8 +43,8 @@ class Packet:
     def is_ack(self):
         return self.ack_flag
 
-    def get_flow(self):
-        return self.flow
+    def get_flowid(self):
+        return self.flowid
 
     def get_source(self):
         return self.sourceid
@@ -62,7 +62,7 @@ class Packet:
         return self.size
 
     def is_handshake(self):
-        return (self.packet_type == 3)
+        return (self.packet_type == globals.HANDSHAKEPACKET)
 
     def is_handshake_ack(self):
-        return (self.packet_type == 2)
+        return (self.packet_type == globals.HANDSHAKEACK)
