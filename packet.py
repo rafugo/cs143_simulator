@@ -12,11 +12,13 @@ class Packet:
                            with
                 - destinationid : the string ID of the packet's destination
                 - number_in_sequence : the number of the packet in its sequence
-                - packet_type : an integer idetifying the type of the packet.
-                    0: a normal packet
-                    1: an acknowledgement packet
-                    2: a handshake acknowledgement packet
-                    3: a handshake packet
+                - packet_type : a string idetifying the type of the packet,
+                                (found in globals).
+                    STANDARDPACKET: a normal packet
+                    ACKPACKET: an acknowledgement packet
+                    ROUTINGPACKET: a routing table packet
+                    SYNPACKET: a synchronization packet
+                    SYNACK: a synchronization packet acknowledgement
                 - data : the data to be sent in the packet"""
         self.sourceid = sourceid
         self.flowid = flowid
