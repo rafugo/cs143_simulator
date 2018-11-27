@@ -1,31 +1,61 @@
 import globals
 from packet import Packet
 
-# Something to think about- right now, we are considering an entire packet to
-# be in the buffer until it has finished transmitting. I don't know if this is
-# sufficient or if we need to free space in the buffer as we transmit the
-# the packet. It seems like that might be more detailed than necessary, so for
-# now I am leaving it as is, but especially if we notice unexpected packet loss
-# or buffer size metrics later, perhaps we should reconsider.
-
 class Link:
     def __init__(self, linkid, connection1, connection2, rate, delay, buffersize, \
                   cost):
-        # note: self.links will be a dictionary of the form ID: link where ID
-        # specifies the ID of the object that will be sending things along the
-        # link.
+        """This function initializes a new link objects
+           INPUT ARGUMENTS-
+               linkid : The string ID of the link being constructed
+               connection1 : The string ID of the object connected to one side
+                             of the link
+               connection2 : The string ID of the object connected to the other
+                             side of the link.
+               rate : The link rate of the link (in Mbps)
+               delay : The propagation delay of the link (in ms)
+               buffersize : The size of the buffer for this link in KB.
+           FIELDS-
+               links : A dictionary with entries of the form ID : half link,
+                       where ID specifies the ID of the object that will be
+                       be sending things along that half link.
+               buffercapacity : The total capacity of the link's buffer (in bits)
+               delay : The propagation delay of the link (in s)
+               id : The string ID of the link """
         self.links = {connection1: HalfLink(linkid, connection2, rate, delay, \
                       buffersize, cost), connection2: HalfLink(linkid, connection1,\
                       rate, delay, buffersize, cost)}
+        self.buffercapacity = buffersize * 8 * (10**4)
+        self.delay = delay * 10^(-3)
+        self.id = linkid
 
-    # Now when we call add_to_buffer() on a Link, we need to identify which of
-    # its HalfLinks we should be adding the packet to and add it appropriately.
+
+    def get_delay():
+        return delay
+
+
     def add_to_buffer(self, packet, sender):
+        """This function adds a packet to the buffer on the appropriate side of
+           the link if possible, dropping it if there is insufficient space left
+           in the buffer. It also updates the global tracking of buffer occupancy
+           as necessary. """
+        # Here, we should figure out whether or not a packet was dropped by
+        # checking if the buffer size changes during this call. If it does,
+        # no packet was dropped. If it does not, a packet was dropped.
         self.links[sender].add_to_buffer(packet)
 
-    # Now, when we call send_packet() at every time step, we need to try to
-    # send a packet on both of the HalfLinks corresponding to the Link
+        # Some metric tracking
+        if (globals.BUFFEROCCUPANCY in globals.LINKMETRICS):
+            current = globals.statistics[self.id + ":" + globals.BUFFEROCCUPANCY]
+            buffersize = self.buffercapacity
+            for l in self.links:
+                buffersize = buffersize - self.links[l].get_buffer_size()
+            current[globals.systime] = buffersize
+            globals.statistics[self.id + ":" + globals.BUFFEROCCUPANCY] = current
+
+
     def send_packet(self):
+        """This function will try to send a packet on both og the half links
+           corresponding to the Link."""
         for link in self.links.values():
             link.send_packet()
 
@@ -39,7 +69,9 @@ class HalfLink:
         # Converts the propagation delay from ms to s
         self.delay = delay * 10^(-3)
         # Converts the buffer size from KB to b
-        self.buffersize = buffersize * 8 * (10**4)
+        # Note: we divide the buffersize by two because each half link only
+        #       has half the capactiy of the total buffer.
+        self.buffersize = buffersize * 8 * (10**4) / 2
         self.buffer = []
         self.destination = destination
         self.cost = cost
@@ -52,11 +84,14 @@ class HalfLink:
         # transmission should be arriving at their destination.
         self.packet_arrival_times = []
 
+    def get_buffer_size(self):
+        return self.buffersize
+
     def add_to_buffer(self, packet):
         """This function will try to add the Packet packet to the buffer. It
         will only add packet to the buffer if there is still space in the
         buffer for it. Otherwise, the packet will be dropped."""
-        
+
         first_pack = False
         # need to know whether it is the first packet added
         if (len(self.buffer) == 0):
@@ -110,7 +145,7 @@ class HalfLink:
                     # append the packet to the transmission
                     self.packets_in_transmission.append(packet_to_send)
                     self.packet_arrival_times.append(globals.systime + self.delay)
-                    
+
                     # get the next earliest time we can send the next packet
                     if (len(self.buffer) > 0):
                         next_packet_size = self.buffer[0].get_size()
@@ -140,7 +175,7 @@ class HalfLink:
                 # if first letter is an H
                 if self.destination[0] == 'H':
                     dest_type = 'hosts'
-                else: 
+                else:
                     dest_type = 'routers'
 
                 receiver = globals.idmapping[dest_type][self.destination]
