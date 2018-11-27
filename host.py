@@ -24,11 +24,14 @@ class Host:
 
         # add the packet to the link buffer
         connected_link.add_to_buffer(p, self.id)
+        print("sending packet from host " + self.id)
 
 
     # this is in charge of sending acknowledgements of packets received
     # (as well as notifying the correct flow about the packet)
     def receive_packet(self, p, linkid):
+
+        print("some packet received by host " + self.id)
 
         # needs to keep track of what flows it's a part of
         flowid = p.get_flowid();
