@@ -70,7 +70,8 @@ class Flow:
 
         # need to check when to send the next window size of packets
         if (globals.systime >= self.start and \
-            globals.systime >= self.next_packet_send_time):
+            globals.systime >= self.next_packet_send_time and\
+            not self.done):
 
             # check to see if more than 0 packets exist need to be sent
             assert(self.amount > 0)
