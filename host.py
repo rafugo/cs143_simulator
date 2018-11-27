@@ -23,8 +23,9 @@ class Host:
         connected_link = globals.idmapping['links'][self.linkid]
 
         # add the packet to the link buffer
-        connected_link.add_to_buffer(p, self.id)
+        
         print("sending packet from host " + self.id)
+        connected_link.add_to_buffer(p, self.id)
 
 
     # this is in charge of sending acknowledgements of packets received
@@ -43,9 +44,10 @@ class Host:
             ack = Packet(self.id, None, p.get_source(), None, \
                             globals.HANDSHAKEACK, data = data)
 
-            self.send_packet(ack)
 
             print("handshake acknowledgement sent from " + self.id)
+            self.send_packet(ack)
+
 
 
         # if it's a standard packet, it's from a flow
@@ -79,8 +81,9 @@ class Host:
             ack = Packet(self.id, flowid, p.get_source(), None, \
                             globals.ACKPACKET, data = packetid_needed + 1)
 
-            self.send_packet(ack)
+
             print("standard ack sent from " + self.id)
+            self.send_packet(ack)
 
         # if it's an acknowledgement, let the flow know we got one
         elif (p.get_packet_type() == globals.ACKPACKET):
@@ -88,8 +91,9 @@ class Host:
             flow = globals.idmapping['flows'][flowid]
 
             # process the acknowledgement
-            flow.process_ack(p)
+
             print("ack given to flow "+flowid+" from host "+self.id)
+            flow.process_ack(p)
 
 
 
