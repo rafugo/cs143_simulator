@@ -61,6 +61,9 @@ class Flow:
         # the next packet to send is out of index so we've sent everything
         if (self.next_packet >= len(self.packets)):
             self.done = True
+            print()
+            print("done sending flow " + self.id)
+            print()
 
     # attempts to send window_size amount of packets through the host
     def send_packets(self):
