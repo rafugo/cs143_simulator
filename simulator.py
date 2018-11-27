@@ -26,7 +26,7 @@ class Simulator:
             globals.idmapping['links'][l['id']] = link
             for m in globals.LINKMETRICS:
                 globals.statistics[l['id']+":"+m] = {}
- #              print(globals.statistics);
+                # print(globals.statistics);
 
         # create hosts
         for h in network_objects['hosts']:

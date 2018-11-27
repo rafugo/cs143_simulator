@@ -30,10 +30,10 @@ class Packet:
 
         # sets the acknowledgement flag to be true if the packet is either a
         # normal acknowledgment or a handshake acknoweledgement packet.
-        self.ack_flag = (packet_type == 1 or packet_type == 2)
+        self.ack_flag = (packet_type == globals.ACKPACKET or packet_type == globals.HANDSHAKEACK)
 
         # set the packet size in bits according to its type.
-        if packet_type == ACKPACKET or packet_type == HANDSHAKEACK:
+        if packet_type == globals.ACKPACKET or packet_type == globals.HANDSHAKEACK:
             self.size = globals.ACKSIZE
         elif packet_type == globals.HANDSHAKEPACKET:
             self.size = globals.HANDSIZE
