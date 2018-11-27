@@ -35,9 +35,10 @@ class Flow:
             assert packet.destination == self.source
 
             # remove the packet from the list of packets that need to be sent
+            # p.data contains the id of the next packet it needs
             if (p.data >  next_packet)
                 next_packet = p.data
-            # the next packet to send in out of index so we've sent everything
+            # the next packet to send is out of index so we've sent everything
             if (next_packet >= len(packets))
                 self.done = True
 

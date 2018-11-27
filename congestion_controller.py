@@ -1,9 +1,6 @@
 import sys
 
 class CongestionController:
-
-
-class CongestionController:
     '''
         ssthresh: Slow Start Threshold
         cwnd: Congestion Window Size
@@ -48,16 +45,20 @@ class CongestionController:
     def send_packet(self):
         sys.exit("Abstract method send_packet not implemented")
 
-    def wake(self):
+    def restart(self):
         sys.exit("Abstract method wake not implemented")
 
 # implement TCP Reno
 class CongestionControllerReno(CongestionController):
 
     def __init__(self):
-        # create an instance of a congestion controller
-        CongestionController.__init__(self)
-        # starts in slow state
-        self.state = slow_start
-        # packet id of the fast sent during fast recovery
-        self.FR_packet = None
+        pass
+
+    def acknowledgement_received(self, packet):
+        pass
+
+    def send_packet(self):
+        pass
+
+    def restart(self):
+        pass
