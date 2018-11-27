@@ -58,7 +58,6 @@ class Flow:
         # p.data contains the id of the next packet it needs
         if (p.data >  self.next_packet):
             self.next_packet = p.data
-            print("NEXT packet " + str(self.next_packet))
         # the next packet to send is out of index so we've sent everything
         if (self.next_packet >= len(self.packets)):
             self.done = True
