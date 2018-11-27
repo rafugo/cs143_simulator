@@ -54,12 +54,8 @@ class Simulator:
 
     def run(self):
 
-        
-
-
-
         # make a packet
-        packet0 = Packet("H1", "0", "H2", None, 0, data = '143 rox!')
+        packet0 = Packet("H1", "0", "H2", None, globals.STANDARDPACKET, data = '143 rox!')
 
         host0 = globals.idmapping['hosts']['H1']
 

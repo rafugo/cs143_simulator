@@ -33,9 +33,9 @@ class Packet:
         self.ack_flag = (packet_type == 1 or packet_type == 2)
 
         # set the packet size in bits according to its type.
-        if packet_type == 1 or packet_type == 2:
+        if packet_type == ACKPACKET or packet_type == HANDSHAKEACK:
             self.size = globals.ACKSIZE
-        elif packet_type == 3:
+        elif packet_type == globals.HANDSHAKEPACKET:
             self.size = globals.HANDSIZE
         else:
             self.size = globals.PACKETSIZE
@@ -62,7 +62,7 @@ class Packet:
         return self.size
 
     def is_handshake(self):
-        return (self.packet_type == 3)
+        return (self.packet_type == globals.HANDSHAKEPACKET)
 
     def is_handshake_ack(self):
-        return (self.packet_type == 2)
+        return (self.packet_type == globals.HANDSHAKEACK)

@@ -8,6 +8,14 @@ class Host:
         self.ip = ip
         self.linkid = linkid
 
+        # NOTE: this is the dictionary of flows to packets seen 
+        # say there are 3 flows
+        #       'flow1id' : [0, 1, 2, 3]
+        #       'flow2id' : [0, 1, 2, 3, 4, 6, 7, 8, 9]
+        #       'flow3id' : [0, 1]
+
+        self.flow_packets_seen = {}
+
     # sends the packet by adding (or attempting to add) the packet the link
     # buffer
     def send_packet(self, p):
@@ -21,13 +29,22 @@ class Host:
     # this is in charge of sending acknowledgements of packets received
     # (as well as notifying the correct flow about the packet)
     def receive_packet(self, p, linkid):
-        # TODO:
+        
+        # needs to keep track of what flows it's a part of
+        flow = p.get_flow();
+        
 
-        # check whether packet or acknowledgement
 
-        # if packet, send ack to the source of the packet
+        # check what flow the packet pertains to
 
-        # if ack, call corresponding flow's `process_ack(p)`
+
+
+        # needs to give any acknowledgements to appropriate flows
+
+        # needs to send acknowledgements for packets it receives
+        # if it's a packet without 
+
+
 
         print(p.get_data())
 

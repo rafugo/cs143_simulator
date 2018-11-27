@@ -9,4 +9,5 @@ globals.systime += 1
 
 # create the simulator with the given filename
 sim = Simulator('router_test.json')
+sim.run()
 sim.rt_init_test()
