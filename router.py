@@ -21,7 +21,7 @@ class Router:
     # and use that. I did this as much as I could. Eventually, I reached a part
     # of your code that tries to access packet.routing_table_flag, which I don't
     # believe exists, so I just commented out that part for now.
-    def recieve_packet(self, packet, linkid):
+    def receive_packet(self, packet, linkid):
 
         # Preform different actions depending on what type of packet is sent to the router
         if (packet.is_handshake()):

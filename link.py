@@ -20,7 +20,7 @@ class Link:
                        be sending things along that half link.
                buffercapacity : The total capacity of the link's buffer (in bits)
                delay : The propagation delay of the link (in s)
-               id : The string ID of the link """"
+               id : The string ID of the link """
         self.links = {connection1: HalfLink(linkid, connection2, rate, delay, \
                       buffersize, cost), connection2: HalfLink(linkid, connection1,\
                       rate, delay, buffersize, cost)}
