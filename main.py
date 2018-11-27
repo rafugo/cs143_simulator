@@ -8,5 +8,5 @@ globals.initialize()
 globals.systime += 1
 
 # create the simulator with the given filename
-sim = Simulator('input_file.json')
-sim.run()
+sim = Simulator('router_test.json')
+sim.rt_init_test()

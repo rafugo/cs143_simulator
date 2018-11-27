@@ -47,7 +47,7 @@ class Packet:
         return self.flow
 
     def get_source(self):
-        return self.source
+        return self.sourceid
 
     def get_destination(self):
         return self.destination
