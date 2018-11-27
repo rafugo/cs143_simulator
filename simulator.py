@@ -39,18 +39,19 @@ class Simulator:
             globals.idmapping['hosts'][h['id']] = host
 
         # create routers
-        for r in network_objects['routers']:
-            # clear the variable
-            router = None
-        
-            # get the list of links connected to each router
-            link_list = []
-            for lin_id in r['links']:
-                link_list.append(globals.idmapping['links'][lin_id])
-        
-            # initialize router and add to idmapping
-            router = Router(r['id'], r['ip'], link_list)
-            globals.idmapping['routers'][r['id']] = router
+        if network_objects['routers'] != [{}]:
+            for r in network_objects['routers']:
+                # clear the variable
+                router = None
+            
+                # get the list of links connected to each router
+                link_list = []
+                for lin_id in r['links']:
+                    link_list.append(globals.idmapping['links'][lin_id])
+            
+                # initialize router and add to idmapping
+                router = Router(r['id'], r['ip'], link_list)
+                globals.idmapping['routers'][r['id']] = router
 
         for f in network_objects['flows']:
             # clear the variable

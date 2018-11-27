@@ -1,0 +1,41 @@
+{
+    "hosts": [
+        {
+            "id": "H1",
+            "ip": "000.000.000.000",
+            "linkid" : "L1"
+        },
+        {
+            "id": "H2",
+            "ip": "000.000.000.001",
+            "linkid" : "L1"
+        }
+    ],
+    "links": [
+        {
+            "id": "L1",
+            "connection1" : "H1",
+            "connection2" : "H2",
+            "rate" : 10,
+            "delay" : 10,
+            "buffersize" : 64,
+            "cost" : 0
+        }
+    ],
+    "routers": [
+        {}
+    ],
+    "flows": [
+        {
+            "id": "F0",
+            "source": "H1",
+            "destination": "H2",
+            "amount": 20,
+            "start": 1,
+            "congestion_control": "nope",
+            "window_size": 5,
+            "min_rtt": 10,
+            "next_packet": 0
+        }
+    ]
+}
