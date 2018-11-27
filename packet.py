@@ -4,14 +4,14 @@ class Packet:
     # Note: As more packet types are necessary, feel free to add more type codes
     #       here. If you do this, make sure that the ack_flag and size fields
     #       are still set appropriately.
-    def __init__(self, sourceid, flowid, destinationid, number_in_sequence, \
+    def __init__(self, sourceid, flowid, destinationid, packetid, \
                  packet_type, data = ''):
         """This function initializes a packet object. Input arguments:
                 - sourceid : the string id of the source of the packet
                 - flowid : the string id of the flow the packet is associated
                            with
                 - destinationid : the string ID of the packet's destination
-                - number_in_sequence : the number of the packet in its sequence
+                - packetid : the number of the packet in its sequence
                 - packet_type : a string idetifying the type of the packet,
                                 (found in globals).
                     STANDARDPACKET: a normal packet
@@ -23,7 +23,7 @@ class Packet:
         self.sourceid = sourceid
         self.flowid = flowid
         self.destinationid = destinationid
-        self.number_in_sequence = number_in_sequence
+        self.packetid = packetid
         self.data = data
         self.packet_type = packet_type
         self.size = 0
@@ -60,6 +60,9 @@ class Packet:
 
     def get_size(self):
         return self.size
+
+    def get_packetid(self):
+        return self.packetid
 
     def is_handshake(self):
         return (self.packet_type == globals.HANDSHAKEPACKET)

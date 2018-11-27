@@ -48,18 +48,51 @@ class Host:
             print("handshake acknowledgement sent from " + self.id)
 
 
-        # check what flow the packet pertains to
+        # if it's a standard packet, it's from a flow
+        elif (p.get_packet_type() == globals.STANDARDPACKET):
+
+            # if we've already seen the flow before, add to the dict
+            if flowid in self.flow_packets_seen.keys():
+                self.flow_packets_seen[flowid].append(p.get_packetid())
+
+            # otherwise it's a new flow so we need to add it to the dict
+            else:
+                self.flow_packets_seen[flowid] = [p.get_packetid()]
+
+            # now we need to send an ack back!
+            # note that we need to find the smallest number that has not been
+            # received in the sequence
+            packetid_needed = -1
+            packets_gotten = self.flow_packets_seen[flowid]
+            for i in range(len(packets_gotten)):
+
+                # if we have seen a packet id and the next one has also been
+                # seen, then update it
+                if packetid_needed + 1 == packets_gotten[i]:
+                    packetid_needed += 1
+
+                else:
+                    break
+
+            # we now have the smallest value that is missing consecutively
+            # send the ack packet
+            ack = Packet(self.id, None, p.get_source(), None, \
+                            globals.ACKPACKET, data = packetid_needed)
+
+
+            print("standard ack sent from " + self.id)
+
+        # if it's an acknowledgement, let the flow know we got one
+        elif (p.get_packet_type() == globals.STANDARDACK):
+            flowid = p.get_flowid()
+            flow = globals.idmapping['flows'][flowid]
+
+            # process the acknowledgement
+            flow.process_ack(p)
+            print("ack given to flow "+flowid+" from host "+self.id)
 
 
 
-        # needs to give any acknowledgements to appropriate flows
-
-        # needs to send acknowledgements for packets it receives
-        # if it's a packet without
-
-
-
-        print(p.get_data())
 
     # TODO:
     #      - send packets
