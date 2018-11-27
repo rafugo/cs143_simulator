@@ -25,6 +25,20 @@
     "routers": [
         {
 
+
         }
+    ],
+    "flows": [
+      {
+          "id": "F0",
+          "source": "H0",
+          "destination": "H1",
+          "amount": 100,
+          "start": 0,
+          "congestion_control": "nope",
+          "window_size": 5,
+          "min_rtt": 10
+
+      }
     ]
 }
