@@ -1,0 +1,69 @@
+{
+    "hosts": [
+        {
+            "id": "H1",
+            "ip": "000.000.000.000",
+            "linkid" : "L01"
+        },
+        {
+            "id": "H2",
+            "ip": "000.000.000.001",
+            "linkid" : "L02"
+        }
+    ],
+    "links": [
+        {
+            "id": "L01",
+            "connection1" : "H1",
+            "connection2" : "R1",
+            "rate" : 100,
+            "delay" : 5,
+            "buffersize" : 1000,
+            "cost" : 7
+        },
+        {
+            "id": "L02",
+            "connection1" : "H2",
+            "connection2" : "R2",
+            "rate" : 100,
+            "delay" : 5,
+            "buffersize" : 1000,
+            "cost" : 5
+        },
+        {
+            "id": "L03",
+            "connection1" : "R1",
+            "connection2" : "R2",
+            "rate" : 100,
+            "delay" : 5,
+            "buffersize" : 1000,
+            "cost" : 3
+        },
+        {
+            "id": "L04",
+            "connection1" : "R2",
+            "connection2" : "H1",
+            "rate" : 100,
+            "delay" : 5,
+            "buffersize" : 1000,
+            "cost" : 2
+        }
+    ],
+    "routers": [
+        {
+            "id": "R1",
+            "ip": "000.000.000.002",
+            "links": ["L01", "L03"]
+
+        },
+        {
+            "id": "R2",
+            "ip": "000.000.000.003",
+            "links": ["L02", "L03", "L04"]
+
+        }
+    ]
+
+
+
+}

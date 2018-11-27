@@ -40,6 +40,7 @@ class Router:
             globals.idmapping['links'][linkid].add_to_buffer(ack, self.id)
 
         elif(packet.is_handshake_ack()):
+
             # split up the data from the acknowledgement packet
             router_details = packet.get_data().split(" ")
 
