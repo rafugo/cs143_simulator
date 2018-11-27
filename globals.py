@@ -17,7 +17,7 @@ def initialize():
     global systime
     systime = 0
 
-    # the time increment settings
+    # the time increment settings, with dt = 0.0001
     global dt
     dt = 1 * (10**-4)
 

@@ -91,6 +91,12 @@ class Simulator:
             router.init_routing_table()
 
         for i in range(500000):
+            if i % 50000 == 0:
+                for router in globals.idmapping['routers'].values():
+                    router.send_routing_table()
+                    print(router.routing_table)
+            
+
             for link in globals.idmapping['links'].values():
                 link.send_packet()
 

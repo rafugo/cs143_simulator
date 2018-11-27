@@ -67,16 +67,7 @@ class Router:
             # routing table to other routers
             if self.handshakes_acked == len(self.links):
 
-                # go through our routing table and send to all routers
-                for entry, (linkid, cost) in self.routing_table.items():
-                    if list(entry)[0] == 'R' and entry != self.id:
-                        print("sending routing table from " + self.id + " to " + entry)
-                        # make our packet
-                        routing_table_packet = \
-                            Packet(self.id, None, entry, None, globals.ROUTINGPACKET, data = self.routing_table)
-
-
-                        globals.idmapping['links'][linkid].add_to_buffer(routing_table_packet, self.id)
+                self.send_routing_table()
 
                 
 
@@ -100,7 +91,16 @@ class Router:
 
         link_path.add_to_buffer(packet, self.id)
 
+    def send_routing_table(self):
+        for entry, (linkid, cost) in self.routing_table.items():
+            if list(entry)[0] == 'R' and entry != self.id:
+                print("sending routing table from " + self.id + " to " + entry)
+                # make our packet
+                routing_table_packet = \
+                    Packet(self.id, None, entry, None, globals.ROUTINGPACKET, data = self.routing_table)
 
+
+                globals.idmapping['links'][linkid].add_to_buffer(routing_table_packet, self.id)
 
 
     # Send handshake packets to initialize data to adjacent routers
