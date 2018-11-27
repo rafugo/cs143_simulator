@@ -1,24 +1,39 @@
 import globals
 
 class Packet:
-    # TODO: figure out how to represent data, most notably being the routing
-    #       tables which must be communicated between the routers.
-    def __init__(self, sourceid, flowid, destinationid, number_in_sequence, packet_type, ack_flag, handshake_flag, handshake_ack_flag, data = ''):
+    # Note: As more packet types are necessary, feel free to add more type codes
+    #       here. If you do this, make sure that the ack_flag and size fields
+    #       are still set appropriately.
+    def __init__(self, sourceid, flowid, destinationid, number_in_sequence, \
+                 packet_type, data = ''):
+        """This function initializes a packet object. Input arguments:
+                - sourceid : the string id of the source of the packet
+                - flowid : the string id of the flow the packet is associated
+                           with
+                - destinationid : the string ID of the packet's destination
+                - number_in_sequence : the number of the packet in its sequence
+                - packet_type : an integer idetifying the type of the packet.
+                    0: a normal packet
+                    1: an acknowledgement packet
+                    2: a handshake acknowledgement packet
+                    3: a handshake packet
+                - data : the data to be sent in the packet"""
         self.sourceid = sourceid
         self.flowid = flowid
         self.destinationid = destinationid
         self.number_in_sequence = number_in_sequence
-        self.ack_flag = ack_flag
         self.data = data
         self.packet_type = packet_type
-        self.handshake_flag = handshake_flag
-        self.handshake_ack_flag = handshake_ack_flag
         self.size = 0
 
-        # set the packet size in bits
-        if ack_flag or handshake_ack_flag: 
+        # sets the acknowledgement flag to be true if the packet is either a
+        # normal acknowledgment or a handshake acknoweledgement packet.
+        self.ack_flag = (packet_type == 1 or packet_type == 2)
+
+        # set the packet size in bits according to its type.
+        if packet_type == 1 or packet_type == 2:
             self.size = globals.ACKSIZE
-        elif handshake_flag:
+        elif packet_type == 3:
             self.size = globals.HANDSIZE
         else:
             self.size = globals.PACKETSIZE
@@ -44,8 +59,8 @@ class Packet:
     def get_size(self):
         return self.size
 
-    def get_handshake_flag(self):
-        return self.handshake_flag
+    def is_handshake(self):
+        return (self.packet_type == 3)
 
-    def get_handshake_ack_flag(self):
-        return self.handshake_ack_flag
+    def is_handshake_ack(self):
+        return (self.packet_type == 2)
