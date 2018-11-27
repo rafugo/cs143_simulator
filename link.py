@@ -29,8 +29,8 @@ class Link:
         self.id = linkid
 
 
-    def get_delay():
-        return delay
+    def get_delay(self):
+        return self.delay
 
 
     def add_to_buffer(self, packet, sender):
@@ -150,7 +150,7 @@ class HalfLink:
                     if (len(self.buffer) > 0):
                         next_packet_size = self.buffer[0].get_size()
                         self.next_packet_send_time = \
-                            globals.systime + self.rate * (1 / packet.size())
+                            globals.systime + self.rate * (1 / next_packet_size)
 
                     else:
                         self.next_packet_send_time = \
