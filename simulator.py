@@ -85,11 +85,9 @@ class Simulator:
             globals.systime += globals.dt
 
         # print (globals.statistics)
-        t2 = {'H1': ['L01', '200'], 'R1': ['L02', 1], 'R2': ['L04', 1]}
+        t2 = {'H1': ['L01', -200], 'R1': ['L02', 1], 'R2': ['L04', 1]}
         for router in globals.idmapping['routers'].values():
 
-            print (router.routing_table)
-            router.calc_routing_table(t2)
             print (router.routing_table)
 
 

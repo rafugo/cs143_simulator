@@ -6,7 +6,7 @@ class Router:
         self.id = id
         self.ip = ip
         self.links = links
-        self.routing_table = {}
+        self.routing_table = {self.id: ['None', 0]}
 
 
 
@@ -49,6 +49,7 @@ class Router:
             transmit_time = cur_time - float(router_details[1])
             link_delay = globals.idmapping['links'][linkid].get_delay()
             link_cost = link_delay + transmit_time
+            print (link_delay)
 
 
             # Update routing table with new cost information
@@ -79,7 +80,7 @@ class Router:
 
     # Send handshake packets to initialize data to adjacent routers
     def init_routing_table(self):
-
+        print ("table initializing")
         # Define the handshake packet with the router id as its data
         handshake_packet = Packet(self.id, None, None, None, globals.HANDSHAKEPACKET, data = (self.id))
 
@@ -105,7 +106,8 @@ class Router:
 
         # Add link cost to all cost values in table_2 routing table
         for key in table_2:
-            table_2.get(key)[1] += cost_between
+ 
+            table_2[key] = [table_2[key][0], table_2[key][1] + cost_between]
 
 
 
