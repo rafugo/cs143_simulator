@@ -53,7 +53,7 @@ class Flow:
         assert p.sourceid == self.destination.id
         assert p.destinationid == self.source.id
 
-        print("received ack from " + str(p.data))
+        print("Flow " + self.id + " received ack with number " + str(p.data))
         # remove the packet from the list of packets that need to be sent
         # p.data contains the id of the next packet it needs
         if (p.data >  self.next_packet):

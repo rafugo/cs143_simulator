@@ -69,7 +69,7 @@ class Simulator:
         #
         # host0.send_packet(packet0)
 
-        for i in range(100000000):
+        for i in range(10000000):
             for flow in globals.idmapping['flows'].values():
                 flow.send_packets()
             for link in globals.idmapping['links'].values():
