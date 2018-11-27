@@ -96,16 +96,16 @@ class Router:
     # an external routing table and then calculates the new routing table from those values
     #
     def calc_routing_table(self, table_2):
-        pass 
         # 1) Determine Cost of link between "self" router and table_2 router, and the Link ID that it was sent on
         updated = False
-        con_link_id = table2.get(router_id)[0]
+        router_id = self.id
+        con_link_id = table_2.get(router_id)[0]
         cost_between = table_2.get(router_id)[1]
 
 
         # Add link cost to all cost values in table_2 routing table
         for key in table_2:
-            table_2[key][1] += cost_between
+            table_2.get(key)[1] += cost_between
 
 
 
