@@ -24,7 +24,7 @@ class Host:
 
         # add the packet to the link buffer
         connected_link.add_to_buffer(p, self.id)
-        pass
+
 
     # this is in charge of sending acknowledgements of packets received
     # (as well as notifying the correct flow about the packet)
@@ -34,7 +34,15 @@ class Host:
         flowid = p.get_flowid();
 
         # if it's a handshake packet
-        #if (p.get_type)
+        if (p.get_packet_type() == globals.HANDSHAKEPACKET):
+            # send handshake back
+            data = self.id + " " + str(globals.systime)
+            ack = Packet(self.id, None, p.get_source(), None, \
+                            globals.HANDSHAKEACK, data = data)
+
+            self.send_packet(ack)
+            
+            print("handshake acknowledgement sent from " + self.id)
 
 
         # check what flow the packet pertains to
