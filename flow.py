@@ -48,16 +48,17 @@ class Flow:
         # does congestion control if needed
     def process_ack(self, p):
         # make sure it's an acknowledgement
-        assert is_ack(p);
+        assert p.is_ack();
         # make sure it got to the right place from the right place
-        assert packet.source == self.destination
-        assert packet.destination == self.source
+        assert p.sourceid == self.destination.id
+        assert p.destinationid == self.source.id
 
         print("received ack from " + str(p.data))
         # remove the packet from the list of packets that need to be sent
         # p.data contains the id of the next packet it needs
         if (p.data >  self.next_packet):
             self.next_packet = p.data
+            print("NEXT packet " + str(self.next_packet))
         # the next packet to send is out of index so we've sent everything
         if (self.next_packet >= len(self.packets)):
             self.done = True
@@ -79,7 +80,6 @@ class Flow:
             #if ()
             for p in range(self.next_packet, self.next_packet + self.window_size):
                 self.source.send_packet(self.packets[p])
-
             self.next_packet_send_time += self.min_rtt
             # log if the flow is completed
             # log when the acknowledgement is received

@@ -35,6 +35,7 @@ class Host:
 
         # needs to keep track of what flows it's a part of
         flowid = p.get_flowid();
+        print("packet flowid " + str(flowid))
 
         # if it's a handshake packet
         if (p.get_packet_type() == globals.HANDSHAKEPACKET):
@@ -76,15 +77,17 @@ class Host:
 
             # we now have the smallest value that is missing consecutively
             # send the ack packet
-            ack = Packet(self.id, None, p.get_source(), None, \
-                            globals.ACKPACKET, data = packetid_needed)
+            print("FLOWID " + str(flowid))
+            ack = Packet(self.id, flowid, p.get_source(), None, \
+                            globals.ACKPACKET, data = packetid_needed + 1)
 
-
+            self.send_packet(ack)
             print("standard ack sent from " + self.id)
 
         # if it's an acknowledgement, let the flow know we got one
-        elif (p.get_packet_type() == globals.STANDARDACK):
+        elif (p.get_packet_type() == globals.ACKPACKET):
             flowid = p.get_flowid()
+            print("flowid " + str(flowid))
             flow = globals.idmapping['flows'][flowid]
 
             # process the acknowledgement

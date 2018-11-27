@@ -63,13 +63,13 @@ class Simulator:
     def run(self):
 
         # make a packet
-        packet0 = Packet("H0", "0", "H1", None, globals.STANDARDPACKET, data = '143 rox!')
+        # packet0 = Packet("H0", "0", "H1", None, globals.STANDARDPACKET, data = '143 rox!')
+        #
+        # host0 = globals.idmapping['hosts']['H0']
+        #
+        # host0.send_packet(packet0)
 
-        host0 = globals.idmapping['hosts']['H0']
-
-        host0.send_packet(packet0)
-
-        for i in range(100000):
+        for i in range(10000):
             for flow in globals.idmapping['flows'].values():
                 flow.send_packets()
             for link in globals.idmapping['links'].values():
