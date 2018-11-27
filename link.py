@@ -25,7 +25,7 @@ class Link:
                       buffersize, cost), connection2: HalfLink(linkid, connection1,\
                       rate, delay, buffersize, cost)}
         self.buffercapacity = buffersize * 8 * (10**4)
-        self.delay = delay * 10^(-3)
+        self.delay = delay * 10 ** (-3)
         self.id = linkid
 
 
@@ -65,9 +65,9 @@ class HalfLink:
     def __init__(self, id, destination, rate, delay, buffersize, cost):
         self.id = id
         # Converts the link rate from Mbps to bps
-        self.rate = rate * 10^6
+        self.rate = rate * 10 ** 6
         # Converts the propagation delay from ms to s
-        self.delay = delay * 10^(-3)
+        self.delay = delay * 10 ** (-3)
         # Converts the buffer size from KB to b
         # Note: we divide the buffersize by two because each half link only
         #       has half the capactiy of the total buffer.
@@ -101,6 +101,7 @@ class HalfLink:
             self.buffersize = self.buffersize - packet.get_size()
             self.buffer.append(packet)
 
+
         else:
             # here we should update the metrics to indicate we dropped a packet
             print('packet dropped')
@@ -110,22 +111,36 @@ class HalfLink:
         # we need to update the time to start sending the next packet, which
         # will be the next timestep.
         #
-        # Note that it takes the rate * 1 / pack_size to "dequeue"
+        # Note that it takes the 1 / rate * pack_size to "dequeue"
         if (first_pack):
             self.next_packet_send_time = \
-                globals.systime + self.rate * (1 / packet.get_size())
+                globals.systime + (1 / self.rate) * (packet.get_size())
 
 
     def send_packet(self):
+
+        # print(self.id)
+        # print(len(self.buffer))
+        # print(self.next_packet_send_time)
+        # print(globals.systime)
 
         # If we are at or have passed the time at which we should send the next
         # packet, we should try to send the next packet.
         if (self.next_packet_send_time <= globals.systime):
             # If there is nothing currently in the buffer, we have nothing to
             # send at this time.
+
+
+            
+
             if (len(self.buffer) == 0):
                 self.next_packet_send_time = \
                     self.next_packet_send_time + globals.dt
+
+            # if globals.systime:
+            #     print("we printin")
+            #     print(self.next_packet_send_time)
+            #     print(globals.systime)
 
             # Otherwise, we should work on sending the packet at the front of
             # the buffer.
