@@ -66,8 +66,8 @@ def initialize():
     global ROUTINGPACKET
     ROUTINGPACKET = 'routing_packet'
 
-    global SYNPACKET
+    global HANDSHAKEPACKET
     HANDSHAKEPACKET = 'handshake_packet'
 
-    global SYNACK
+    global HANDSHAKEACK
     HANDSHAKEACK = 'handshake_ack'

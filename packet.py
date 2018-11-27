@@ -43,8 +43,8 @@ class Packet:
     def is_ack(self):
         return self.ack_flag
 
-    def get_flow(self):
-        return self.flow
+    def get_flowid(self):
+        return self.flowid
 
     def get_source(self):
         return self.sourceid

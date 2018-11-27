@@ -31,8 +31,10 @@ class Host:
     def receive_packet(self, p, linkid):
         
         # needs to keep track of what flows it's a part of
-        flow = p.get_flow();
-        
+        flowid = p.get_flowid();
+
+        # if it's a handshake packet
+        #if (p.get_type)
 
 
         # check what flow the packet pertains to
