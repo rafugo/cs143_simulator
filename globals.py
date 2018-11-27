@@ -36,6 +36,18 @@ def initialize():
     global statistics
     statistics = {}
 
+    global LINKRATE
+    LINKRATE = "link rate"
+
+    global BUFFEROCCUPANCY
+    BUFFEROCCUPANCY = "buffer occupancy"
+
+    global PACKETLOSS
+    PACKETLOSS = "packet loss"
+
+    global LINKMETRICS
+    LINKMETRICS = [LINKRATE, BUFFEROCCUPANCY, PACKETLOSS]
+
     global PACKETSIZE
     PACKETSIZE = 1024*8
 
@@ -57,6 +69,5 @@ def initialize():
     global SYNPACKET
     SYNPACKET = 'syn_packet'
 
-    global SYNACK 
+    global SYNACK
     SYNACK = 'syn_ack'
-
