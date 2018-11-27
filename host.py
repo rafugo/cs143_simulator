@@ -24,7 +24,17 @@ class Host:
 
         # add the packet to the link buffer
         
-        print("sending packet from host " + self.id)
+        # if (p.get_packet_type() == globals.HANDSHAKEACK):
+        #     print("handshake acknowledgement sent from " + self.id)
+
+        # elif (p.get_packet_type() == globals.STANDARDACK):
+        #     print("standard ack sent from " + self.id)
+
+        # elif (p.get_packet_type() == globals.STANDARDPACKET):
+        #     print("standard packet sent from " + self.id + " for flow " + p.get_flowid())
+
+
+
         connected_link.add_to_buffer(p, self.id)
 
 
@@ -44,8 +54,6 @@ class Host:
             ack = Packet(self.id, None, p.get_source(), None, \
                             globals.HANDSHAKEACK, data = data)
 
-
-            print("handshake acknowledgement sent from " + self.id)
             self.send_packet(ack)
 
 
@@ -82,7 +90,6 @@ class Host:
                             globals.ACKPACKET, data = packetid_needed + 1)
 
 
-            print("standard ack sent from " + self.id)
             self.send_packet(ack)
 
         # if it's an acknowledgement, let the flow know we got one

@@ -38,15 +38,6 @@
             "delay" : 3,
             "buffersize" : 1000,
             "cost" : 3
-        },
-        {
-            "id": "L04",
-            "connection1" : "R2",
-            "connection2" : "H1",
-            "rate" : 10000,
-            "delay" : 3,
-            "buffersize" : 1000,
-            "cost" : 2
         }
     ],
     "routers": [
@@ -59,7 +50,7 @@
         {
             "id": "R2",
             "ip": "000.000.000.003",
-            "links": ["L02", "L03", "L04"]
+            "links": ["L02", "L03"]
 
         }
     ],

@@ -21,8 +21,8 @@ class Link:
                buffercapacity : The total capacity of the link's buffer (in bits)
                delay : The propagation delay of the link (in s)
                id : The string ID of the link """
-        self.links = {connection1: HalfLink(linkid, connection2, rate, delay, \
-                      buffersize, cost), connection2: HalfLink(linkid, connection1,\
+        self.links = {connection1: HalfLink(linkid, connection1, connection2, rate, delay, \
+                      buffersize, cost), connection2: HalfLink(linkid, connection2, connection1,\
                       rate, delay, buffersize, cost)}
         self.buffercapacity = buffersize * 8 * (10**4)
         self.delay = delay * 10 ** (-3)
@@ -62,7 +62,7 @@ class Link:
 # This class will represent one direction of the Link. (i.e. all packets
 # travelling across a given HalfLink will be going to the same destination).
 class HalfLink:
-    def __init__(self, id, destination, rate, delay, buffersize, cost):
+    def __init__(self, id, source, destination, rate, delay, buffersize, cost):
         self.id = id
         # Converts the link rate from Mbps to bps
         self.rate = rate * 10 ** 6
@@ -73,6 +73,7 @@ class HalfLink:
         #       has half the capactiy of the total buffer.
         self.buffersize = buffersize * 8 * (10**4) / 2
         self.buffer = []
+        self.source = source
         self.destination = destination
         self.cost = cost
         # The first time we should try to send a packet is at the next time step.
@@ -198,4 +199,4 @@ class HalfLink:
                 receiver = globals.idmapping[dest_type][self.destination]
                 receiver.receive_packet(packet_to_send, self.id)
 
-                print("packet delivered")
+                # print("packet delivered from " + self.source + " to " + self.destination)
