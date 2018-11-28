@@ -23,7 +23,7 @@ class Host:
         connected_link = globals.idmapping['links'][self.linkid]
 
         # add the packet to the link buffer
-        
+
         # if (p.get_packet_type() == globals.HANDSHAKEACK):
         #     print("handshake acknowledgement sent from " + self.id)
 
@@ -102,7 +102,46 @@ class Host:
             print("ack given to flow "+flowid+" from host "+self.id)
             flow.process_ack(p)
 
+        elif (p.get_packet_type() == globals.SYNPACKET):
+            print("syn packet received")
+            # if we've already seen the flow before, add to the dict
+            if flowid in self.flow_packets_seen.keys():
+                self.flow_packets_seen[flowid].append(p.get_packetid())
 
+            # otherwise it's a new flow so we need to add it to the dict
+            else:
+                self.flow_packets_seen[flowid] = [p.get_packetid()]
+
+            # now we need to send an ack back!
+            # note that we need to find the smallest number that has not been
+            # received in the sequence
+            packetid_needed = -1
+            packets_gotten = self.flow_packets_seen[flowid]
+            for i in range(len(packets_gotten)):
+
+                # if we have seen a packet id and the next one has also been
+                # seen, then update it
+                if packetid_needed + 1 == packets_gotten[i]:
+                    packetid_needed += 1
+
+                else:
+                    break
+
+            # we now have the smallest value that is missing consecutively
+            # send the ack packet
+            ack = Packet(self.id, flowid, p.get_source(), None, \
+                            globals.SYNACK, data = packetid_needed + 1)
+
+
+            self.send_packet(ack)
+
+        elif (p.get_packet_type() == globals.SYNACK):
+            flowid = p.get_flowid()
+            flow = globals.idmapping['flows'][flowid]
+
+            # process the acknowledgement
+            print("syn ack given to flow "+flowid+" from host "+self.id)
+            flow.process_ack(p)
 
 
     # TODO:
