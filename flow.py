@@ -33,7 +33,10 @@ class Flow:
                 globals.STANDARDPACKET, '')
             self.packets.append(p)
         # instance of our congestion controllers
-        self.congestion_control = congestion_control
+        if (congestion_control == 'reno'):
+            self.congestion_control = CongestionControllerReno()
+        else:
+            self.congestion_control = CongestionController()
         # packet number that the window needs to start at, default first packet
         self.next_packet = 0;
         # current size of the window used for the congestion controller
