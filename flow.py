@@ -61,7 +61,8 @@ class Flow:
         # check if it's a synack
         if (p.get_packet_type() == globals.SYNACK):
             # set the rtt
-            self.min_rtt = globals.systime - self.start
+            self.min_rtt = globals.systime - float(p.data)
+            print("______________________NEW RTT CALCULATED: " + str(self.min_rtt) + "______________________")
             self.next_packet = 0
 
         else:
@@ -92,12 +93,12 @@ class Flow:
             if (self.next_packet == -1):
                 print("Sending sync_packet")
                 sync_packet = Packet(self.source.id, self.id, self.destination.id, \
-                    -1, globals.SYNPACKET, '')
+                    -1, globals.SYNPACKET, globals.systime)
                 self.source.send_packet(sync_packet)
                 self.next_packet_send_time += self.min_rtt
 
             # need to check when to send the next window size of packets
-            elif (globals.systime >= self.start and not self.done):
+            elif (not self.done):
 
                 print("flow " + self.id + " is sending packets")
                 # check to see if more than 0 packets exist need to be sent
