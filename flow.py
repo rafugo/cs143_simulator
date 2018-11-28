@@ -98,32 +98,17 @@ class Flow:
 
             # need to check when to send the next window size of packets
             elif (globals.systime >= self.start and not self.done):
-
-<<<<<<< HEAD
                 print("flow " + self.id + " is sending packets")
                 # check to see if more than 0 packets exist need to be sent
                 assert(self.amount > 0)
                 # assumes packet id is the same as its index in the list
                 # send a window size of packets
                 #if ()
-                for p in range(self.next_packet, self.next_packet + self.window_size):
+                for p in range(self.next_packet, min(self.next_packet + self.window_size, len(self.packets))):
                     self.source.send_packet(self.packets[p])
                 self.next_packet_send_time += self.min_rtt
                 # log if the flow is completed
                 # log when the acknowledgement is received
-=======
-            print("flow " + self.id + " is sending packets")
-            # check to see if more than 0 packets exist need to be sent
-            assert(self.amount > 0)
-            # assumes packet id is the same as its index in the list
-            # send a window size of packets
-            #if ()
-            for p in range(self.next_packet, min(self.next_packet + self.window_size, len(self.packets))):
-                self.source.send_packet(self.packets[p])
-            self.next_packet_send_time += self.min_rtt
-            # log if the flow is completed
-            # log when the acknowledgement is received
->>>>>>> 9d50e3c4c1c3f0f827467309ad2bcd5c8259a61f
 
     def completed(self):
         return self.done
