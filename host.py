@@ -42,7 +42,7 @@ class Host:
     # (as well as notifying the correct flow about the packet)
     def receive_packet(self, p, linkid):
 
-        print("some packet received by host " + self.id)
+        #print("some packet received by host " + self.id)
 
         # needs to keep track of what flows it's a part of
         flowid = p.get_flowid();
@@ -60,7 +60,7 @@ class Host:
 
         # if it's a standard packet, it's from a flow
         elif (p.get_packet_type() == globals.STANDARDPACKET):
-            print("standard packet received by " + self.id)
+            #print("standard packet received by " + self.id)
             # if we've already seen the flow before, add to the dict
             if flowid in self.flow_packets_seen.keys():
                 self.flow_packets_seen[flowid].append(p.get_packetid())
@@ -100,11 +100,11 @@ class Host:
 
             # process the acknowledgement
 
-            print("ack given to flow "+flowid+" from host "+self.id)
+            #print("ack given to flow "+flowid+" from host "+self.id)
             flow.process_ack(p)
 
         elif (p.get_packet_type() == globals.SYNPACKET):
-            print("syn packet received")
+            #print("syn packet received")
 
             # if it's a new flow, add it to the table
             if flowid not in self.flow_packets_seen.keys():
@@ -125,7 +125,7 @@ class Host:
             flow = globals.idmapping['flows'][flowid]
 
             # process the acknowledgement
-            print("syn ack given to flow "+flowid+" from host "+self.id)
+            #print("syn ack given to flow "+flowid+" from host "+self.id)
             flow.process_ack(p)
 
 

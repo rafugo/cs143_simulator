@@ -30,21 +30,28 @@ class Link:
                buffercapacity : The total capacity of the link's buffer (in bits)
                delay : The propagation delay of the link (in s)
                id : The string ID of the link """
+        # buffer is the size of the buffer in bits (buffersize is in KB)
         buffer = buffersize * 8 * (10**4)
         self.links = {connection1: HalfLink(linkid, connection1, connection2, rate, delay, buffer, track1),  \
                       connection2: HalfLink(linkid, connection2, connection1, rate, delay, buffer, track2)}
-        self.bufferavailable = buffer
-        self.buffercapacity = buffer
+        # converts delay from ms to s
         self.delay = delay * 10 ** (-3)
         self.id = linkid
+
+        # variables for metric tracking
         self.droppedpackets = 0
         self.track = (track1 or track2)
+
+        # sets up the dictionaries to track all necessary statistics for this
+        # link
         if (self.track):
             for m in globals.LINKMETRICS:
                 globals.statistics[linkid+":"+m] = {}
 
+
     def get_delay(self):
         return self.delay
+
 
     def add_to_buffer(self, packet, sender):
         """This function adds a packet to the buffer on the appropriate side of
@@ -54,20 +61,17 @@ class Link:
         # Added will store the number of bits added to the buffer.
         added= self.links[sender].add_to_buffer(packet)
 
-        # Updates the variable storing the amount of available space in the
-        # link's buffer to reflect that we added "added" bits to the buffer.
-        self.bufferavailable = self.bufferavailable - added
-
         # If added is 0, we added 0 bytes to the link buffer, so the packet was
         # dropped.
         if (added == 0):
             self.droppedpackets = self.droppedpackets + 1
             # If we are tracking packet loss, it updates the dictionary associated
             # with this link's packet loss metrics.
-            if (globals.PACKETLOSS in globals.LINKMETRICS):
-                current = globals.statistics[self.id + ":" + globals.PACKETLOSS]
-                current[globals.systime] = self.droppedpackets
-                globals.statistics[self.id + ":" + globals.PACKETLOSS] = current
+
+        if (globals.PACKETLOSS in globals.LINKMETRICS):
+            current = globals.statistics[self.id + ":" + globals.PACKETLOSS]
+            current[globals.systime] = self.droppedpackets
+            globals.statistics[self.id + ":" + globals.PACKETLOSS][globals.systime] = current
 
     def send_packet(self):
         """This function will try to send a packet on both of the half links
@@ -75,8 +79,6 @@ class Link:
         totaloccupancy = 0
         for link in self.links.values():
             totaloccupancy = totaloccupancy + link.send_packet()
-
-        self.bufferavailable = self.bufferavailable + totaloccupancy
 
 # This class will represent one direction of the Link. (i.e. all packets
 # travelling across a given HalfLink will be going to the same destination).

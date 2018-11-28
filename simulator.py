@@ -65,6 +65,7 @@ class Simulator:
     # frequently than just when a packet drops so that the plot appears more
     # reasonable. Perhaps I will make the buffer occupancy update more
     # frequently as well
+    # TODO: add flow_rtt, flow_window_size, flor_rate
     def plot_metrics(self):
         for s in globals.statistics.keys():
             x = []
@@ -101,7 +102,8 @@ class Simulator:
     def run(self):
 
         for router in globals.idmapping['routers'].values():
-                print(router.routing_table)
+            pass
+                #print(router.routing_table)
 
         # Make Handshakes
         for router in globals.idmapping['routers'].values():
@@ -123,11 +125,12 @@ class Simulator:
 
         # print (globals.statistics)
         for router in globals.idmapping['routers'].values():
+            pass
 
-            print()
-            print("Routing table for " + router.id)
-            print(router.routing_table)
-            print()
+            #print()
+            #print("Routing table for " + router.id)
+            #print(router.routing_table)
+            #print()
 
 
 

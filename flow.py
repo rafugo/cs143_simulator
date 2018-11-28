@@ -38,7 +38,7 @@ class Flow:
             self.packets.append(p)
             amountInPackets = amountInPackets + globals.PACKETSIZE
             i = i + 1
-        print("numberofPackets = ", len(self.packets), "amount =", self.amount, "amount given = ", amount)
+        #print("numberofPackets = ", len(self.packets), "amount =", self.amount, "amount given = ", amount)
 
         # instance of our congestion controllers
         if (congestion_control == 'reno'):
@@ -71,7 +71,7 @@ class Flow:
             assert p.sourceid == self.destination.id
             assert p.destinationid == self.source.id
 
-            print("Flow " + self.id + " received ack with number " + str(p.data))
+            p#rint("Flow " + self.id + " received ack with number " + str(p.data))
             # remove the packet from the list of packets that need to be sent
             # p.data contains the id of the next packet it needs
             if (p.data >  self.next_packet):
@@ -79,9 +79,9 @@ class Flow:
             # the next packet to send is out of index so we've sent everything
             if (self.next_packet >= len(self.packets)):
                 self.done = True
-                print()
-                print("done sending flow " + self.id)
-                print()
+                #print()
+                #print("done sending flow " + self.id)
+                #print()
 
     # attempts to send window_size amount of packets through the host
     def send_packets(self):
@@ -91,7 +91,7 @@ class Flow:
             # if sending first packet in the flow
             # SEND SYNC PACKET FIRST
             if (self.next_packet == -1):
-                print("Sending sync_packet")
+                #rint("Sending sync_packet")
                 sync_packet = Packet(self.source.id, self.id, self.destination.id, \
                     -1, globals.SYNPACKET, '')
                 self.source.send_packet(sync_packet)
@@ -100,15 +100,15 @@ class Flow:
             # need to check when to send the next window size of packets
             elif (globals.systime >= self.start and not self.done):
 
-                print("flow " + self.id + " is sending packets")
+                #print("flow " + self.id + " is sending packets")
                 # check to see if more than 0 packets exist need to be sent
                 assert(self.amount > 0)
                 # assumes packet id is the same as its index in the list
                 # send a window size of packets
                 #if ()
                 for p in range(self.next_packet, min(self.next_packet + self.window_size, len(self.packets))):
-                    
-                    print("flow " + self.id + " is sending packet no. " + str(self.packets[p].get_packetid()))
+
+                    #print("flow " + self.id + " is sending packet no. " + str(self.packets[p].get_packetid()))
                     self.source.send_packet(self.packets[p])
                 self.next_packet_send_time += self.min_rtt
                 # log if the flow is completed
