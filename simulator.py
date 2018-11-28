@@ -61,7 +61,42 @@ class Simulator:
 
 
 
+    # TODO: we should improve packet loss so that that it is updated more
+    # frequently than just when a packet drops so that the plot appears more
+    # reasonable. Perhaps I will make the buffer occupancy update more
+    # frequently as well
     def plot_metrics(self):
+        for s in globals.statistics.keys():
+            x = []
+            y = []
+            dict = globals.statistics[s]
+            # converts buffer occupancys from bits to KB
+            if globals.BUFFEROCCUPANCY in s:
+                for key in sorted(dict.keys()):
+                    x.append(key)
+                    y.append(dict[key]*1.25*10**(-4))
+                plot.plot(x,y)
+                plot.ylabel("buffer occupancy (in KB)")
+            # converts link rate from bps to MBps
+            if globals.LINKRATE in s:
+                for key in sorted(dict.keys()):
+                    x.append(key)
+                    y.append(dict[key]*1.25*10**(-7))
+                plot.plot(x,y)
+                plot.ylabel("link rate (in MBps)")
+            if globals.PACKETLOSS in s:
+                for key in sorted(dict.keys()):
+                    for key in sorted(dict.keys()):
+                        x.append(key)
+                        y.append(dict[key])
+                    plot.plot(x,y)
+                    plot.ylabel("number of packets dropped")
+            plot.xlabel("time (in seconds)")
+            plot.title(s)
+            plot.savefig(s)
+            plot.gcf().clear()
+
+
         """
         if(globals.BUFFEROCCUPANCY in globals.LINKMETRICS):
             print("trying to plot")
@@ -98,9 +133,11 @@ class Simulator:
                 link.send_packet()
             globals.systime += globals.dt
 
-
         for router in globals.idmapping['routers'].values():
             print ("Router" , router.id, "Table:", router.routing_table)
+
+        #print("Statistics:")
+        #print(globals.statistics)
 
         # for i in range(500000):
         #     # make the handshakes work
