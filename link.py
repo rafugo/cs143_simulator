@@ -219,7 +219,7 @@ class HalfLink:
                 receiver = globals.idmapping[dest_type][self.destination]
                 receiver.receive_packet(packet_to_send, self.id)
 
-                print("packet delivered")
+                # print("packet delivered")
 
 
         # use linkused here for tracking purposes

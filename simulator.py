@@ -102,31 +102,31 @@ class Simulator:
         for router in globals.idmapping['routers'].values():
             print ("Router" , router.id, "Table:", router.routing_table)
 
-        # for i in range(500000):
-        #     # make the handshakes work
+        for i in range(500000):
+            # make the handshakes work
 
 
-        #     for flow in globals.idmapping['flows'].values():
-        #         flow.send_packets()
+            for flow in globals.idmapping['flows'].values():
+                flow.send_packets()
 
-        #     if i % 50000 == 0:
-        #         for router in globals.idmapping['routers'].values():
-        #             router.send_routing_table()
+            if i % 5000 == 0:
+                for router in globals.idmapping['routers'].values():
+                    router.recalculate_routing_table()
 
-        #             print(router.routing_table)
+                    # print(router.routing_table)
 
-        #     for link in globals.idmapping['links'].values():
-        #         link.send_packet()
+            for link in globals.idmapping['links'].values():
+                link.send_packet()
 
-        #     globals.systime += globals.dt
+            globals.systime += globals.dt
 
-        # # print (globals.statistics)
-        # for router in globals.idmapping['routers'].values():
+        # print (globals.statistics)
+        for router in globals.idmapping['routers'].values():
 
-        #     print()
-        #     print("Routing table for " + router.id)
-        #     print(router.routing_table)
-        #     print()
+            print()
+            print("Routing table for " + router.id)
+            print(router.routing_table)
+            print()
 
 
 
