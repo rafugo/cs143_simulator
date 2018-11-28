@@ -2,9 +2,8 @@ import globals
 from packet import Packet
 
 class Link:
-    def __init__(self, linkid, connection1, connection2, rate, delay, buffersize, \
-                  cost, track=True):
-        """This function initializes a new link objects
+    def __init__(self, linkid, connection1, connection2, rate, delay, buffersize, track1=True, track2=True):
+        """This function initializes new link objects
            INPUT ARGUMENTS-
                linkid : The string ID of the link being constructed
                connection1 : The string ID of the object connected to one side
@@ -14,6 +13,16 @@ class Link:
                rate : The link rate of the link (in Mbps)
                delay : The propagation delay of the link (in ms)
                buffersize : The size of the buffer for this link in KB.
+               track1 : A boolean value specifying whether or not the half link
+                        should be tracked in the connection1 -> connection2
+                        direction
+               track2 : A boolean value specifying whether or not the half link
+                        should be tracked in the connection2 -> connection1
+                        direction
+           Note- I assume here that if we are tracking either of the half links
+                 associated with a link, we will also track the link. I don't
+                 know if this is necessarily the case, but it seems like a
+                 reasonable assumption.
            FIELDS-
                links : A dictionary with entries of the form ID : half link,
                        where ID specifies the ID of the object that will be
@@ -21,15 +30,16 @@ class Link:
                buffercapacity : The total capacity of the link's buffer (in bits)
                delay : The propagation delay of the link (in s)
                id : The string ID of the link """
-        self.links = {connection1: HalfLink(linkid, connection1, connection2, rate, delay, cost),  \
-                      connection2: HalfLink(linkid, connection2, connection1, rate, delay, cost)}
-        self.bufferavailable = buffersize * 8 * (10**4)
-        self.buffercapacity = buffersize * 8 * (10**4)
+        buffer = buffersize * 8 * (10**4)
+        self.links = {connection1: HalfLink(linkid, connection1, connection2, rate, delay, buffer, track1),  \
+                      connection2: HalfLink(linkid, connection2, connection1, rate, delay, buffer, track2)}
+        self.bufferavailable = buffer
+        self.buffercapacity = buffer
         self.delay = delay * 10 ** (-3)
         self.id = linkid
         self.droppedpackets = 0
-        self.track = track
-        if (track):
+        self.track = (track1 or track2)
+        if (self.track):
             for m in globals.LINKMETRICS:
                 globals.statistics[linkid+":"+m] = {}
 
@@ -42,7 +52,7 @@ class Link:
            in the buffer. It also updates the global tracking of buffer occupancy
            and packet lossas necessary. """
         # Added will store the number of bits added to the buffer.
-        added= self.links[sender].add_to_buffer(packet, self.bufferavailable)
+        added= self.links[sender].add_to_buffer(packet)
 
         # Updates the variable storing the amount of available space in the
         # link's buffer to reflect that we added "added" bits to the buffer.
@@ -71,7 +81,7 @@ class Link:
 # This class will represent one direction of the Link. (i.e. all packets
 # travelling across a given HalfLink will be going to the same destination).
 class HalfLink:
-    def __init__(self, id, source, destination, rate, delay, cost, track=True):
+    def __init__(self, id, source, destination, rate, delay, buffersize, track=True):
         self.id = id
         # Converts the link rate from Mbps to bps
         self.rate = rate * 10 ** 6
@@ -80,11 +90,12 @@ class HalfLink:
         # Converts the buffer size from KB to b
         # Note: we divide the buffersize by two because each half link only
         #       has half the capactiy of the total buffer.
+        self.buffercapacity = buffersize
         self.buffersize = 0
         self.buffer = []
         self.source = source
         self.destination = destination
-        self.cost = cost
+        self.cost = 0
         self.track = track
         # The first time we should try to send a packet is at the next time step.
         self.next_packet_send_time = globals.systime + globals.dt
@@ -101,7 +112,7 @@ class HalfLink:
 
         if track:
             for m in globals.HALFLINKMETRICS:
-                globals.statistics[id+":"+destination+":"+m] = {}
+                globals.statistics[id+":"+source+"->"+destination+":"+m] = {}
 
     def get_buffer_size(self):
         return self.buffersize
@@ -112,24 +123,20 @@ class HalfLink:
     def get_source(self):
         return self.source
 
-    def add_to_buffer(self, packet, buffersize):
+    def add_to_buffer(self, packet):
         """This function will try to add the Packet packet to the buffer. It
         will only add packet to the buffer if there is still space in the
         buffer for it. Otherwise, the packet will be dropped."""
-
         first_pack = False
         # need to know whether it is the first packet added
         if (len(self.buffer) == 0):
             first_pack = True
 
-        if (packet.get_size() <= buffersize):
+        if (packet.get_size() + self.buffersize <= self.buffercapacity):
             self.buffersize = self.buffersize + packet.get_size()
+            #print("Buffer size %d", self.buffersize, "time:", globals.systime, "flow:", packet.get_flowid())
             self.buffer.append(packet)
-
-
         else:
-            # here we should update the metrics to indicate we dropped a packet
-            print('packet dropped')
             return 0
 
         # if there is only one item in the buffer and we just added it, then
@@ -140,9 +147,11 @@ class HalfLink:
         if (first_pack):
             self.next_packet_send_time = \
                 globals.systime + (1 / self.rate) * (packet.get_size())
-        return packet.get_size()
 
-            # print('what we add to systime ' + str(((1 / self.rate) * (packet.get_size()))))
+        if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS):
+            globals.statistics[self.id+":"+self.source+"->"+self.destination+":"+globals.BUFFEROCCUPANCY][globals.systime] = self.buffersize
+
+        return packet.get_size()
 
 
     def send_packet(self):
@@ -170,6 +179,8 @@ class HalfLink:
                     packet_to_send = self.buffer.pop(0)
                     amountfreed = packet_to_send.get_size()
                     self.buffersize = self.buffersize - amountfreed
+
+                    #print("SENT PACKET! BUFFER SIZE %d", self.buffersize, "time:", globals.systime)
 
                     # append the packet to the transmission
                     self.packets_in_transmission.append(packet_to_send)
@@ -219,7 +230,7 @@ class HalfLink:
                 receiver = globals.idmapping[dest_type][self.destination]
                 receiver.receive_packet(packet_to_send, self.id)
 
-                print("packet delivered")
+                # print("packet delivered")
 
 
         # use linkused here for tracking purposes

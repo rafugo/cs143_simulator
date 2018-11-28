@@ -24,7 +24,7 @@ class Simulator:
 
             # add to idmapping
             link = Link(l['id'], l['connection1'], l['connection2'], \
-                        l['rate'], l['delay'], l['buffersize'], l['cost'])
+                        l['rate'], l['delay'], l['buffersize'])
             globals.idmapping['links'][l['id']] = link
 
         # create hosts
@@ -89,19 +89,31 @@ class Simulator:
         for router in globals.idmapping['routers'].values():
                 print(router.routing_table)
 
+        # Make Handshakes
+        for router in globals.idmapping['routers'].values():
+                router.init_routing_table()
+
+        for i in range (50000):
+            for link in globals.idmapping['links'].values():
+                link.send_packet()
+            globals.systime += globals.dt
+
+
+        for router in globals.idmapping['routers'].values():
+            print ("Router" , router.id, "Table:", router.routing_table)
+
         for i in range(500000):
             # make the handshakes work
-            for router in globals.idmapping['routers'].values():
-                    router.init_routing_table()
+
 
             for flow in globals.idmapping['flows'].values():
                 flow.send_packets()
 
-            if i % 50000 == 0:
+            if i % 5000 == 0:
                 for router in globals.idmapping['routers'].values():
-                    router.send_routing_table()
+                    router.recalculate_routing_table()
 
-                    print(router.routing_table)
+                    # print(router.routing_table)
 
             for link in globals.idmapping['links'].values():
                 link.send_packet()

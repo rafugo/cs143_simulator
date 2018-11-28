@@ -1,5 +1,5 @@
 from packet import Packet
-import globals 
+import globals
 
 class Router:
     def __init__(self, id, ip, links):
@@ -8,7 +8,7 @@ class Router:
         self.links = links
         self.routing_table = {self.id: ['None', 0]}
 
-        # this is used to keep track of how many handshake acknowledgements are 
+        # this is used to keep track of how many handshake acknowledgements are
         # received, so that we know when our routing table is done
         self.handshakes_acked = 0
 
@@ -38,8 +38,6 @@ class Router:
             # print ("HANDSHAKE RECIEVED")
             # Add the acknowledgement packet to the buffer on the link that sent the data
 
-
-
             globals.idmapping['links'][linkid].add_to_buffer(ack, self.id)
 
 
@@ -57,16 +55,27 @@ class Router:
             link_cost = link_delay + transmit_time
             # print (link_delay)
 
+            # get the old_cost, the old cost is 0 if it didnt exist
+            old_cost = self.routing_table.get(router_details[0], [0, 0])[1]
             # Update routing table with new cost information
+            difference = old_cost - link_cost
+
             self.routing_table[router_details[0]] = [linkid, link_cost]
+
+            for key in self.routing_table:
+                if (self.routing_table[key][0] == linkid and key != router_details[0]):
+                    oldval = self.routing_table[key][1]
+                    self.routing_table[key] = [linkid, oldval - difference]
+
 
             # our handshake was acknowledged
             self.handshakes_acked += 1
 
-            # if there are no more outstanding handshakes, send out the 
+            # if there are no more outstanding handshakes, send out the
             # routing table to other routers
             if self.handshakes_acked == len(self.links):
                 self.send_routing_table()
+                self.handshakes_acked = 0
 
         elif(packet.is_routing()):
 
@@ -76,33 +85,40 @@ class Router:
 
         else:
             self.forward_packet(packet)
-        
+
 
     # Function to manage forwarding packets along the routing table
     def forward_packet(self, packet):
-        print("Router " + self.id + " is forwarding packet " + str(packet.get_packetid()))
-        link_path = self.routing_table.get(packet.get_destination())
+        print("-----------------------------Router " + self.id + " is forwarding packet " + str(packet.get_packetid()) + "--------------------------------")
+        print (self.routing_table)
+        print (packet.get_destination())
 
-        print()
-        print(self.id)
-        print(packet.get_destination())
-        print(self.routing_table)
-        link_path.add_to_buffer(packet, self.id)
+        link_path = self.routing_table.get(packet.get_destination())[0]
+
+        # print()
+        # print(self.id)
+        # print(packet.get_destination())
+        # print(self.routing_table)
+        globals.idmapping['links'][link_path].add_to_buffer(packet, self.id)
 
     def send_routing_table(self):
-        for entry, (linkid, cost) in self.routing_table.items():
-            if list(entry)[0] == 'R' and entry != self.id:
+        # print ("ROUTING TABLE SENT")
+        for l in self.links:
                 # print("sending routing table from " + self.id + " to " + entry)
                 # make our packet
                 routing_table_packet = \
-                    Packet(self.id, None, entry, None, globals.ROUTINGPACKET, data = self.routing_table)
+                    Packet(self.id, None, None, None, globals.ROUTINGPACKET, data = self.routing_table)
 
-                globals.idmapping['links'][linkid].add_to_buffer(routing_table_packet, self.id)
+                l.add_to_buffer(routing_table_packet, self.id)
 
+
+    # this gets called to do the dynamic routing
+    def recalculate_routing_table(self):
+        self.handshakes_acked = 0
+        self.init_routing_table()
 
     # Send handshake packets to initialize data to adjacent routers
     def init_routing_table(self):
-        print ("table initializing")
         # Define the handshake packet with the router id as its data
         handshake_packet = Packet(self.id, None, None, None, globals.HANDSHAKEPACKET, data = (self.id))
 
@@ -115,9 +131,11 @@ class Router:
     # an external routing table and then calculates the new routing table from those values
     #
     def calc_routing_table(self, table_2_actual):
-
+        # print (self.id)
         # make a copy of the object so we dont modify it
         table_2 = table_2_actual.copy()
+        # print ("table2", table_2, "recieved by", self.id)
+
 
         # 1) Determine Cost of link between "self" router and table_2 router, and the Link ID that it was sent on
         updated = False
@@ -128,7 +146,7 @@ class Router:
 
         # Add link cost to all cost values in table_2 routing table
         for key in table_2:
- 
+
             table_2[key] = [table_2[key][0], table_2[key][1] + cost_between]
 
 
@@ -143,6 +161,7 @@ class Router:
             # if the destination is currently not in the routing table
             if (rt_cost == "not_in"):
                 self.routing_table[key] = [con_link_id, t2_cost]
+                updated = True
 
             # If the destination is in the current routing table but table_2 provides a quicker route
             elif (t2_cost < rt_cost):
@@ -152,16 +171,6 @@ class Router:
 
         # If we updated our routing table, send out our new routing table as a packet to all neighboring routers
         # BY: RAFA: Yeah, im currently just making the whole system send out the tables every 5 seconds
+        if (updated):
 
-
-
-
-
-
-
-
-
-
-
-
-        
+            self.send_routing_table()
