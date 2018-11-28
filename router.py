@@ -66,11 +66,7 @@ class Router:
             # if there are no more outstanding handshakes, send out the 
             # routing table to other routers
             if self.handshakes_acked == len(self.links):
-
                 self.send_routing_table()
-
-                
-
 
         elif(packet.is_routing()):
 
@@ -82,14 +78,15 @@ class Router:
             self.forward_packet(packet)
         
 
-
-
-
     # Function to manage forwarding packets along the routing table
     def forward_packet(self, packet):
         print("Router " + self.id + " is forwarding packet " + str(packet.get_packetid()))
         link_path = self.routing_table.get(packet.get_destination())
 
+        print()
+        print(self.id)
+        print(packet.get_destination())
+        print(self.routing_table)
         link_path.add_to_buffer(packet, self.id)
 
     def send_routing_table(self):
