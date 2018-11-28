@@ -59,28 +59,6 @@ class Simulator:
                 f['start'], f['congestion_control'], f['window_size'], f['min_rtt'])
             globals.idmapping['flows'][f['id']] = flow
 
-    def run(self):
-
-        # make a packet
-        # packet0 = Packet("H0", "0", "H1", None, globals.STANDARDPACKET, data = '143 rox!')
-        #
-        # host0 = globals.idmapping['hosts']['H0']
-        #
-        # host0.send_packet(packet0)
-
-        for i in range(10000000):
-            for flow in globals.idmapping['flows'].values():
-                flow.send_packets()
-            for link in globals.idmapping['links'].values():
-                link.send_packet()
-
-
-            globals.systime += globals.dt
-
-        print("statistics:")
-        print(globals.statistics)
-        print("end of statistics")
-
 
 
     def plot_metrics(self):
@@ -106,24 +84,73 @@ class Simulator:
         pass
 
 
-    def rt_init_test(self):
+    def run(self):
+
         for router in globals.idmapping['routers'].values():
-            router.init_routing_table()
+                print(router.routing_table)
 
-        for i in range(500000):
-            if i % 50000 == 0:
-                for router in globals.idmapping['routers'].values():
-                    router.send_routing_table()
-                    print(router.routing_table)
+        # Make Handshakes
+        for router in globals.idmapping['routers'].values():
+                router.init_routing_table()
 
-
+        for i in range (50000):
             for link in globals.idmapping['links'].values():
                 link.send_packet()
-
             globals.systime += globals.dt
 
-        # print (globals.statistics)
-        t2 = {'H1': ['L01', -200], 'R1': ['L02', 1], 'R2': ['L04', 1]}
-        for router in globals.idmapping['routers'].values():
 
-            print(router.routing_table)
+        for router in globals.idmapping['routers'].values():
+            print ("Router" , router.id, "Table:", router.routing_table)
+
+        # for i in range(500000):
+        #     # make the handshakes work
+
+
+        #     for flow in globals.idmapping['flows'].values():
+        #         flow.send_packets()
+
+        #     if i % 50000 == 0:
+        #         for router in globals.idmapping['routers'].values():
+        #             router.send_routing_table()
+
+        #             print(router.routing_table)
+
+        #     for link in globals.idmapping['links'].values():
+        #         link.send_packet()
+
+        #     globals.systime += globals.dt
+
+        # # print (globals.statistics)
+        # for router in globals.idmapping['routers'].values():
+
+        #     print()
+        #     print("Routing table for " + router.id)
+        #     print(router.routing_table)
+        #     print()
+
+
+
+
+
+
+    # def run(self):
+
+    #     # make a packet
+    #     # packet0 = Packet("H0", "0", "H1", None, globals.STANDARDPACKET, data = '143 rox!')
+    #     #
+    #     # host0 = globals.idmapping['hosts']['H0']
+    #     #
+    #     # host0.send_packet(packet0)
+
+    #     for i in range(10000000):
+    #         for flow in globals.idmapping['flows'].values():
+    #             flow.send_packets()
+    #         for link in globals.idmapping['links'].values():
+    #             link.send_packet()
+
+
+    #         globals.systime += globals.dt
+
+    #     print("statistics:")
+    #     print(globals.statistics)
+    #     print("end of statistics")

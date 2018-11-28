@@ -4,6 +4,7 @@ from host import Host
 from link import Link
 from packet import Packet
 from router import Router
+from congestion_controller import CongestionController
 
 class Flow:
     def __init__(self, id, source, destination, amount,\
@@ -39,7 +40,10 @@ class Flow:
         print("numberofPackets = ", len(self.packets), "amount =", self.amount, "amount given = ", amount)
 
         # instance of our congestion controllers
-        self.congestion_control = congestion_control
+        if (congestion_control == 'reno'):
+            self.congestion_control = CongestionControllerReno()
+        else:
+            self.congestion_control = CongestionController()
         # packet number that the window needs to start at, default first packet
         self.next_packet = 0;
         # current size of the window used for the congestion controller
@@ -82,6 +86,7 @@ class Flow:
             globals.systime >= self.next_packet_send_time and\
             not self.done):
 
+            print("flow " + self.id + " is sending packets")
             # check to see if more than 0 packets exist need to be sent
             assert(self.amount > 0)
             # assumes packet id is the same as its index in the list
