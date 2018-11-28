@@ -97,27 +97,6 @@ class Simulator:
             plot.gcf().clear()
 
 
-        """
-        if(globals.BUFFEROCCUPANCY in globals.LINKMETRICS):
-            print("trying to plot")
-            x = []
-            y = []
-            links = globals.idmapping['links'].keys()
-            if(len(links) == 0):
-                pass
-            else:
-                name = links[0]
-                dict = globals.statistics[name+":"+globals.BUFFEROCCUPANCY]
-                print('TRYING TO PRINT DICT:')
-                print(dict)
-                for key, value in dict.items():
-                    x.append(key)
-                    y.append(value)
-                plot.plot(x,y)
-                plot.savefig('myfig')
-                print("should have saved")"""
-        pass
-
 
     def run(self):
 
@@ -128,45 +107,27 @@ class Simulator:
         for router in globals.idmapping['routers'].values():
                 router.init_routing_table()
 
-        for i in range (50000):
+        for i in range (5000000):
+            for flow in globals.idmapping['flows'].values():
+                flow.send_packets()
+
+            if i % 5000 == 0:
+                for router in globals.idmapping['routers'].values():
+                    router.recalculate_routing_table()
+                    # print(router.routing_table)
+
             for link in globals.idmapping['links'].values():
                 link.send_packet()
+
             globals.systime += globals.dt
 
+        # print (globals.statistics)
         for router in globals.idmapping['routers'].values():
-            print ("Router" , router.id, "Table:", router.routing_table)
 
-        #print("Statistics:")
-        #print(globals.statistics)
-
-        # for i in range(500000):
-        #     # make the handshakes work
-
-
-        #     for flow in globals.idmapping['flows'].values():
-        #         flow.send_packets()
-
-        #     if i % 50000 == 0:
-        #         for router in globals.idmapping['routers'].values():
-        #             router.send_routing_table()
-
-        #             print(router.routing_table)
-
-        #     for link in globals.idmapping['links'].values():
-        #         link.send_packet()
-
-        #     globals.systime += globals.dt
-
-        # # print (globals.statistics)
-        # for router in globals.idmapping['routers'].values():
-
-        #     print()
-        #     print("Routing table for " + router.id)
-        #     print(router.routing_table)
-        #     print()
-
-
-
+            print()
+            print("Routing table for " + router.id)
+            print(router.routing_table)
+            print()
 
 
 

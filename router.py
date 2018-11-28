@@ -89,20 +89,20 @@ class Router:
 
     # Function to manage forwarding packets along the routing table
     def forward_packet(self, packet):
-        print("Router " + self.id + " is forwarding packet " + str(packet.get_packetid()))
+        print("-----------------------------Router " + self.id + " is forwarding packet " + str(packet.get_packetid()) + "--------------------------------")
         print (self.routing_table)
         print (packet.get_destination())
 
         link_path = self.routing_table.get(packet.get_destination())[0]
 
-        print()
-        print(self.id)
-        print(packet.get_destination())
-        print(self.routing_table)
+        # print()
+        # print(self.id)
+        # print(packet.get_destination())
+        # print(self.routing_table)
         globals.idmapping['links'][link_path].add_to_buffer(packet, self.id)
 
     def send_routing_table(self):
-        print ("ROUTING TABLE SENT")
+        # print ("ROUTING TABLE SENT")
         for l in self.links:
                 # print("sending routing table from " + self.id + " to " + entry)
                 # make our packet
@@ -111,6 +111,11 @@ class Router:
 
                 l.add_to_buffer(routing_table_packet, self.id)
 
+
+    # this gets called to do the dynamic routing
+    def recalculate_routing_table(self):
+        self.handshakes_acked = 0
+        self.init_routing_table()
 
     # Send handshake packets to initialize data to adjacent routers
     def init_routing_table(self):
@@ -126,7 +131,7 @@ class Router:
     # an external routing table and then calculates the new routing table from those values
     #
     def calc_routing_table(self, table_2_actual):
-        print (self.id)
+        # print (self.id)
         # make a copy of the object so we dont modify it
         table_2 = table_2_actual.copy()
         # print ("table2", table_2, "recieved by", self.id)
