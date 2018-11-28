@@ -61,6 +61,7 @@ class Flow:
         # check if it's a synack
         if (p.get_packet_type() == globals.SYNACK):
             # set the rtt
+
             self.min_rtt = globals.systime - float(p.data)
             print("______________________NEW RTT CALCULATED: " + \
                 str(self.min_rtt) + "______________________")

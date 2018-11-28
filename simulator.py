@@ -118,10 +118,11 @@ class Simulator:
         for router in globals.idmapping['routers'].values():
             print ("Router" , router.id, "Table:", router.routing_table)
 
-        for i in range(500000000):
-
-            if i % 500000 == 0:
-                print('systime : '+str(globals.systime))
+        for i in range(500000):
+            if i % 500 == 0:
+                # print('systime : '+str(globals.systime))
+                if globals.systime >= 3:
+                    break
 
             for flow in globals.idmapping['flows'].values():
                 flow.send_packets()
