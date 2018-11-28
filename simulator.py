@@ -61,27 +61,41 @@ class Simulator:
 
 
 
+    # TODO: we should improve packet loss so that that it is updated more
+    # frequently than just when a packet drops so that the plot appears more
+    # reasonable. Perhaps I will make the buffer occupancy update more
+    # frequently as well
     def plot_metrics(self):
-        """
-        if(globals.BUFFEROCCUPANCY in globals.LINKMETRICS):
-            print("trying to plot")
+        for s in globals.statistics.keys():
             x = []
             y = []
-            links = globals.idmapping['links'].keys()
-            if(len(links) == 0):
-                pass
-            else:
-                name = links[0]
-                dict = globals.statistics[name+":"+globals.BUFFEROCCUPANCY]
-                print('TRYING TO PRINT DICT:')
-                print(dict)
-                for key, value in dict.items():
+            dict = globals.statistics[s]
+            # converts buffer occupancys from bits to KB
+            if globals.BUFFEROCCUPANCY in s:
+                for key in sorted(dict.keys()):
                     x.append(key)
-                    y.append(value)
+                    y.append(dict[key]*1.25*10**(-4))
                 plot.plot(x,y)
-                plot.savefig('myfig')
-                print("should have saved")"""
-        pass
+                plot.ylabel("buffer occupancy (in KB)")
+            # converts link rate from bps to MBps
+            if globals.LINKRATE in s:
+                for key in sorted(dict.keys()):
+                    x.append(key)
+                    y.append(dict[key]*1.25*10**(-7))
+                plot.plot(x,y)
+                plot.ylabel("link rate (in MBps)")
+            if globals.PACKETLOSS in s:
+                for key in sorted(dict.keys()):
+                    for key in sorted(dict.keys()):
+                        x.append(key)
+                        y.append(dict[key])
+                    plot.plot(x,y)
+                    plot.ylabel("number of packets dropped")
+            plot.xlabel("time (in seconds)")
+            plot.title(s)
+            plot.savefig(s)
+            plot.gcf().clear()
+
 
 
     def run(self):
@@ -115,7 +129,6 @@ class Simulator:
             if i % 5000 == 0:
                 for router in globals.idmapping['routers'].values():
                     router.recalculate_routing_table()
-
                     # print(router.routing_table)
 
             for link in globals.idmapping['links'].values():
@@ -130,9 +143,6 @@ class Simulator:
             print("Routing table for " + router.id)
             print(router.routing_table)
             print()
-
-
-
 
 
 
