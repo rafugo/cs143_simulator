@@ -89,10 +89,21 @@ class Simulator:
         for router in globals.idmapping['routers'].values():
                 print(router.routing_table)
 
+        # Make Handshakes
+        for router in globals.idmapping['routers'].values():
+                router.init_routing_table()
+
+        for i in range (50000):
+            for link in globals.idmapping['links'].values():
+                link.send_packet()
+            globals.systime += globals.dt
+
+
+
+
         for i in range(500000):
             # make the handshakes work
-            for router in globals.idmapping['routers'].values():
-                    router.init_routing_table()
+
 
             for flow in globals.idmapping['flows'].values():
                 flow.send_packets()

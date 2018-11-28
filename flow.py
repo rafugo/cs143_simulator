@@ -4,6 +4,7 @@ from host import Host
 from link import Link
 from packet import Packet
 from router import Router
+from congestion_controller import CongestionController
 
 class Flow:
     def __init__(self, id, source, destination, amount,\
