@@ -101,7 +101,7 @@
           "amount": 20,
           "start": 0.5,
           "congestion_control": "nope",
-          "window_size": 5,
+          "window_size": 100,
           "min_rtt": 10,
           "next_packet": 0
       }

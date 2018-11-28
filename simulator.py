@@ -121,7 +121,7 @@ class Simulator:
         for i in range(500000):
             if i % 500 == 0:
                 # print('systime : '+str(globals.systime))
-                if globals.systime >= 5:
+                if globals.systime >= 3:
                     break
 
             for flow in globals.idmapping['flows'].values():

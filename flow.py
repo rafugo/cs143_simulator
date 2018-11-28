@@ -65,6 +65,7 @@ class Flow:
             self.min_rtt = globals.systime - float(p.data)
             print("______________________NEW RTT CALCULATED: " + str(self.min_rtt) + "______________________")
             self.next_packet = 0
+            self.next_packet_send_time = globals.systime
 
         else:
             # make sure it's an acknowledgement
