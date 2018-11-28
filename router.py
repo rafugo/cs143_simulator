@@ -90,6 +90,9 @@ class Router:
     # Function to manage forwarding packets along the routing table
     def forward_packet(self, packet):
         print("Router " + self.id + " is forwarding packet " + str(packet.get_packetid()))
+        print (self.routing_table)
+        print (packet.get_destination())
+
         link_path = self.routing_table.get(packet.get_destination())[0]
 
         print()
@@ -99,6 +102,7 @@ class Router:
         globals.idmapping['links'][link_path].add_to_buffer(packet, self.id)
 
     def send_routing_table(self):
+        print ("ROUTING TABLE SENT")
         for l in self.links:
                 # print("sending routing table from " + self.id + " to " + entry)
                 # make our packet
@@ -110,7 +114,6 @@ class Router:
 
     # Send handshake packets to initialize data to adjacent routers
     def init_routing_table(self):
-        print ("table initializing")
         # Define the handshake packet with the router id as its data
         handshake_packet = Packet(self.id, None, None, None, globals.HANDSHAKEPACKET, data = (self.id))
 
@@ -123,10 +126,10 @@ class Router:
     # an external routing table and then calculates the new routing table from those values
     #
     def calc_routing_table(self, table_2_actual):
-
+        print (self.id)
         # make a copy of the object so we dont modify it
         table_2 = table_2_actual.copy()
-        print ("table2", table_2, "hi", self.id)
+        # print ("table2", table_2, "recieved by", self.id)
 
 
         # 1) Determine Cost of link between "self" router and table_2 router, and the Link ID that it was sent on
@@ -153,6 +156,7 @@ class Router:
             # if the destination is currently not in the routing table
             if (rt_cost == "not_in"):
                 self.routing_table[key] = [con_link_id, t2_cost]
+                updated = True
 
             # If the destination is in the current routing table but table_2 provides a quicker route
             elif (t2_cost < rt_cost):
@@ -163,6 +167,7 @@ class Router:
         # If we updated our routing table, send out our new routing table as a packet to all neighboring routers
         # BY: RAFA: Yeah, im currently just making the whole system send out the tables every 5 seconds
         if (updated):
+
             self.send_routing_table()
 
 
