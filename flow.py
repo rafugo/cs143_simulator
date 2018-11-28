@@ -103,8 +103,6 @@ class Flow:
                     -1, globals.SYNPACKET, globals.systime)
                 self.source.send_packet(sync_packet)
                 self.next_packet_send_time = globals.systime + self.min_rtt
-                print(globals.systime)
-                print(self.next_packet_send_time)
 
             # need to check when to send the next window size of packets
             elif (not self.done):
