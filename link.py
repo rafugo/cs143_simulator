@@ -96,7 +96,6 @@ class HalfLink:
         self.source = source
         self.destination = destination
         self.cost = 0
-        self.track = track
         # The first time we should try to send a packet is at the next time step.
         self.next_packet_send_time = globals.systime + globals.dt
         # A list representing the packets that have been sent by this HalfLink
@@ -106,9 +105,10 @@ class HalfLink:
         # transmission should be arriving at their destination.
         self.packet_arrival_times = []
 
-        self.lrwindow = 500 * globals.dt
+        self.track = track
+        self.lrwindow = 5000 * globals.dt
         self.lrsteps = []
-        self.lrsum = 0
+        self.lrsum = 0.0
 
         if track:
             for m in globals.HALFLINKMETRICS:
@@ -156,7 +156,7 @@ class HalfLink:
 
     def send_packet(self):
         amountfreed = 0
-        linkused = 0
+        bitstransmitted = 0
         # If we are at or have passed the time at which we should send the next
         # packet, we should try to send the next packet.
         if (self.next_packet_send_time <= globals.systime):
@@ -175,35 +175,76 @@ class HalfLink:
                 # as well as adding the time it should arrive at its destination
                 # to the list of packet_arrival_times. We will also need to
                 # update the time to send the next packet.
-                if (self.next_packet_send_time <= globals.systime):
-                    packet_to_send = self.buffer.pop(0)
-                    amountfreed = packet_to_send.get_size()
-                    self.buffersize = self.buffersize - amountfreed
+                packet_to_send = self.buffer.pop(0)
+                amountfreed = packet_to_send.get_size()
+                self.buffersize = self.buffersize - amountfreed
 
-                    #print("SENT PACKET! BUFFER SIZE %d", self.buffersize, "time:", globals.systime)
+                # time represents the amount of time in the previous dt that we
+                # were transmitting.
+                time = self.next_packet_send_time - (globals.systime - globals.dt)
+                # bitstransmitted represents the number of bits that were
+                # transmitted in the previous dt
+                bitstransmitted = time * self.rate
 
-                    # append the packet to the transmission
-                    self.packets_in_transmission.append(packet_to_send)
-                    self.packet_arrival_times.append(globals.systime + self.delay)
 
-                    # get the next earliest time we can send the next packet
-                    if (len(self.buffer) > 0):
-                        next_packet_size = self.buffer[0].get_size()
-                        self.next_packet_send_time = \
-                            globals.systime + next_packet_size * (1/self.rate)
+                # append the packet to the transmission
+                self.packets_in_transmission.append(packet_to_send)
+                self.packet_arrival_times.append(globals.systime + self.delay)
 
-                    else:
-                        self.next_packet_send_time = \
-                            self.next_packet_send_time + globals.dt
+                # get the earliest time we can send the next packet
+                if (len(self.buffer) > 0):
+                    next_packet_size = self.buffer[0].get_size()
+                    self.next_packet_send_time = globals.systime + \
+                        next_packet_size * (1/self.rate)
 
-                    time = self.next_packet_send_time - (globals.systime - globals.dt)
-                    linkused = time * self.rate
+                # the buffer is empty so we will just set the time to try to
+                # send the next packet to be the next time step.
                 else:
-                    # If we didn't finish transmitting something in this dt and
-                    # the buffer isn't empty, we must have been transmitting!
-                    if (len(self.buffer) > 0):
-                        linkused = globals.dt * self.rate
+                    self.next_packet_send_time = self.next_packet_send_time + \
+                                                 globals.dt
 
+        #in one of two cases: either buffer is empty or we used link to capacity
+        # in last dt.
+        else:
+            if (len(self.buffer) != 0):
+                time = globals.dt
+                bitstransmitted = time * self.rate
+            else:
+                print("buffer is empty and the next_packet_send_time is wrong!")
+
+        # Checks if we are tracking this halflink and if we are tracking the
+        # link rate of halflinks.
+        if ((self.track) and (globals.LINKRATE in globals.HALFLINKMETRICS)):
+            rate = 0
+            if(globals.systime < self.lrwindow):
+                if (globals.systime != 0):
+                    self.lrsteps.append(bitstransmitted)
+                    #self.lrsum = self.lrsum + bitstransmitted
+                    rate = sum(self.lrsteps)/globals.systime
+                    if (rate < 0):
+                        pass
+                        #print("havent reached window size, but negative link rate")
+
+                # when the time is 0, we will just set the rate to be 0.
+                else:
+                    pass
+            else:
+                remove = self.lrsteps.pop(0)
+                self.lrsteps.append(bitstransmitted)
+                #self.lrsum = self.lrsum - remove + bitstransmitted
+                rate = sum(self.lrsteps)/self.lrwindow
+                """if (rate < 0):
+                    print("negative link rate")
+                    if (self.lrsum < 0):
+                        print("negative sum")
+                        print("removed: ", remove, "sum: ",sum(self.lrsteps))
+                    else:
+                        print("negative window")
+                else:
+                    print("not negative yet")"""
+            key = self.id + ":" + self.source + "->" + self.destination + ":" \
+                  + globals.LINKRATE
+            dict = globals.statistics[key][globals.systime] = rate
 
         # If there are no packets in transmission, we don't need to check if
         # any would have arrived at their destination during the last dt.

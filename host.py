@@ -42,7 +42,7 @@ class Host:
     # (as well as notifying the correct flow about the packet)
     def receive_packet(self, p, linkid):
 
-        print("some packet received by host " + self.id)
+        # print("some packet received by host " + self.id)
 
         # needs to keep track of what flows it's a part of
         flowid = p.get_flowid();
@@ -59,9 +59,15 @@ class Host:
         # if it's a standard packet, it's from a flow
         elif (p.get_packet_type() == globals.STANDARDPACKET):
             print("standard packet received by " + self.id)
-            # if we've already seen the flow before, add to the dict
+            # if we've already seen the flow before, add to its dict
             if flowid in self.flow_packets_seen.keys():
-                self.flow_packets_seen[flowid].append(p.get_packetid())
+
+                # if the packet is a new packet, add it in the right spot
+                if p.get_packetid() not in self.flow_packets_seen[flowid]:
+                    self.flow_packets_seen[flowid].append(p.get_packetid())
+                    self.flow_packets_seen[flowid] = sorted(self.flow_packets_seen[flowid])
+
+                # otherwise do nothing
 
             # otherwise it's a new flow so we need to add it to the dict
             else:
