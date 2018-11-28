@@ -39,7 +39,7 @@ class CongestionController:
         sys.exit("Abstract method send_packet not implemented")
 
     def restart(self):
-        sys.exit("Abstract method wake not implemented")
+        sys.exit("Abstract method restart not implemented")
 
 # implement TCP Reno
 class CongestionControllerReno(CongestionController):
