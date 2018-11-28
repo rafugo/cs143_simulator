@@ -72,7 +72,12 @@ class Flow:
     def send_packets(self):
         # if sending first packet in the flow
         # SEND SYNC PACKET FIRST
-        #if (self.next_packet = 0):
+        # p = Packet(self.source.id, self.id, self.destination.id, i, \
+        #     globals.STANDARDPACKET, '')
+        #
+        #
+        # if (self.next_packet = 0):
+        #     sync_packet = Packet
 
         # need to check when to send the next window size of packets
         if (globals.systime >= self.start and \

@@ -74,3 +74,9 @@ def initialize():
 
     global HANDSHAKEACK
     HANDSHAKEACK = 'handshake_ack'
+
+    global SYNPACKET
+    SYNPACKET = "syn_packet"
+
+    global SYNACK
+    SYNACK = "syn_ack"
