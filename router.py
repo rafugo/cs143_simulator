@@ -43,7 +43,7 @@ class Router:
 
         elif(packet.is_handshake_ack()):
 
-            #print("handshake ack received by " + self.id)
+            # print("handshake ack received by " + self.id)
 
             # split up the data from the acknowledgement packet
             router_details = packet.get_data().split(" ")

@@ -23,9 +23,9 @@ class Flow:
         # amount of data to be transmitted in bits
         self.amount = amount * 8 * 10 ** 6
         # time at which the flow simulation starts, in ms
-        self.start = start
+        self.start = start + globals.systime
         # next time to send a packet
-        self.next_packet_send_time = start
+        self.next_packet_send_time = self.start
         # list of actual packets to be sent
         self.packets = []
 
@@ -61,9 +61,15 @@ class Flow:
         # check if it's a synack
         if (p.get_packet_type() == globals.SYNACK):
             # set the rtt
-            self.min_rtt = globals.systime - self.start
-            self.next_packet = 0
 
+            self.min_rtt = globals.systime - float(p.data)
+            print("______________________NEW RTT CALCULATED: " + \
+                str(self.min_rtt) + "______________________")
+            self.next_packet = 0
+            # good to go ahead and start send packets from the flow now
+            self.next_packet_send_time = globals.systime
+
+        # if it's a normal acknowledgement
         else:
             # make sure it's an acknowledgement
             assert p.is_ack();
@@ -85,20 +91,23 @@ class Flow:
 
     # attempts to send window_size amount of packets through the host
     def send_packets(self):
-
         # make sure it's send time
         if (globals.systime >= self.next_packet_send_time):
             # if sending first packet in the flow
             # SEND SYNC PACKET FIRST
             if (self.next_packet == -1):
-                #rint("Sending sync_packet")
+                print("Sending first sync_packet")
+                # generating sync_packet with data that is the time the packet was sent
+                # data is used to calc min_rtt
                 sync_packet = Packet(self.source.id, self.id, self.destination.id, \
-                    -1, globals.SYNPACKET, '')
+                    -1, globals.SYNPACKET, globals.systime)
                 self.source.send_packet(sync_packet)
-                self.next_packet_send_time += self.min_rtt
+                self.next_packet_send_time = globals.systime + self.min_rtt
+                print(globals.systime)
+                print(self.next_packet_send_time)
 
             # need to check when to send the next window size of packets
-            elif (globals.systime >= self.start and not self.done):
+            elif (not self.done):
 
                 #print("flow " + self.id + " is sending packets")
                 # check to see if more than 0 packets exist need to be sent
@@ -108,7 +117,7 @@ class Flow:
                 #if ()
                 for p in range(self.next_packet, min(self.next_packet + self.window_size, len(self.packets))):
 
-                    #print("flow " + self.id + " is sending packet no. " + str(self.packets[p].get_packetid()))
+                    print("flow " + self.id + " is sending packet no. " + str(self.packets[p].get_packetid()))
                     self.source.send_packet(self.packets[p])
                 self.next_packet_send_time += self.min_rtt
                 # log if the flow is completed
@@ -116,6 +125,3 @@ class Flow:
 
     def completed(self):
         return self.done
-    # TODO:
-    #       - add other fields as necessary for the implementation of
-    #         congestion control algorithms.
