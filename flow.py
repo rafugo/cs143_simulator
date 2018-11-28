@@ -10,7 +10,7 @@ class Flow:
                     start, congestion_control, window_size, min_rtt):
         self.id = id
         if source[0] == 'H':
-            print(globals.idmapping['hosts'])
+            #print(globals.idmapping['hosts'])
             self.source = globals.idmapping['hosts'][source]
         else:
             self.source = globals.idmapping['routers'][source]
@@ -18,20 +18,26 @@ class Flow:
             self.destination = globals.idmapping['hosts'][destination]
         else:
             self.destination = globals.idmapping['routers'][destination]
-        # amount of data to be transmitted in bytes
-        self.amount = amount
-        self.total = amount
+        # amount of data to be transmitted in bits
+        self.amount = amount * 8 * 10 ** 6
         # time at which the flow simulation starts, in ms
         self.start = start
         # next time to send a packet
         self.next_packet_send_time = start
         # list of actual packets to be sent
         self.packets = []
-        for i in range(0, amount):
+
+        amountInPackets = 0
+        i = 0
+        while (amountInPackets < self.amount):
             p = None
             p = Packet(self.source.id, self.id, self.destination.id, i, \
                 globals.STANDARDPACKET, '')
             self.packets.append(p)
+            amountInPackets = amountInPackets + globals.PACKETSIZE
+            i = i + 1
+        print("numberofPackets = ", len(self.packets), "amount =", self.amount, "amount given = ", amount)
+
         # instance of our congestion controllers
         self.congestion_control = congestion_control
         # packet number that the window needs to start at, default first packet
@@ -81,7 +87,7 @@ class Flow:
             # assumes packet id is the same as its index in the list
             # send a window size of packets
             #if ()
-            for p in range(self.next_packet, self.next_packet + self.window_size):
+            for p in range(self.next_packet, min(self.next_packet + self.window_size, len(self.packets))):
                 self.source.send_packet(self.packets[p])
             self.next_packet_send_time += self.min_rtt
             # log if the flow is completed

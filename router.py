@@ -1,5 +1,5 @@
 from packet import Packet
-import globals 
+import globals
 
 class Router:
     def __init__(self, id, ip, links):
@@ -8,7 +8,7 @@ class Router:
         self.links = links
         self.routing_table = {self.id: ['None', 0]}
 
-        # this is used to keep track of how many handshake acknowledgements are 
+        # this is used to keep track of how many handshake acknowledgements are
         # received, so that we know when our routing table is done
         self.handshakes_acked = 0
 
@@ -63,13 +63,13 @@ class Router:
             # our handshake was acknowledged
             self.handshakes_acked += 1
 
-            # if there are no more outstanding handshakes, send out the 
+            # if there are no more outstanding handshakes, send out the
             # routing table to other routers
             if self.handshakes_acked == len(self.links):
 
                 self.send_routing_table()
 
-                
+
 
 
         elif(packet.is_routing()):
@@ -79,17 +79,18 @@ class Router:
             self.calc_routing_table(packet.data)
 
         else:
-            forward_packet(packet)
-        
+            self.forward_packet(packet)
+
 
 
 
 
     # Function to manage forwarding packets along the routing table
     def forward_packet(self, packet):
-        link_path = routing_table.get(packet.destinationid)[0]
+        #link_path = self.routing_table.get(packet.destinationid)[0]
 
-        link_path.add_to_buffer(packet, self.id)
+        #link_path.add_to_buffer(packet, self.id)
+        pass
 
     def send_routing_table(self):
         for entry, (linkid, cost) in self.routing_table.items():
@@ -131,7 +132,7 @@ class Router:
 
         # Add link cost to all cost values in table_2 routing table
         for key in table_2:
- 
+
             table_2[key] = [table_2[key][0], table_2[key][1] + cost_between]
 
 
@@ -151,16 +152,3 @@ class Router:
                 updated = True
 
         # If we updated our routing table, send out our new routing table as a packet to all neighboring routers
-
-
-
-
-
-
-
-
-
-
-
-
-        

@@ -24,7 +24,7 @@ class Simulator:
 
             # add to idmapping
             link = Link(l['id'], l['connection1'], l['connection2'], \
-                        l['rate'], l['delay'], l['buffersize'], l['cost'])
+                        l['rate'], l['delay'], l['buffersize'])
             globals.idmapping['links'][l['id']] = link
 
         # create hosts
