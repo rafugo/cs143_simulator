@@ -71,7 +71,6 @@ class Flow:
         # SEND SYNC PACKET FIRST
         #if (self.next_packet = 0):
 
-        print(self.start - globals.systime)
         # need to check when to send the next window size of packets
         if (globals.systime >= self.start and \
             globals.systime >= self.next_packet_send_time and\
