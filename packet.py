@@ -50,7 +50,7 @@ class Packet:
         return self.sourceid
 
     def get_destination(self):
-        return self.destination
+        return self.destinationid
 
     def get_packet_type(self):
         return self.packet_type

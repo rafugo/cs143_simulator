@@ -90,12 +90,23 @@ class Simulator:
         for router in globals.idmapping['routers'].values():
             router.init_routing_table()
 
+        for i in range(500):
+            for router in globals.idmapping['routers'].values():
+                router.send_routing_table()
+
+
         for i in range(500000):
+            for flow in globals.idmapping['flows'].values():
+                flow.send_packets()
+
             if i % 50000 == 0:
                 for router in globals.idmapping['routers'].values():
                     router.send_routing_table()
-                    print(router.routing_table)
-            
+                    # print()
+                    # print("Routing table for " + router.id)
+                    # print(router.routing_table)
+                    # print()
+                    
 
             for link in globals.idmapping['links'].values():
                 link.send_packet()
@@ -106,4 +117,7 @@ class Simulator:
         t2 = {'H1': ['L01', -200], 'R1': ['L02', 1], 'R2': ['L04', 1]}
         for router in globals.idmapping['routers'].values():
 
+            print()
+            print("Routing table for " + router.id)
             print(router.routing_table)
+            print()
