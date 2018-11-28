@@ -98,6 +98,7 @@ class Flow:
 
             # need to check when to send the next window size of packets
             elif (globals.systime >= self.start and not self.done):
+
                 print("flow " + self.id + " is sending packets")
                 # check to see if more than 0 packets exist need to be sent
                 assert(self.amount > 0)
