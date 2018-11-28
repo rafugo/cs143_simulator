@@ -80,7 +80,6 @@ class Host:
             # received in the sequence
             packetid_needed = -2
             packets_gotten = self.flow_packets_seen[flowid]
-            print(packets_gotten)
             for i in range(len(packets_gotten)):
 
                 # if we have seen a packet id and the next one has also been

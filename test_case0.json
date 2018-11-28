@@ -34,7 +34,7 @@
             "start": 1,
             "congestion_control": "nope",
             "window_size": 5,
-            "min_rtt": 1,
+            "min_rtt": 0.04,
             "next_packet": 0
         }
     ]

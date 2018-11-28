@@ -62,6 +62,7 @@ class Flow:
         if (p.get_packet_type() == globals.SYNACK):
             # set the rtt
             self.min_rtt = globals.systime - self.start
+            print("setting min_rtt to " + str(self.min_rtt))
             self.next_packet = 0
 
         else:
