@@ -5,8 +5,13 @@ from simulator import Simulator
 
 # initialize all the global variables
 globals.initialize()
-globals.systime += 1
+
+# I need the time to start at 0.
+#globals.systime += 1
 
 # create the simulator with the given filename
-sim = Simulator('input_file.json')
+sim = Simulator('router_test.json')
 sim.run()
+print("ran")
+sim.rt_init_test()
+sim.plot_metrics()

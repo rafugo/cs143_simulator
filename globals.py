@@ -42,11 +42,14 @@ def initialize():
     global BUFFEROCCUPANCY
     BUFFEROCCUPANCY = "buffer occupancy"
 
+    global HALFLINKMETRICS
+    HALFLINKMETRICS = [LINKRATE, BUFFEROCCUPANCY]
+
     global PACKETLOSS
     PACKETLOSS = "packet loss"
 
     global LINKMETRICS
-    LINKMETRICS = [LINKRATE, BUFFEROCCUPANCY, PACKETLOSS]
+    LINKMETRICS = [PACKETLOSS]
 
     global PACKETSIZE
     PACKETSIZE = 1024*8
@@ -66,8 +69,8 @@ def initialize():
     global ROUTINGPACKET
     ROUTINGPACKET = 'routing_packet'
 
-    global SYNPACKET
-    SYNPACKET = 'syn_packet'
+    global HANDSHAKEPACKET
+    HANDSHAKEPACKET = 'handshake_packet'
 
-    global SYNACK
-    SYNACK = 'syn_ack'
+    global HANDSHAKEACK
+    HANDSHAKEACK = 'handshake_ack'
