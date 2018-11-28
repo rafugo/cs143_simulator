@@ -42,7 +42,7 @@ class Host:
     # (as well as notifying the correct flow about the packet)
     def receive_packet(self, p, linkid):
 
-        print("some packet received by host " + self.id)
+        # print("some packet received by host " + self.id)
 
         # needs to keep track of what flows it's a part of
         flowid = p.get_flowid();

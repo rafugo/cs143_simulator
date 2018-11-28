@@ -93,7 +93,9 @@ class Simulator:
         for router in globals.idmapping['routers'].values():
                 router.init_routing_table()
 
-        for i in range (5000000):
+        for i in range (50000):
+            if globals.systime % 0.5 == 0:
+                print('systime : '+str(globals.systime))
             for link in globals.idmapping['links'].values():
                 link.send_packet()
             globals.systime += globals.dt
@@ -102,7 +104,10 @@ class Simulator:
         for router in globals.idmapping['routers'].values():
             print ("Router" , router.id, "Table:", router.routing_table)
 
-        for i in range(5000000):
+        for i in range(500000000):
+
+            if i % 500000 == 0:
+                print('systime : '+str(globals.systime))
 
             for flow in globals.idmapping['flows'].values():
                 flow.send_packets()

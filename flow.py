@@ -85,7 +85,6 @@ class Flow:
 
     # attempts to send window_size amount of packets through the host
     def send_packets(self):
-
         # make sure it's send time
         if (globals.systime >= self.next_packet_send_time):
             # if sending first packet in the flow
