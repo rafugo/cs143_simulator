@@ -58,7 +58,7 @@ class Host:
 
         # if it's a standard packet, it's from a flow
         elif (p.get_packet_type() == globals.STANDARDPACKET):
-            print("standard packet received")
+            print("standard packet received by " + self.id)
             # if we've already seen the flow before, add to the dict
             if flowid in self.flow_packets_seen.keys():
                 self.flow_packets_seen[flowid].append(p.get_packetid())
@@ -70,8 +70,9 @@ class Host:
             # now we need to send an ack back!
             # note that we need to find the smallest number that has not been
             # received in the sequence
-            packetid_needed = -1
+            packetid_needed = -2
             packets_gotten = self.flow_packets_seen[flowid]
+
             for i in range(len(packets_gotten)):
 
                 # if we have seen a packet id and the next one has also been
@@ -102,12 +103,9 @@ class Host:
 
         elif (p.get_packet_type() == globals.SYNPACKET):
             print("syn packet received")
-            # if we've already seen the flow before, add to the dict
-            if flowid in self.flow_packets_seen.keys():
-                self.flow_packets_seen[flowid].append(p.get_packetid())
 
-            # otherwise it's a new flow so we need to add it to the dict
-            else:
+            # if it's a new flow, add it to the table
+            if flowid not in self.flow_packets_seen.keys():
                 self.flow_packets_seen[flowid] = [p.get_packetid()]
 
             ack = Packet(self.id, flowid, p.get_source(), None, \
