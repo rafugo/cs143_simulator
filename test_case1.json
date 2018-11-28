@@ -1,0 +1,109 @@
+{
+    "hosts": [
+        {
+            "id": "H1",
+            "ip": "000.000.000.000",
+            "linkid" : "L0"
+        },
+        {
+            "id": "H2",
+            "ip": "000.000.000.001",
+            "linkid" : "L5"
+        }
+    ],
+    "links": [
+        {
+            "id": "L0",
+            "connection1" : "H1",
+            "connection2" : "R1",
+            "rate" : 12.5,
+            "delay" : 10,
+            "buffersize" : 64,
+            "cost" : 0
+        },
+        {
+            "id": "L1",
+            "connection1" : "R1",
+            "connection2" : "R2",
+            "rate" : 10.0,
+            "delay" : 10,
+            "buffersize" : 64,
+            "cost" : 0
+        },
+        {
+            "id": "L2",
+            "connection1" : "R1",
+            "connection2" : "R3",
+            "rate" : 10.0,
+            "delay" : 10,
+            "buffersize" : 64,
+            "cost" : 0
+        },
+        {
+            "id": "L3",
+            "connection1" : "R2",
+            "connection2" : "R4",
+            "rate" : 10.0,
+            "delay" : 10,
+            "buffersize" : 64,
+            "cost" : 0
+        },
+        {
+            "id": "L4",
+            "connection1" : "R3",
+            "connection2" : "R4",
+            "rate" : 10.0,
+            "delay" : 10,
+            "buffersize" : 64,
+            "cost" : 0
+        },
+        {
+            "id": "L5",
+            "connection1" : "R4",
+            "connection2" : "H2",
+            "rate" : 12.5,
+            "delay" : 10,
+            "buffersize" : 64,
+            "cost" : 0
+        }
+    ],
+    "routers": [
+        {
+            "id": "R1",
+            "ip": "000.000.000.002",
+            "links": ["L0", "L1", "L2"]
+
+        },
+        {
+            "id": "R2",
+            "ip": "000.000.000.003",
+            "links": ["L1", "L3"]
+
+        },
+        {
+            "id": "R3",
+            "ip": "000.000.000.003",
+            "links": ["L2", "L4"]
+
+        },
+        {
+            "id": "R4",
+            "ip": "000.000.000.003",
+            "links": ["L3", "L4", "L5"]
+
+        }
+    ],
+    "flows": [
+      {
+          "id": "F0",
+          "source": "H1",
+          "destination": "H2",
+          "amount": 20,
+          "start": 0.5,
+          "congestion_control": "nope",
+          "window_size": 5,
+          "min_rtt": 10,
+          "next_packet": 0
+      }
+    ]
+}

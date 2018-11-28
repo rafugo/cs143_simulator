@@ -21,7 +21,7 @@ class Flow:
         # amount of data to be transmitted in bytes
         self.amount = amount
         self.total = amount
-        # time at which the flow simulation starts, in ms
+        # time at which the flow simulation starts, in s
         self.start = start
         # next time to send a packet
         self.next_packet_send_time = start
@@ -79,6 +79,7 @@ class Flow:
             globals.systime >= self.next_packet_send_time and\
             not self.done):
 
+            print("flow " + self.id + " is sending packets")
             # check to see if more than 0 packets exist need to be sent
             assert(self.amount > 0)
             # assumes packet id is the same as its index in the list

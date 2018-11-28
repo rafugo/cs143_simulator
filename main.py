@@ -5,9 +5,9 @@ from simulator import Simulator
 
 # initialize all the global variables
 globals.initialize()
-globals.systime += 1
 
 # create the simulator with the given filename
-sim = Simulator('input_file.json')
+sim = Simulator('test_case1.json')
 sim.run()
-#sim.rt_init_test()
+print("ran")
+sim.plot_metrics()

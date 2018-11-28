@@ -50,7 +50,7 @@ class Packet:
         return self.sourceid
 
     def get_destination(self):
-        return self.destination
+        return self.destinationid
 
     def get_packet_type(self):
         return self.packet_type
@@ -69,3 +69,6 @@ class Packet:
 
     def is_handshake_ack(self):
         return (self.packet_type == globals.HANDSHAKEACK)
+
+    def is_routing(self):
+        return (self.packet_type == globals.ROUTINGPACKET)

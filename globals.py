@@ -17,7 +17,7 @@ def initialize():
     global systime
     systime = 0
 
-    # the time increment settings
+    # the time increment settings, with dt = 0.0001
     global dt
     dt = 1 * (10**-4)
 
@@ -42,11 +42,14 @@ def initialize():
     global BUFFEROCCUPANCY
     BUFFEROCCUPANCY = "buffer occupancy"
 
+    global HALFLINKMETRICS
+    HALFLINKMETRICS = [LINKRATE, BUFFEROCCUPANCY]
+
     global PACKETLOSS
     PACKETLOSS = "packet loss"
 
     global LINKMETRICS
-    LINKMETRICS = [LINKRATE, BUFFEROCCUPANCY, PACKETLOSS]
+    LINKMETRICS = [PACKETLOSS]
 
     global PACKETSIZE
     PACKETSIZE = 1024*8
