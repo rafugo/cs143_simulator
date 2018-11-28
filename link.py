@@ -21,8 +21,8 @@ class Link:
                buffercapacity : The total capacity of the link's buffer (in bits)
                delay : The propagation delay of the link (in s)
                id : The string ID of the link """
-        self.links = {connection1: HalfLink(linkid, connection2, rate, delay, cost),  \
-                      connection2: HalfLink(linkid, connection1, rate, delay, cost)}
+        self.links = {connection1: HalfLink(linkid, connection1, connection2, rate, delay, cost),  \
+                      connection2: HalfLink(linkid, connection2, connection1, rate, delay, cost)}
         self.bufferavailable = buffersize * 8 * (10**4)
         self.buffercapacity = buffersize * 8 * (10**4)
         self.delay = delay * 10 ** (-3)
@@ -71,7 +71,7 @@ class Link:
 # This class will represent one direction of the Link. (i.e. all packets
 # travelling across a given HalfLink will be going to the same destination).
 class HalfLink:
-    def __init__(self, id, destination, rate, delay, cost, track=True):
+    def __init__(self, id, source, destination, rate, delay, cost, track=True):
         self.id = id
         # Converts the link rate from Mbps to bps
         self.rate = rate * 10 ** 6
@@ -82,6 +82,7 @@ class HalfLink:
         #       has half the capactiy of the total buffer.
         self.buffersize = 0
         self.buffer = []
+        self.source = source
         self.destination = destination
         self.cost = cost
         self.track = track
@@ -107,6 +108,9 @@ class HalfLink:
 
     def get_destination(self):
         return self.destination
+
+    def get_source(self):
+        return self.source
 
     def add_to_buffer(self, packet, buffersize):
         """This function will try to add the Packet packet to the buffer. It
@@ -137,6 +141,8 @@ class HalfLink:
             self.next_packet_send_time = \
                 globals.systime + (1 / self.rate) * (packet.get_size())
         return packet.get_size()
+
+            # print('what we add to systime ' + str(((1 / self.rate) * (packet.get_size()))))
 
 
     def send_packet(self):

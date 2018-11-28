@@ -69,3 +69,6 @@ class Packet:
 
     def is_handshake_ack(self):
         return (self.packet_type == globals.HANDSHAKEACK)
+
+    def is_routing(self):
+        return (self.packet_type == globals.ROUTINGPACKET)
