@@ -8,5 +8,7 @@ globals.initialize()
 
 # create the simulator with the given filename
 sim = Simulator('test_case1.json')
-# sim.run()
+sim.run()
+print("ran")
 sim.rt_init_test()
+sim.plot_metrics()

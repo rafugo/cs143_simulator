@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plot
 import globals
 from host import Host
 from link import Link
@@ -25,9 +26,6 @@ class Simulator:
             link = Link(l['id'], l['connection1'], l['connection2'], \
                         l['rate'], l['delay'], l['buffersize'], l['cost'])
             globals.idmapping['links'][l['id']] = link
-            for m in globals.LINKMETRICS:
-                globals.statistics[l['id']+":"+m] = {}
-                # print(globals.statistics);
 
         # create hosts
         for h in network_objects['hosts']:
@@ -43,12 +41,12 @@ class Simulator:
             for r in network_objects['routers']:
                 # clear the variable
                 router = None
-            
+
                 # get the list of links connected to each router
                 link_list = []
                 for lin_id in r['links']:
                     link_list.append(globals.idmapping['links'][lin_id])
-            
+
                 # initialize router and add to idmapping
                 router = Router(r['id'], r['ip'], link_list)
                 globals.idmapping['routers'][r['id']] = router
@@ -78,13 +76,35 @@ class Simulator:
 
 
             globals.systime += globals.dt
-        # print(globals.statistics)
+
+        print("statistics:")
+        print(globals.statistics)
+        print("end of statistics")
 
 
 
     def plot_metrics(self):
-        #TODO
+        """
+        if(globals.BUFFEROCCUPANCY in globals.LINKMETRICS):
+            print("trying to plot")
+            x = []
+            y = []
+            links = globals.idmapping['links'].keys()
+            if(len(links) == 0):
+                pass
+            else:
+                name = links[0]
+                dict = globals.statistics[name+":"+globals.BUFFEROCCUPANCY]
+                print('TRYING TO PRINT DICT:')
+                print(dict)
+                for key, value in dict.items():
+                    x.append(key)
+                    y.append(value)
+                plot.plot(x,y)
+                plot.savefig('myfig')
+                print("should have saved")"""
         pass
+
 
     def rt_init_test(self):
         for router in globals.idmapping['routers'].values():
@@ -102,11 +122,8 @@ class Simulator:
             if i % 50000 == 0:
                 for router in globals.idmapping['routers'].values():
                     router.send_routing_table()
-                    # print()
-                    # print("Routing table for " + router.id)
-                    # print(router.routing_table)
-                    # print()
-                    
+
+                    print(router.routing_table)
 
             for link in globals.idmapping['links'].values():
                 link.send_packet()
