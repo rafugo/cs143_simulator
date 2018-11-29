@@ -132,11 +132,11 @@ class Flow:
             assert p.sourceid == self.destination.id
             assert p.destinationid == self.source.id
 
-            print("Flow " + self.id + " received ack with number " + str(p.data[0]))
+            #print("Flow " + self.id + " received ack with number " + str(p.data[0]))
             # send min round trip time
             self.min_rtt = globals.systime - float(p.data[1])
-            print("______________________NEW RTT CALCULATED: " + \
-                str(self.min_rtt) + "______________________")
+            #print("______________________NEW RTT CALCULATED: " + \
+            #    str(self.min_rtt) + "______________________")
             # remove the packet from the list of packets that need to be sent
             # p.data contains the id of the next packet it needs
             if (p.data[0] >  self.next_packet):
@@ -156,10 +156,11 @@ class Flow:
                         rate = sum(self.frsteps)/(globals.systime - self.start)
                 else:
                     self.frsteps.pop(0)
-                    self.frsteps.append(1)
+                    self.frsteps.append(globals.PACKETSIZE)
                     rate = sum(self.frsteps)/(self.frwindow)
 
                 key = self.id + ":" + globals.FLOWRATE
+                #print("STORING FLOW RATE")
                 globals.statistics[key][globals.systime] = rate
 
 
@@ -190,7 +191,7 @@ class Flow:
                 # send a window size of packets
                 #if ()
                 for p in range(self.next_packet, min(self.next_packet + self.window_size, len(self.packets))):
-                    print("flow " + self.id + " is sending packet no. " + str(self.packets[p].get_packetid()))
+                    #print("flow " + self.id + " is sending packet no. " + str(self.packets[p].get_packetid()))
                     # adding info to packet about when it is sent
                     self.packets[p].data = globals.systime
                     self.source.send_packet(self.packets[p])
@@ -200,7 +201,6 @@ class Flow:
 
     def update_flow_statistics(self):
         if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
-            self.added = False
             rate = 0
             if (len(self.frsteps) < self.frwindow/globals.dt):
                 self.frsteps.append(0)
@@ -212,11 +212,14 @@ class Flow:
                 rate = sum(self.frsteps)/(self.frwindow)
 
             key = self.id + ":" + globals.FLOWRATE
+            #print("STORING FLOW RATE")
             globals.statistics[key][globals.systime] = rate
 
         if (self.track and globals.WINDOWSIZE in globals.FLOWMETRICS):
             key = self.id + ":" + globals.WINDOWSIZE
             globals.statistics[key][globals.systime] = self.window_size
+
+        self.added = False
 
     def completed(self):
         return self.done

@@ -94,7 +94,7 @@ class Simulator:
                 plot.ylabel("number of packets dropped")
             # converts flow rate from bps to MBps
             if globals.FLOWRATE in s:
-                for k in sorted(dict.keys()):
+                for key in sorted(dict.keys()):
                     x.append(key)
                     y.append(dict[key]*1.25*10**(-7))
                 plot.plot(x,y)
