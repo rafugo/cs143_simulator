@@ -3,9 +3,9 @@ from packet import Packet
 from link import Link
 
 class Host:
-    def __init__(self, hostid, ip, linkid):
+    def __init__(self, hostid, linkid):
         self.id = hostid
-        self.ip = ip
+        self.ip = 0
         self.linkid = linkid
 
         # NOTE: this is the dictionary of flows to packets seen

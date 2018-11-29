@@ -2,9 +2,9 @@ from packet import Packet
 import globals
 
 class Router:
-    def __init__(self, id, ip, links):
+    def __init__(self, id, links):
         self.id = id
-        self.ip = ip
+        self.ip = 0
         self.links = links
         self.routing_table = {self.id: ['None', 0]}
 
