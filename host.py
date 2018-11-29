@@ -109,10 +109,3 @@ class Host:
             # process the acknowledgement
             #print("syn ack given to flow "+flowid+" from host "+self.id)
             flow.process_ack(p)
-
-
-    # TODO:
-    #      - send packets
-    #      - receive packets
-    #      - send acknowledgements
-    #      - reciee acknowledgements

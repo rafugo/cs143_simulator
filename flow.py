@@ -58,14 +58,15 @@ class Flow:
             self.destination = globals.idmapping['hosts'][destination]
         else:
             self.destination = globals.idmapping['routers'][destination]
-        # converts the amount of data from MB to bits
-        self.amount = amount * 8 * 10 ** 6
+        # converts the amount of data from Megabytes to bits
+        self.amount = amount * 8 * globals.MEGABITSTOBITS
         # time at which the flow simulation starts, in s
         self.start = start
         # next time to send a packet
         self.next_packet_send_time = self.start
         # list of actual packets to be sent
         self.packets = []
+        self.setRTT = False
 
         amountInPackets = 0
         i = 0
@@ -92,10 +93,12 @@ class Flow:
         # flag to demonstrate if the
         self.done = False
 
-
+        # Variables for metric tracking
         self.track = track
         self.frwindow = 20000 * globals.dt
         self.frsteps = []
+        self.rttwindow = 20000 * globals.dt
+        self.rttsteps = []
         self.added = False
 
         # If this flow is being tracked, we set up the dictionaries for all of
@@ -105,25 +108,21 @@ class Flow:
                 globals.statistics[id+":"+m] = {}
 
 
-
-
-
-        # processes the acknowledgement packet received by its source.
-        # should pop the corresponding packet off the queue (may not be the
-        #   first one if the first wasnt acknowledged)
-        # does congestion control if needed
     def process_ack(self, p):
+        """ This function processes the acknowledgement packet recieved by its
+            source. It should pop the corresponding packet off the queue (may
+            bot be the first one if the first wasn't acknowledged).
+            Does congestion control if needed
+        """
         # check if it's a synack
         if (p.get_packet_type() == globals.SYNACK):
             # set the rtt
-
             self.rtt = globals.systime - float(p.data)
-            #print("______________________NEW RTT CALCULATED: " + \
-            #    str(self.rtt) + "______________________")
+            self.setRTT = True
             self.next_packet = 0
             # good to go ahead and start send packets from the flow now
             self.next_packet_send_time = globals.systime
-            if (self.track) and globals.FLOWRTT in globals.FLOWMETRICS:
+            if ((self.track) and globals.FLOWRTT in globals.FLOWMETRICS) and (not globals.SMOOTH):
                 key = self.id + ":" + globals.FLOWRTT
                 globals.statistics[key][globals.systime] = self.rtt
 
@@ -208,13 +207,12 @@ class Flow:
     def update_flow_statistics(self):
         if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
             rate = 0
+            self.frsteps.append(0)
             if (len(self.frsteps) < self.frwindow/globals.dt):
-                self.frsteps.append(0)
                 if (globals.systime > self.start):
                     rate = sum(self.frsteps)/(globals.systime - self.start)
             else:
                 self.frsteps.pop(0)
-                self.frsteps.append(0)
                 rate = sum(self.frsteps)/(self.frwindow)
 
             key = self.id + ":" + globals.FLOWRATE
@@ -224,6 +222,19 @@ class Flow:
         if (self.track and globals.WINDOWSIZE in globals.FLOWMETRICS):
             key = self.id + ":" + globals.WINDOWSIZE
             globals.statistics[key][globals.systime] = self.window_size
+
+        if  (self.track and globals.FLOWRTT in globals.FLOWMETRICS) and globals.SMOOTH:
+            avgrtt = 0
+            if (self.setRTT):
+                self.rttsteps.append(self.rtt)
+                if (len(self.rttsteps) < self.rttwindow/globals.dt) and globals.systime > 0:
+                    avgrtt = sum(self.rttsteps)/(globals.systime) * globals.dt
+                else:
+                    self.rttsteps.pop(0)
+                    avgrtt = sum(self.rttsteps)/(self.rttwindow) * globals.dt
+                key = self.id + ":" + globals.FLOWRTT
+                globals.statistics[key][globals.systime] = avgrtt
+
 
         self.added = False
 

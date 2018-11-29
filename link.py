@@ -34,17 +34,16 @@ class Link:
                track : A boolean value indicating if this link is being
                        tracked."""
         # buffer is the size of the buffer in bits (buffersize is in KB)
-        buffer = buffersize * 8 * (10**3)
+        buffer = buffersize * 8 * globals.KILOBITSTOBITS
         self.links = {connection1: HalfLink(linkid, connection1, connection2, rate, delay, buffer, track1),  \
                       connection2: HalfLink(linkid, connection2, connection1, rate, delay, buffer, track2)}
         # converts delay from ms to s
-        self.delay = delay * 10 ** (-3)
+        self.delay = delay * globals.MSTOS
         self.id = linkid
 
         # variables for metric tracking
         self.droppedpackets = 0
         self.track = (track1 or track2)
-
         # sets up the dictionaries to track all necessary statistics for this
         # link
         if (self.track):
@@ -75,9 +74,11 @@ class Link:
         if (added == 0) and (self.track and globals.PACKETLOSS in globals.LINKMETRICS):
             key = self.id + ":" + globals.PACKETLOSS
             globals.statistics[key][globals.systime] = self.droppedpackets
-
+            # If the previous time was valid, update the dictionary to show
+            # how many packets had been dropped at the previous time step.
             if (globals.systime > 0):
                 globals.statistics[key][globals.systime-globals.dt] = self.droppedpackets -1
+
 
     def send_packet(self):
         """This function will try to send a packet on both of the half links
@@ -85,9 +86,12 @@ class Link:
         for link in self.links.values():
             link.send_packet()
 
+
     def update_link_statistics(self):
         for link in self.links.values():
             link.update_link_statistics()
+
+
 
 # This class will represent one direction of the Link. (i.e. all packets
 # travelling across a given HalfLink will be going to the same destination).
@@ -139,9 +143,9 @@ class HalfLink:
                   appears to never be used."""
         self.id = id
         # Converts the link rate from Mbps to bps
-        self.rate = rate * 10 ** 6
+        self.rate = rate * globals.MEGABITSTOBITS
         # Converts the propagation delay from ms to s
-        self.delay = delay * 10 ** (-3)
+        self.delay = delay * globals.MSTOS
         self.buffercapacity = buffersize
         self.buffersize = 0
         self.buffer = []
@@ -154,29 +158,18 @@ class HalfLink:
         self.packets_in_transmission = []
         self.packet_arrival_times = []
 
-
+        # Variables for metric tracking
         self.track = track
-
         self.lrwindow = 20000 * globals.dt
         self.lrsteps = []
-
         self.buffersteps = []
         self.bufferwindow = 20000 * globals.dt
-
         # If we are tracking this half link, we set up dictionaries for all of
         # its metrics which we are tracking.
         if track:
             for m in globals.HALFLINKMETRICS:
                 globals.statistics[id+":"+source+"->"+destination+":"+m] = {}
 
-    def get_buffer_size(self):
-        return self.buffersize
-
-    def get_destination(self):
-        return self.destination
-
-    def get_source(self):
-        return self.source
 
     def add_to_buffer(self, packet):
         """This function will try to add the Packet packet to the buffer. It
@@ -201,12 +194,10 @@ class HalfLink:
         # If we are tracking this link and we are tracking buffer occupancy
         # statistics, we will update the corresponding dictionary accordingly.
         if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) and (not globals.SMOOTH):
-            #print("shouldnt be here")
             key = self.id+":"+self.source+"->"+self.destination+":"+globals.BUFFEROCCUPANCY
             globals.statistics[key][globals.systime] = self.buffersize
             if (globals.systime > 0) and not (globals.systime-globals.dt in globals.statistics[key].keys()):
                 globals.statistics[key][globals.systime-globals.dt] = self.buffersize - packet.get_size()
-
 
         # returns the size of the packet that was succesfully added to the
         # buffer.
@@ -234,7 +225,6 @@ class HalfLink:
                 self.buffersize = self.buffersize - amountfreed
 
                 if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) and (not globals.SMOOTH):
-                    #print("shouldnt be here")
                     key = self.id+":"+self.source+"->"+self.destination+":"+globals.BUFFEROCCUPANCY
                     globals.statistics[key][globals.systime] = self.buffersize
                     if (globals.systime > 0) and not (globals.systime-globals.dt in globals.statistics[key].keys()):
@@ -281,17 +271,15 @@ class HalfLink:
         # appropriately.
         if ((self.track) and (globals.LINKRATE in globals.HALFLINKMETRICS)):
             rate = 0
+            self.lrsteps.append(bitstransmitted)
             if(globals.systime < self.lrwindow):
                 if (globals.systime != 0):
-                    self.lrsteps.append(bitstransmitted)
                     rate = sum(self.lrsteps)/globals.systime
-
                 # when the time is 0, we will just set the rate to be 0.
                 else:
                     pass
             else:
-                remove = self.lrsteps.pop(0)
-                self.lrsteps.append(bitstransmitted)
+                self.lrsteps.pop(0)
                 rate = sum(self.lrsteps)/self.lrwindow
             key = self.id + ":" + self.source + "->" + self.destination + ":" \
                   + globals.LINKRATE
@@ -306,45 +294,46 @@ class HalfLink:
             # element of the list of packets_in_transmission and we should send
             # that packet to its destination.
             if (self.packet_arrival_times[0] <= globals.systime):
-
                 # pop the packet and arrival time
                 packet_to_send = self.packets_in_transmission.pop(0)
                 self.packet_arrival_times.pop(0)
-
-                # deliver it
                 dest_type = ''
-                # if first letter is an H
                 if self.destination[0] == 'H':
                     dest_type = 'hosts'
                 else:
                     dest_type = 'routers'
-
                 receiver = globals.idmapping[dest_type][self.destination]
                 receiver.receive_packet(packet_to_send, self.id)
 
-                # print("packet delivered")
-
-
-        # use linkused here for tracking purposes
         return amountfreed
 
 
     def update_link_statistics(self):
-        #TODO: rename rate here.
         if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) and globals.SMOOTH:
-            rate = 0
+            avgocc = 0
             if(globals.systime < self.bufferwindow):
                 if (globals.systime != 0):
                     self.buffersteps.append(self.buffersize)
-                    rate = sum(self.buffersteps)/globals.systime
-
+                    avgocc = sum(self.buffersteps)/globals.systime
                 # when the time is 0, we will just set the rate to be 0.
                 else:
                     pass
             else:
-                remove = self.buffersteps.pop(0)
+                self.buffersteps.pop(0)
                 self.buffersteps.append(self.buffersize)
-                rate = sum(self.buffersteps)/self.bufferwindow
+                avgocc = sum(self.buffersteps)/self.bufferwindow
             key = self.id + ":" + self.source + "->" + self.destination + ":" \
                   + globals.BUFFEROCCUPANCY
-            dict = globals.statistics[key][globals.systime] = rate
+            dict = globals.statistics[key][globals.systime] = avgocc * globals.dt
+
+
+    def get_buffer_size(self):
+        return self.buffersize
+
+
+    def get_destination(self):
+        return self.destination
+
+
+    def get_source(self):
+        return self.source

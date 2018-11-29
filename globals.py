@@ -33,8 +33,26 @@ def initialize():
         'flows' : {}
     }
 
+    global MEGABITSTOBITS
+    MEGABITSTOBITS = 10**6
+
+    global BITSTOMEGABITS
+    BITSTOMEGABITS = 10**(-6)
+
+    global MSTOS
+    MSTOS = 10**(-3)
+
+    global STOMS
+    STOMS = 10**3
+
+    global KILOBITSTOBITS
+    KILOBITSTOBITS = 10**(3)
+
+    global BITSTOKILOBITS
+    BITSTOKILOBITS = 10**(-3)
+
     global SMOOTH
-    SMOOTH = False
+    SMOOTH = True
 
     global statistics
     statistics = {}

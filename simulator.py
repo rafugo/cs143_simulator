@@ -59,15 +59,9 @@ class Simulator:
                 f['start'], f['congestion_control'], f['window_size'], f['min_rtt'])
             globals.idmapping['flows'][f['id']] = flow
 
-
-
-    # TODO: we should improve packet loss so that that it is updated more
-    # frequently than just when a packet drops so that the plot appears more
-    # reasonable. Perhaps I will make the buffer occupancy update more
-    # frequently as well
-    # TODO: add flow_rtt, flow_window_size, flor_rate
     def plot_metrics(self):
         for s in globals.statistics.keys():
+            plot.figure(figsize=(8,3))
             x = []
             y = []
             lines = 0
@@ -77,29 +71,30 @@ class Simulator:
             if globals.BUFFEROCCUPANCY in s:
                 for key in sorted(dict.keys()):
                     x.append(key)
-                    y.append(dict[key]*1.25*10**(-4))
+                    # Converts the buffer occupancy from bits to Kilobytes
+                    y.append(dict[key]*globals.BITSTOKILOBITS/8)
                 lines = plot.plot(x,y)
                 plot.ylabel("buffer occupancy (in KB)")
-            # converts link rate from bps to MBps
             if globals.LINKRATE in s:
                 for key in sorted(dict.keys()):
                     x.append(key)
-                    y.append(dict[key]*1*10**(-6))
+                    # converts link rate from bps to Mbps
+                    y.append(dict[key]*globals.BITSTOMEGABITS)
                 lines = plot.plot(x,y)
-                plot.ylabel("link rate (in MBps)")
+                plot.ylabel("link rate (in Mbps)")
             if globals.PACKETLOSS in s:
                 for key in sorted(dict.keys()):
                     x.append(key)
                     y.append(dict[key])
                 lines = plot.plot(x,y)
                 plot.ylabel("number of packets dropped")
-            # converts flow rate from bps to MBps
             if globals.FLOWRATE in s:
                 for key in sorted(dict.keys()):
                     x.append(key)
-                    y.append(dict[key]*1*10**(-6))
+                    # converts flow rate from bps to Mbps
+                    y.append(dict[key]*globals.BITSTOMEGABITS)
                 lines = plot.plot(x,y)
-                plot.ylabel("flow rate (in MBps)")
+                plot.ylabel("flow rate (in Mbps)")
             if globals.WINDOWSIZE in s:
                 for key in sorted(dict.keys()):
                     x.append(key)
@@ -134,12 +129,7 @@ class Simulator:
             router.init_routing_table()
 
         # run the simulation
-        for i in range(300000):
-            if i % 500 == 0:
-                # print('systime : '+str(globals.systime))
-                if globals.systime >= 3*60:
-                    break
-
+        for i in range(100000):
             if i % 5000 == 0:
                 for router in globals.idmapping['routers'].values():
                     router.recalculate_routing_table()
