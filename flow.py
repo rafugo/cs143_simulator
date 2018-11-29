@@ -86,15 +86,15 @@ class Flow:
         self.next_packet = -1;
         # current size of the window used for the congestion controller
         self.window_size = window_size
-        # minimum round trip time used for congestion control, starts at arbitrary
+        # round trip time used for congestion control, starts at arbitrary
         #   value and then is calculated
-        self.min_rtt = min_rtt
+        self.rtt = min_rtt
         # flag to demonstrate if the
         self.done = False
 
 
         self.track = track
-        self.frwindow = 5000 * globals.dt
+        self.frwindow = 20000 * globals.dt
         self.frsteps = []
         self.added = False
 
@@ -117,12 +117,15 @@ class Flow:
         if (p.get_packet_type() == globals.SYNACK):
             # set the rtt
 
-            self.min_rtt = globals.systime - float(p.data)
+            self.rtt = globals.systime - float(p.data)
             #print("______________________NEW RTT CALCULATED: " + \
-                #str(self.min_rtt) + "______________________")
+            #    str(self.rtt) + "______________________")
             self.next_packet = 0
             # good to go ahead and start send packets from the flow now
             self.next_packet_send_time = globals.systime
+            if (self.track) and globals.FLOWRTT in globals.FLOWMETRICS:
+                key = self.id + ":" + globals.FLOWRTT
+                globals.statistics[key][globals.systime] = self.rtt
 
         # if it's a normal acknowledgement
         else:
@@ -134,9 +137,12 @@ class Flow:
 
             #print("Flow " + self.id + " received ack with number " + str(p.data[0]))
             # send min round trip time
-            self.min_rtt = globals.systime - float(p.data[1])
+            self.rtt = globals.systime - float(p.data[1])
             #print("______________________NEW RTT CALCULATED: " + \
-            #    str(self.min_rtt) + "______________________")
+            #    str(self.rtt) + "______________________")
+            if (self.track) and globals.FLOWRTT in globals.FLOWMETRICS:
+                key = self.id + ":" + globals.FLOWRTT
+                globals.statistics[key][globals.systime] = self.rtt
             # remove the packet from the list of packets that need to be sent
             # p.data contains the id of the next packet it needs
             if (p.data[0] >  self.next_packet):
@@ -179,7 +185,7 @@ class Flow:
                 sync_packet = Packet(self.source.id, self.id, self.destination.id, \
                     -1, globals.SYNPACKET, globals.systime)
                 self.source.send_packet(sync_packet)
-                self.next_packet_send_time = globals.systime + self.min_rtt
+                self.next_packet_send_time = globals.systime + self.rtt
 
             # need to check when to send the next window size of packets
             elif (not self.done):
@@ -195,7 +201,7 @@ class Flow:
                     # adding info to packet about when it is sent
                     self.packets[p].data = globals.systime
                     self.source.send_packet(self.packets[p])
-                self.next_packet_send_time += self.min_rtt
+                self.next_packet_send_time += self.rtt
                 # log if the flow is completed
                 # log when the acknowledgement is received
 

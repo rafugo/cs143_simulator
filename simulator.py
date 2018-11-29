@@ -105,6 +105,12 @@ class Simulator:
                     y.append(dict[key])
                 plot.plot(x,y)
                 plot.ylabel("window size")
+            if globals.FLOWRTT in s:
+                for key in sorted(dict.keys()):
+                    x.append(key)
+                    y.append(dict[key])
+                plot.plot(x,y)
+                plot.ylabel("round trip time (in seconds)")
             plot.xlabel("time (in seconds)")
             plot.title(s)
             plot.savefig(s)
@@ -123,7 +129,7 @@ class Simulator:
             router.init_routing_table()
 
         # run the simulation
-        for i in range(500000):
+        for i in range(200000):
             if i % 500 == 0:
                 # print('systime : '+str(globals.systime))
                 if globals.systime >= 3*60:

@@ -150,7 +150,7 @@ class HalfLink:
         self.packets_in_transmission = []
         self.packet_arrival_times = []
         self.track = track
-        self.lrwindow = 5000 * globals.dt
+        self.lrwindow = 20000 * globals.dt
         self.lrsteps = []
         self.lrsum = 0.0
 
