@@ -88,11 +88,11 @@ class Host:
 
             # process the acknowledgement
 
-            print("ack given to flow "+flowid+" from host "+self.id)
+            #print("ack given to flow "+flowid+" from host "+self.id)
             flow.process_ack(p)
 
         elif (p.get_packet_type() == globals.SYNPACKET):
-            print("syn packet received")
+            #print("syn packet received")
 
             # if it's a new flow, add it to the table
             if flowid not in self.flow_packets_seen.keys():
@@ -107,7 +107,7 @@ class Host:
             flow = globals.idmapping['flows'][flowid]
 
             # process the acknowledgement
-            print("syn ack given to flow "+flowid+" from host "+self.id)
+            #print("syn ack given to flow "+flowid+" from host "+self.id)
             flow.process_ack(p)
 
 

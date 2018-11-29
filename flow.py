@@ -35,9 +35,9 @@ class Flow:
             p = Packet(self.source.id, self.id, self.destination.id, i, \
                 globals.STANDARDPACKET, '')
             self.packets.append(p)
-            amountInPackets = amountInPackets + globals.PACKETSIZE
+            amountInPackets = amountInPackets + globals.PACKETSIZE - globals.PACKETHEADERSIZE
             i = i + 1
-        print("numberofPackets = ", len(self.packets), "amount =", self.amount, "amount given = ", amount)
+        #print("numberofPackets = ", len(self.packets), "amount =", self.amount, "amount given = ", amount)
 
         # instance of our congestion controllers
         if (congestion_control == 'reno'):
@@ -107,7 +107,8 @@ class Flow:
 
             # need to check when to send the next window size of packets
             elif (not self.done):
-                print("flow " + self.id + " is sending packets")
+
+                #print("flow " + self.id + " is sending packets")
                 # check to see if more than 0 packets exist need to be sent
                 assert(self.amount > 0)
                 # assumes packet id is the same as its index in the list

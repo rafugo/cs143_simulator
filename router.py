@@ -89,9 +89,9 @@ class Router:
 
     # Function to manage forwarding packets along the routing table
     def forward_packet(self, packet):
-        print("-----------------------------Router " + self.id + " is forwarding packet " + str(packet.get_packetid()) + "--------------------------------")
-        print (self.routing_table)
-        print (packet.get_destination())
+        #print("-----------------------------Router " + self.id + " is forwarding packet " + str(packet.get_packetid()) + "--------------------------------")
+        #print (self.routing_table)
+        #print (packet.get_destination())
 
         link_path = self.routing_table.get(packet.get_destination())[0]
 
