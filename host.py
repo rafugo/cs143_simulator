@@ -21,20 +21,6 @@ class Host:
     def send_packet(self, p):
         # get the actual link object
         connected_link = globals.idmapping['links'][self.linkid]
-
-        # add the packet to the link buffer
-
-        # if (p.get_packet_type() == globals.HANDSHAKEACK):
-        #     print("handshake acknowledgement sent from " + self.id)
-
-        # elif (p.get_packet_type() == globals.STANDARDACK):
-        #     print("standard ack sent from " + self.id)
-
-        # elif (p.get_packet_type() == globals.STANDARDPACKET):
-        #     print("standard packet sent from " + self.id + " for flow " + p.get_flowid())
-
-
-
         connected_link.add_to_buffer(p, self.id)
 
 
@@ -92,9 +78,7 @@ class Host:
             # we now have the smallest value that is missing consecutively
             # send the ack packet
             ack = Packet(self.id, flowid, p.get_source(), None, \
-                            globals.ACKPACKET, data = packetid_needed + 1)
-
-
+                            globals.ACKPACKET, data = [packetid_needed + 1, p.get_data()])
             self.send_packet(ack)
 
         # if it's an acknowledgement, let the flow know we got one
