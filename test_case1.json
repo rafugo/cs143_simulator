@@ -98,10 +98,10 @@
           "id": "F0",
           "source": "H1",
           "destination": "H2",
-          "amount": 20,
+          "amount": 60,
           "start": 0.5,
           "congestion_control": "nope",
-          "window_size": 100,
+          "window_size": 20,
           "min_rtt": 10,
           "next_packet": 0
       }

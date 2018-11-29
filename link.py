@@ -85,6 +85,10 @@ class Link:
         for link in self.links.values():
             link.send_packet()
 
+    def update_link_statistics(self):
+        for link in self.links.values():
+            link.update_link_statistics()
+
 # This class will represent one direction of the Link. (i.e. all packets
 # travelling across a given HalfLink will be going to the same destination).
 class HalfLink:
@@ -149,10 +153,15 @@ class HalfLink:
         self.next_packet_send_time = globals.systime + globals.dt
         self.packets_in_transmission = []
         self.packet_arrival_times = []
+
+
         self.track = track
+
         self.lrwindow = 20000 * globals.dt
         self.lrsteps = []
-        self.lrsum = 0.0
+
+        self.buffersteps = []
+        self.bufferwindow = 20000 * globals.dt
 
         # If we are tracking this half link, we set up dictionaries for all of
         # its metrics which we are tracking.
@@ -191,9 +200,13 @@ class HalfLink:
 
         # If we are tracking this link and we are tracking buffer occupancy
         # statistics, we will update the corresponding dictionary accordingly.
-        if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS):
+        if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) and (not globals.SMOOTH):
+            print("shouldnt be here")
             key = self.id+":"+self.source+"->"+self.destination+":"+globals.BUFFEROCCUPANCY
             globals.statistics[key][globals.systime] = self.buffersize
+            if (globals.systime > 0) and not (globals.systime-globals.dt in globals.statistics[key].keys()):
+                globals.statistics[key][globals.systime-globals.dt] = self.buffersize - packet.get_size()
+
 
         # returns the size of the packet that was succesfully added to the
         # buffer.
@@ -219,6 +232,13 @@ class HalfLink:
                 # Updates buffersize to reflect that we removed the packet
                 # at the front of the buffer from the buffer.
                 self.buffersize = self.buffersize - amountfreed
+
+                if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) and (not globals.SMOOTH):
+                    print("shouldnt be here")
+                    key = self.id+":"+self.source+"->"+self.destination+":"+globals.BUFFEROCCUPANCY
+                    globals.statistics[key][globals.systime] = self.buffersize
+                    if (globals.systime > 0) and not (globals.systime-globals.dt in globals.statistics[key].keys()):
+                        globals.statistics[key][globals.systime-globals.dt] = self.buffersize + amountfreed
 
                 # Time represents the amount of time in the previous dt that we
                 # were transmitting. (i.e. between the previous systime and the
@@ -307,3 +327,24 @@ class HalfLink:
 
         # use linkused here for tracking purposes
         return amountfreed
+
+
+    def update_link_statistics(self):
+        #TODO: rename rate here.
+        if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) and globals.SMOOTH:
+            rate = 0
+            if(globals.systime < self.bufferwindow):
+                if (globals.systime != 0):
+                    self.buffersteps.append(self.buffersize)
+                    rate = sum(self.buffersteps)/globals.systime
+
+                # when the time is 0, we will just set the rate to be 0.
+                else:
+                    pass
+            else:
+                remove = self.buffersteps.pop(0)
+                self.buffersteps.append(self.buffersize)
+                rate = sum(self.buffersteps)/self.bufferwindow
+            key = self.id + ":" + self.source + "->" + self.destination + ":" \
+                  + globals.BUFFEROCCUPANCY
+            dict = globals.statistics[key][globals.systime] = rate

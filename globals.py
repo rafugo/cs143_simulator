@@ -33,6 +33,9 @@ def initialize():
         'flows' : {}
     }
 
+    global SMOOTH
+    SMOOTH = False
+
     global statistics
     statistics = {}
 

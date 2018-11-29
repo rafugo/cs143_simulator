@@ -70,6 +70,7 @@ class Simulator:
         for s in globals.statistics.keys():
             x = []
             y = []
+            lines = 0
             dict = globals.statistics[s]
             # converts buffer occupancys from bits to KB
             print(s)
@@ -77,40 +78,44 @@ class Simulator:
                 for key in sorted(dict.keys()):
                     x.append(key)
                     y.append(dict[key]*1.25*10**(-4))
-                plot.plot(x,y)
+                lines = plot.plot(x,y)
                 plot.ylabel("buffer occupancy (in KB)")
             # converts link rate from bps to MBps
             if globals.LINKRATE in s:
                 for key in sorted(dict.keys()):
                     x.append(key)
-                    y.append(dict[key]*1.25*10**(-7))
-                plot.plot(x,y)
+                    y.append(dict[key]*1*10**(-6))
+                lines = plot.plot(x,y)
                 plot.ylabel("link rate (in MBps)")
             if globals.PACKETLOSS in s:
                 for key in sorted(dict.keys()):
                     x.append(key)
                     y.append(dict[key])
-                plot.plot(x,y)
+                lines = plot.plot(x,y)
                 plot.ylabel("number of packets dropped")
             # converts flow rate from bps to MBps
             if globals.FLOWRATE in s:
                 for key in sorted(dict.keys()):
                     x.append(key)
-                    y.append(dict[key]*1.25*10**(-7))
-                plot.plot(x,y)
+                    y.append(dict[key]*1*10**(-6))
+                lines = plot.plot(x,y)
                 plot.ylabel("flow rate (in MBps)")
             if globals.WINDOWSIZE in s:
                 for key in sorted(dict.keys()):
                     x.append(key)
                     y.append(dict[key])
-                plot.plot(x,y)
+                lines = plot.plot(x,y)
                 plot.ylabel("window size")
             if globals.FLOWRTT in s:
                 for key in sorted(dict.keys()):
                     x.append(key)
                     y.append(dict[key])
-                plot.plot(x,y)
+                lines = plot.plot(x,y)
                 plot.ylabel("round trip time (in seconds)")
+            plot.setp(lines, linewidth = 0.8)
+            #fig = plot.figure()
+            #fig.set_figheight(3)
+            #fig.set_figwidth(8)
             plot.xlabel("time (in seconds)")
             plot.title(s)
             plot.savefig(s)
@@ -129,7 +134,7 @@ class Simulator:
             router.init_routing_table()
 
         # run the simulation
-        for i in range(200000):
+        for i in range(300000):
             if i % 500 == 0:
                 # print('systime : '+str(globals.systime))
                 if globals.systime >= 3*60:
@@ -142,6 +147,7 @@ class Simulator:
 
             for link in globals.idmapping['links'].values():
                 link.send_packet()
+                link.update_link_statistics()
 
 
             for flow in globals.idmapping['flows'].values():
