@@ -9,7 +9,7 @@ from congestion_controller import CongestionController
 
 class Flow:
     def __init__(self, id, source, destination, amount,\
-                    start, congestion_control, window_size, min_rtt, track=True):
+                    start, congestion_control, track=True):
         """This function initializes new flows
            INPUT ARGUMENTS-
                linkid : The string ID of the flow being constructed
@@ -20,8 +20,6 @@ class Flow:
                start : The time that the flow should start (in seconds)
                congestion_control : The congestion control algorithm the flow
                                     will use
-               window_size : the initial window size of the flow
-               min_rtt : the initial minimum rount trip time of the flow
                track : a boolean value indicating if we are tracking metrics
                        for this flow
            NOTE- I don't think we need min_rtt here and i dont know about
@@ -49,6 +47,14 @@ class Flow:
                        have already added the flow rate for this time step
                        to the metric tracking
                """
+        # packet number that the window needs to start at, default first packet
+        self.next_packet = -1;
+        # current size of the window used for the congestion controller
+        self.window_size = 100
+        # round trip time used for congestion control, starts at arbitrary
+        #   value and then is calculated
+        self.rtt = 1
+
         self.id = id
         if source[0] == 'H':
             self.source = globals.idmapping['hosts'][source]
@@ -67,6 +73,7 @@ class Flow:
         # list of actual packets to be sent
         self.packets = []
 
+
         amountInPackets = 0
         i = 0
         while (amountInPackets < self.amount):
@@ -82,13 +89,7 @@ class Flow:
             self.congestion_control = CongestionControllerReno()
         else:
             self.congestion_control = CongestionController()
-        # packet number that the window needs to start at, default first packet
-        self.next_packet = -1;
-        # current size of the window used for the congestion controller
-        self.window_size = window_size
-        # round trip time used for congestion control, starts at arbitrary
-        #   value and then is calculated
-        self.rtt = min_rtt
+        
         # flag to demonstrate if the
         self.done = False
 

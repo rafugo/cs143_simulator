@@ -33,7 +33,7 @@ class Simulator:
             host = None
 
             # add to idmapping
-            host = Host(h['id'], h['ip'], h['linkid'])
+            host = Host(h['id'], h['linkid'])
             globals.idmapping['hosts'][h['id']] = host
 
         # create routers
@@ -48,7 +48,7 @@ class Simulator:
                     link_list.append(globals.idmapping['links'][lin_id])
 
                 # initialize router and add to idmapping
-                router = Router(r['id'], r['ip'], link_list)
+                router = Router(r['id'], link_list)
                 globals.idmapping['routers'][r['id']] = router
 
         for f in network_objects['flows']:
@@ -56,7 +56,7 @@ class Simulator:
             flow = None
             # add to idmapping
             flow = Flow(f['id'], f['source'], f['destination'], f['amount'], \
-                f['start'], f['congestion_control'], f['window_size'], f['min_rtt'])
+                f['start'], f['congestion_control'])
             globals.idmapping['flows'][f['id']] = flow
 
 
@@ -134,13 +134,9 @@ class Simulator:
             router.init_routing_table()
 
         # run the simulation
-        for i in range(300000):
-            if i % 500 == 0:
-                # print('systime : '+str(globals.systime))
-                if globals.systime >= 3*60:
-                    break
+        for i in range(200000):
 
-            if i % 5000 == 0:
+            if i % 50000 == 0:
                 for router in globals.idmapping['routers'].values():
                     router.recalculate_routing_table()
                     # print(router.routing_table)
@@ -166,25 +162,3 @@ class Simulator:
             #print()
 
 
-
-    # def run(self):
-
-    #     # make a packet
-    #     # packet0 = Packet("H0", "0", "H1", None, globals.STANDARDPACKET, data = '143 rox!')
-    #     #
-    #     # host0 = globals.idmapping['hosts']['H0']
-    #     #
-    #     # host0.send_packet(packet0)
-
-    #     for i in range(10000000):
-    #         for flow in globals.idmapping['flows'].values():
-    #             flow.send_packets()
-    #         for link in globals.idmapping['links'].values():
-    #             link.send_packet()
-
-
-    #         globals.systime += globals.dt
-
-    #     print("statistics:")
-    #     print(globals.statistics)
-    #     print("end of statistics")
