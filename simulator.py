@@ -107,7 +107,7 @@ class Simulator:
 
         # Make Handshakes
         for router in globals.idmapping['routers'].values():
-                router.init_routing_table()
+            router.init_routing_table()
 
         for i in range (50000):
             if globals.systime % 0.5 == 0:
@@ -116,14 +116,12 @@ class Simulator:
                 link.send_packet()
             globals.systime += globals.dt
 
-
-        for router in globals.idmapping['routers'].values():
             print ("Router" , router.id, "Table:", router.routing_table)
 
         for i in range(500000):
             if i % 500 == 0:
                 # print('systime : '+str(globals.systime))
-                if globals.systime >= 3:
+                if globals.systime >= 3*60:
                     break
 
             for flow in globals.idmapping['flows'].values():

@@ -29,7 +29,10 @@ class Link:
                        be sending things along that half link.
                buffercapacity : The total capacity of the link's buffer (in bits)
                delay : The propagation delay of the link (in s)
-               id : The string ID of the link """
+               id : The string ID of the link
+               droppedpackets : The number of packets that have been dropped
+               track : A boolean value indicating if this link is being
+                       tracked."""
         # buffer is the size of the buffer in bits (buffersize is in KB)
         buffer = buffersize * 8 * (10**4)
         self.links = {connection1: HalfLink(linkid, connection1, connection2, rate, delay, buffer, track1),  \
@@ -65,10 +68,11 @@ class Link:
         # dropped.
         if (added == 0):
             self.droppedpackets = self.droppedpackets + 1
-            # If we are tracking packet loss, it updates the dictionary associated
-            # with this link's packet loss metrics.
 
-        if (globals.PACKETLOSS in globals.LINKMETRICS):
+        # If we are tracking this link and one of the metrics we are tracking
+        # is packet loss, it updates the dictionary associated with this
+        # link's packet loss metrics.
+        if (self.track and globals.PACKETLOSS in globals.LINKMETRICS):
             current = globals.statistics[self.id + ":" + globals.PACKETLOSS]
             current[globals.systime] = self.droppedpackets
             globals.statistics[self.id + ":" + globals.PACKETLOSS][globals.systime] = current
@@ -76,35 +80,72 @@ class Link:
     def send_packet(self):
         """This function will try to send a packet on both of the half links
            corresponding to the Link."""
-        totaloccupancy = 0
         for link in self.links.values():
-            totaloccupancy = totaloccupancy + link.send_packet()
+            link.send_packet()
 
 # This class will represent one direction of the Link. (i.e. all packets
 # travelling across a given HalfLink will be going to the same destination).
 class HalfLink:
     def __init__(self, id, source, destination, rate, delay, buffersize, track=True):
+        """This function initializes new half-link objects
+           INPUT ARGUMENTS-
+               linkid : The string ID of the link being constructed
+               source : The string ID of the object that will be sending packets
+                        along this half link
+               destination : The string ID of the object that will be recieving
+                             packets along this half link
+               rate : The link rate of the link (in Mbps)
+               delay : The propagation delay of the link (in ms)
+               buffersize : The size of the buffer for this link in bits.
+               track : A boolean value specifying whether or not the half link
+                       should have its metrics tracked
+           FIELDS-
+               id : The string ID of the link
+               rate : The maximum link rate of the link (in bps)
+               delay : The propagation delay of the link (in s)
+               buffercapacity : The total capacity of the link's buffer (in bits)
+               buffersize : The number of bits currently being held in the
+                            link's buffer
+               buffer : A list of the packets currently in the buffer
+               source : The string ID of the object which sends things along
+                        this link
+               destination : The string ID of the object which recieves things
+                             along this link
+               next_packet_send_time : The time that we should send (or try to
+                                       send) the next packet. If the buffer is
+                                       nonempty, this will be the time that
+                                       the packet in front of the buffer will
+                                       finish transmitting and leave the buffer.
+               packets_in_transmission : A list of packets currently propagating
+                                         down the link
+               packet_arrival_times : A list of the times that the corresponding
+                                      packets in packets_in_transmission should
+                                      arrive at their destination
+               track : A boolean value indicating if this link is being tracked.
+               lrwindow : The size of the window (in seconds) over which we are
+                          computing link rate for the link rate statistics
+               lrsteps : A list of the number of bits which were sent along the
+                         link in various timesteps (where the first item represents
+                         the earliest time step and the last represents the most
+                         recent)
+               cost : The cost of this link?
+            NOTE- I am not sure whether or not we need cost here at all, as it
+                  appears to never be used."""
         self.id = id
         # Converts the link rate from Mbps to bps
         self.rate = rate * 10 ** 6
         # Converts the propagation delay from ms to s
         self.delay = delay * 10 ** (-3)
-        # Converts the buffer size from KB to b
-        # Note: we divide the buffersize by two because each half link only
-        #       has half the capactiy of the total buffer.
         self.buffercapacity = buffersize
         self.buffersize = 0
         self.buffer = []
         self.source = source
         self.destination = destination
         self.cost = 0
+
         # The first time we should try to send a packet is at the next time step.
         self.next_packet_send_time = globals.systime + globals.dt
-        # A list representing the packets that have been sent by this HalfLink
-        # but have not yet reached their destination.
         self.packets_in_transmission = []
-        # A list representing the times that the packets that are still in
-        # transmission should be arriving at their destination.
         self.packet_arrival_times = []
 
         self.track = track
@@ -112,6 +153,8 @@ class HalfLink:
         self.lrsteps = []
         self.lrsum = 0.0
 
+        # If we are tracking this half link, we set up dictionaries for all of
+        # its metrics which we are tracking.
         if track:
             for m in globals.HALFLINKMETRICS:
                 globals.statistics[id+":"+source+"->"+destination+":"+m] = {}
@@ -129,30 +172,30 @@ class HalfLink:
         """This function will try to add the Packet packet to the buffer. It
         will only add packet to the buffer if there is still space in the
         buffer for it. Otherwise, the packet will be dropped."""
-        first_pack = False
-        # need to know whether it is the first packet added
+        # If the buffer is currently empty, the we should send the next packet
+        # (i.e. this packet) as soon as it finishes transmitting (which will take
+        # time sizeofpacket/transmissionrate)
         if (len(self.buffer) == 0):
-            first_pack = True
+            self.next_packet_send_time = globals.systime + (packet.get_size()/self.rate)
 
+        # Checks that there is room to add the packet to the buffer
         if (packet.get_size() + self.buffersize <= self.buffercapacity):
             self.buffersize = self.buffersize + packet.get_size()
             #print("Buffer size %d", self.buffersize, "time:", globals.systime, "flow:", packet.get_flowid())
             self.buffer.append(packet)
+        # if there isn't room in the buffer, we return 0 to indicate that the
+        # packet was dropped.
         else:
             return 0
 
-        # if there is only one item in the buffer and we just added it, then
-        # we need to update the time to start sending the next packet, which
-        # will be the next timestep.
-        #
-        # Note that it takes the 1 / rate * pack_size to "dequeue"
-        if (first_pack):
-            self.next_packet_send_time = \
-                globals.systime + (1 / self.rate) * (packet.get_size())
-
+        # If we are tracking this link and we are tracking buffer occupancy
+        # statistics, we will update the corresponding dictionary accordingly.
         if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS):
-            globals.statistics[self.id+":"+self.source+"->"+self.destination+":"+globals.BUFFEROCCUPANCY][globals.systime] = self.buffersize
+            key = self.id+":"+self.source+"->"+self.destination+":"+globals.BUFFEROCCUPANCY
+            globals.statistics[key][globals.systime] = self.buffersize
 
+        # returns the size of the packet that was succesfully added to the
+        # buffer.
         return packet.get_size()
 
 
