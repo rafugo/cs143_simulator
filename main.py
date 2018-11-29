@@ -7,7 +7,7 @@ from simulator import Simulator
 globals.initialize()
 
 # create the simulator with the given filename
-sim = Simulator('test_case0.json')
+sim = Simulator('test_case1.json')
 sim.run()
-print("ran")
+print("The simulation finished.")
 sim.plot_metrics()
