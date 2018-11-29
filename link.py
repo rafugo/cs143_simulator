@@ -34,7 +34,7 @@ class Link:
                track : A boolean value indicating if this link is being
                        tracked."""
         # buffer is the size of the buffer in bits (buffersize is in KB)
-        buffer = buffersize * 8 * (10**4)
+        buffer = buffersize * 8 * (10**3)
         self.links = {connection1: HalfLink(linkid, connection1, connection2, rate, delay, buffer, track1),  \
                       connection2: HalfLink(linkid, connection2, connection1, rate, delay, buffer, track2)}
         # converts delay from ms to s
@@ -147,7 +147,6 @@ class HalfLink:
         self.next_packet_send_time = globals.systime + globals.dt
         self.packets_in_transmission = []
         self.packet_arrival_times = []
-
         self.track = track
         self.lrwindow = 5000 * globals.dt
         self.lrsteps = []
@@ -211,32 +210,30 @@ class HalfLink:
                 self.next_packet_send_time = \
                     self.next_packet_send_time + globals.dt
 
-            # Otherwise, we should work on sending the packet at the front of
-            # the buffer.
+            # Otherwise, It's time to send the packet at the front of the buffer
             else:
-                # If we have finished transmitting the packet in the last dt,
-                # we should remove the packet at the beginning of the buffer
-                # and add it to the packets_in_transmission list of packets
-                # as well as adding the time it should arrive at its destination
-                # to the list of packet_arrival_times. We will also need to
-                # update the time to send the next packet.
                 packet_to_send = self.buffer.pop(0)
                 amountfreed = packet_to_send.get_size()
+                # Updates buffersize to reflect that we removed the packet
+                # at the front of the buffer from the buffer.
                 self.buffersize = self.buffersize - amountfreed
 
-                # time represents the amount of time in the previous dt that we
-                # were transmitting.
+                # Time represents the amount of time in the previous dt that we
+                # were transmitting. (i.e. between the previous systime and the
+                # current)
                 time = self.next_packet_send_time - (globals.systime - globals.dt)
                 # bitstransmitted represents the number of bits that were
                 # transmitted in the previous dt
                 bitstransmitted = time * self.rate
 
-
-                # append the packet to the transmission
+                # Now we need to add the packet that we removed from the
+                # buffer to the lists that keep track of the propegation of the
+                # packets.
                 self.packets_in_transmission.append(packet_to_send)
                 self.packet_arrival_times.append(globals.systime + self.delay)
 
-                # get the earliest time we can send the next packet
+                # If there are still packets in the buffer, update the time
+                # to send the next packet to be when it would finish transmitting
                 if (len(self.buffer) > 0):
                     next_packet_size = self.buffer[0].get_size()
                     self.next_packet_send_time = globals.systime + \
@@ -248,7 +245,7 @@ class HalfLink:
                     self.next_packet_send_time = self.next_packet_send_time + \
                                                  globals.dt
 
-        #in one of two cases: either buffer is empty or we used link to capacity
+        # in one of two cases: either buffer is empty or we used link to capacity
         # in last dt.
         else:
             if (len(self.buffer) != 0):
@@ -257,18 +254,15 @@ class HalfLink:
             else:
                 print("buffer is empty and the next_packet_send_time is wrong!")
 
-        # Checks if we are tracking this halflink and if we are tracking the
-        # link rate of halflinks.
+        # If we are tracking this link and we are tracking link rate for half
+        # links, we compute the link rate and update the statistics disctionary
+        # appropriately.
         if ((self.track) and (globals.LINKRATE in globals.HALFLINKMETRICS)):
             rate = 0
             if(globals.systime < self.lrwindow):
                 if (globals.systime != 0):
                     self.lrsteps.append(bitstransmitted)
-                    #self.lrsum = self.lrsum + bitstransmitted
                     rate = sum(self.lrsteps)/globals.systime
-                    if (rate < 0):
-                        pass
-                        #print("havent reached window size, but negative link rate")
 
                 # when the time is 0, we will just set the rate to be 0.
                 else:
@@ -276,17 +270,7 @@ class HalfLink:
             else:
                 remove = self.lrsteps.pop(0)
                 self.lrsteps.append(bitstransmitted)
-                #self.lrsum = self.lrsum - remove + bitstransmitted
                 rate = sum(self.lrsteps)/self.lrwindow
-                """if (rate < 0):
-                    print("negative link rate")
-                    if (self.lrsum < 0):
-                        print("negative sum")
-                        print("removed: ", remove, "sum: ",sum(self.lrsteps))
-                    else:
-                        print("negative window")
-                else:
-                    print("not negative yet")"""
             key = self.id + ":" + self.source + "->" + self.destination + ":" \
                   + globals.LINKRATE
             dict = globals.statistics[key][globals.systime] = rate
