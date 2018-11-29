@@ -201,7 +201,7 @@ class HalfLink:
         # If we are tracking this link and we are tracking buffer occupancy
         # statistics, we will update the corresponding dictionary accordingly.
         if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) and (not globals.SMOOTH):
-            print("shouldnt be here")
+            #print("shouldnt be here")
             key = self.id+":"+self.source+"->"+self.destination+":"+globals.BUFFEROCCUPANCY
             globals.statistics[key][globals.systime] = self.buffersize
             if (globals.systime > 0) and not (globals.systime-globals.dt in globals.statistics[key].keys()):
@@ -234,7 +234,7 @@ class HalfLink:
                 self.buffersize = self.buffersize - amountfreed
 
                 if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) and (not globals.SMOOTH):
-                    print("shouldnt be here")
+                    #print("shouldnt be here")
                     key = self.id+":"+self.source+"->"+self.destination+":"+globals.BUFFEROCCUPANCY
                     globals.statistics[key][globals.systime] = self.buffersize
                     if (globals.systime > 0) and not (globals.systime-globals.dt in globals.statistics[key].keys()):
