@@ -12,7 +12,6 @@ class Flow:
                     start, congestion_control, window_size, min_rtt):
         self.id = id
         if source[0] == 'H':
-            #print(globals.idmapping['hosts'])
             self.source = globals.idmapping['hosts'][source]
         else:
             self.source = globals.idmapping['routers'][source]
@@ -49,7 +48,8 @@ class Flow:
         self.next_packet = -1;
         # current size of the window used for the congestion controller
         self.window_size = window_size
-        # minimum round trip time used for congestion control
+        # minimum round trip time used for congestion control, starts at arbitrary
+        #   value and then is calculated
         self.min_rtt = min_rtt
         # flag to demonstrate if the
         self.done = False
@@ -77,17 +77,18 @@ class Flow:
             assert p.sourceid == self.destination.id
             assert p.destinationid == self.source.id
 
-            print("Flow " + self.id + " received ack with number " + str(p.data))
+            print("Flow " + self.id + " received ack with number " + str(p.data[0]))
+            # send min round trip time
+            self.min_rtt = globals.systime - float(p.data[1])
+            print("______________________NEW RTT CALCULATED: " + \
+                str(self.min_rtt) + "______________________")
             # remove the packet from the list of packets that need to be sent
             # p.data contains the id of the next packet it needs
-            if (p.data >  self.next_packet):
-                self.next_packet = p.data
+            if (p.data[0] >  self.next_packet):
+                self.next_packet = p.data[0]
             # the next packet to send is out of index so we've sent everything
             if (self.next_packet >= len(self.packets)):
                 self.done = True
-                print()
-                print("done sending flow " + self.id)
-                print()
 
     # attempts to send window_size amount of packets through the host
     def send_packets(self):
@@ -106,7 +107,6 @@ class Flow:
 
             # need to check when to send the next window size of packets
             elif (not self.done):
-
                 print("flow " + self.id + " is sending packets")
                 # check to see if more than 0 packets exist need to be sent
                 assert(self.amount > 0)
@@ -114,8 +114,9 @@ class Flow:
                 # send a window size of packets
                 #if ()
                 for p in range(self.next_packet, min(self.next_packet + self.window_size, len(self.packets))):
-
                     print("flow " + self.id + " is sending packet no. " + str(self.packets[p].get_packetid()))
+                    # adding info to packet about when it is sent
+                    self.packets[p].data = globals.systime
                     self.source.send_packet(self.packets[p])
                 self.next_packet_send_time += self.min_rtt
                 # log if the flow is completed
