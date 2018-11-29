@@ -36,7 +36,7 @@ class Flow:
             p = Packet(self.source.id, self.id, self.destination.id, i, \
                 globals.STANDARDPACKET, '')
             self.packets.append(p)
-            amountInPackets = amountInPackets + globals.PACKETSIZE
+            amountInPackets = amountInPackets + globals.PACKETSIZE - globals.PACKETHEADERSIZE
             i = i + 1
         #print("numberofPackets = ", len(self.packets), "amount =", self.amount, "amount given = ", amount)
 

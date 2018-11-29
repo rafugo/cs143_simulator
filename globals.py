@@ -92,3 +92,6 @@ def initialize():
 
     global SYNACK
     SYNACK = "syn_ack"
+
+    global PACKETHEADERSIZE
+    PACKETHEADERSIZE = 20 * 8
