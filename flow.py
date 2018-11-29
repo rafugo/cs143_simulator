@@ -9,10 +9,48 @@ from congestion_controller import CongestionController
 
 class Flow:
     def __init__(self, id, source, destination, amount,\
-                    start, congestion_control, window_size, min_rtt):
+                    start, congestion_control, window_size, min_rtt, track=True):
+        """This function initializes new flows
+           INPUT ARGUMENTS-
+               linkid : The string ID of the flow being constructed
+               source : The string ID of the object the flow is coming from
+               destination : The string ID of the object that the flow is
+                             sending packets to
+               amount : The amount of data that the flow is transmitting (in MB)
+               start : The time that the flow should start (in seconds)
+               congestion_control : The congestion control algorithm the flow
+                                    will use
+               window_size : the initial window size of the flow
+               min_rtt : the initial minimum rount trip time of the flow
+               track : a boolean value indicating if we are tracking metrics
+                       for this flow
+           NOTE- I don't think we need min_rtt here and i dont know about
+                 window_size.
+           FIELDS-
+               id : The string ID of the flow
+               source : The object which is initially sending the flow packets
+               destination : The object that the flow packets are intended to
+                             reach
+               amount : the amount of data to be transmitted (in bits)
+               start : the time at which the flow will start (in seconds)
+               next_packet_send_time : the time to send the next packet
+               packets : a list of the packets of the flow
+               next_packet :
+               window_size :
+               min_rtt :
+               done :
+               track : a boolean flag indicating if we are tracking metrics for
+                       this flow
+               frwindow : the window size of time which we are using to
+                          approximate flow rate
+               frsteps : a list of the number of acknowelegements recieved
+                         at various time steps.
+               added : a boolean flag that keeps track of whether or not we
+                       have already added the flow rate for this time step
+                       to the metric tracking
+               """
         self.id = id
         if source[0] == 'H':
-            #print(globals.idmapping['hosts'])
             self.source = globals.idmapping['hosts'][source]
         else:
             self.source = globals.idmapping['routers'][source]
@@ -20,10 +58,10 @@ class Flow:
             self.destination = globals.idmapping['hosts'][destination]
         else:
             self.destination = globals.idmapping['routers'][destination]
-        # amount of data to be transmitted in bits
+        # converts the amount of data from MB to bits
         self.amount = amount * 8 * 10 ** 6
-        # time at which the flow simulation starts, in ms
-        self.start = start + globals.systime
+        # time at which the flow simulation starts, in s
+        self.start = start
         # next time to send a packet
         self.next_packet_send_time = self.start
         # list of actual packets to be sent
@@ -38,7 +76,6 @@ class Flow:
             self.packets.append(p)
             amountInPackets = amountInPackets + globals.PACKETSIZE
             i = i + 1
-        #print("numberofPackets = ", len(self.packets), "amount =", self.amount, "amount given = ", amount)
 
         # instance of our congestion controllers
         if (congestion_control == 'reno'):
@@ -53,6 +90,23 @@ class Flow:
         self.min_rtt = min_rtt
         # flag to demonstrate if the
         self.done = False
+
+
+        self.track = track
+        self.frwindow = 5000 * globals.dt
+        self.frsteps = []
+        self.added = False
+
+        # If this flow is being tracked, we set up the dictionaries for all of
+        # the metrics to be tracked.
+        if (track):
+            for m in globals.FLOWMETRICS:
+                globals.statistics[id+":"+m] = {}
+
+
+
+
+
         # processes the acknowledgement packet received by its source.
         # should pop the corresponding packet off the queue (may not be the
         #   first one if the first wasnt acknowledged)
@@ -63,8 +117,8 @@ class Flow:
             # set the rtt
 
             self.min_rtt = globals.systime - float(p.data)
-            print("______________________NEW RTT CALCULATED: " + \
-                str(self.min_rtt) + "______________________")
+            #print("______________________NEW RTT CALCULATED: " + \
+                #str(self.min_rtt) + "______________________")
             self.next_packet = 0
             # good to go ahead and start send packets from the flow now
             self.next_packet_send_time = globals.systime
@@ -89,6 +143,26 @@ class Flow:
                 #print("done sending flow " + self.id)
                 #print()
 
+            # Time to do some metric tracking
+            if (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
+                self.added = True
+                rate = 0
+                assert globals.systime >= self.start
+                if (len(self.frsteps) < self.frwindow/globals.dt):
+                    self.frsteps.append(1)
+                    if (globals.systime != self.start ):
+                        rate = sum(self.frsteps)/(globals.systime - self.start)
+                else:
+                    self.frsteps.pop(0)
+                    self.frsteps.append(1)
+                    rate = sum(self.frsteps)/(self.frwindow)
+
+                key = self.id + ":" + globals.FLOWRATE
+                globals.statistics[key][globals.systime] = rate
+
+
+
+
     # attempts to send window_size amount of packets through the host
     def send_packets(self):
         # make sure it's send time
@@ -96,7 +170,7 @@ class Flow:
             # if sending first packet in the flow
             # SEND SYNC PACKET FIRST
             if (self.next_packet == -1):
-                print("Sending first sync_packet")
+                #print("Sending first sync_packet")
                 # generating sync_packet with data that is the time the packet was sent
                 # data is used to calc min_rtt
                 sync_packet = Packet(self.source.id, self.id, self.destination.id, \
@@ -116,12 +190,31 @@ class Flow:
                 # send a window size of packets
                 #if ()
                 for p in range(self.next_packet, min(self.next_packet + self.window_size, len(self.packets))):
-
-                    print("flow " + self.id + " is sending packet no. " + str(self.packets[p].get_packetid()))
+                    #print("flow " + self.id + " is sending packet no. " + str(self.packets[p].get_packetid()))
                     self.source.send_packet(self.packets[p])
                 self.next_packet_send_time += self.min_rtt
                 # log if the flow is completed
                 # log when the acknowledgement is received
+
+    def update_flow_statistics(self):
+        if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
+            self.added = False
+            rate = 0
+            if (len(self.frsteps) < self.frwindow/globals.dt):
+                self.frsteps.append(0)
+                if (globals.systime > self.start):
+                    rate = sum(self.frsteps)/(globals.systime - self.start)
+            else:
+                self.frsteps.pop(0)
+                self.frsteps.append(0)
+                rate = sum(self.frsteps)/(self.frwindow)
+
+            key = self.id + ":" + globals.FLOWRATE
+            globals.statistics[key][globals.systime] = rate
+
+        if (self.track and globals.WINDOWSIZE in globals.FLOWMETRICS):
+            key = self.id + ":" + globals.WINDOWSIZE
+            globals.statistics[key][globals.systime] = self.window_size
 
     def completed(self):
         return self.done

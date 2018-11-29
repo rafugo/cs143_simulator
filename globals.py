@@ -49,7 +49,7 @@ def initialize():
     PACKETLOSS = "packet loss"
 
     global LINKMETRICS
-    LINKMETRICS = []#[PACKETLOSS]
+    LINKMETRICS = [PACKETLOSS]
 
     global FLOWRATE
     FLOWRATE = "flow rate"
@@ -61,7 +61,7 @@ def initialize():
     WINDOWSIZE = "window size"
 
     global FLOWMETRICS
-    FLOWMETRICS = [FLOWRATE, FLOWRTT, WINDOWSIZE]
+    FLOWMETRICS = [WINDOWSIZE]#, FLOWRATE]#[WINDOWSIZE]#[FLOWRATE, FLOWRTT, WINDOWSIZE]
 
     global PACKETSIZE
     PACKETSIZE = 1024*8

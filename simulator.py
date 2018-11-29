@@ -72,6 +72,7 @@ class Simulator:
             y = []
             dict = globals.statistics[s]
             # converts buffer occupancys from bits to KB
+            print(s)
             if globals.BUFFEROCCUPANCY in s:
                 for key in sorted(dict.keys()):
                     x.append(key)
@@ -87,11 +88,23 @@ class Simulator:
                 plot.ylabel("link rate (in MBps)")
             if globals.PACKETLOSS in s:
                 for key in sorted(dict.keys()):
-                    for key in sorted(dict.keys()):
-                        x.append(key)
-                        y.append(dict[key])
-                    plot.plot(x,y)
-                    plot.ylabel("number of packets dropped")
+                    x.append(key)
+                    y.append(dict[key])
+                plot.plot(x,y)
+                plot.ylabel("number of packets dropped")
+            # converts flow rate from bps to MBps
+            if globals.FLOWRATE in s:
+                for k in sorted(dict.keys()):
+                    x.append(key)
+                    y.append(dict[key]*1.25*10**(-7))
+                plot.plot(x,y)
+                plot.ylabel("flow rate (in MBps)")
+            if globals.WINDOWSIZE in s:
+                for key in sorted(dict.keys()):
+                    x.append(key)
+                    y.append(dict[key])
+                plot.plot(x,y)
+                plot.ylabel("window size")
             plot.xlabel("time (in seconds)")
             plot.title(s)
             plot.savefig(s)
@@ -116,9 +129,6 @@ class Simulator:
                 if globals.systime >= 3*60:
                     break
 
-            for flow in globals.idmapping['flows'].values():
-                flow.send_packets()
-
             if i % 5000 == 0:
                 for router in globals.idmapping['routers'].values():
                     router.recalculate_routing_table()
@@ -126,6 +136,11 @@ class Simulator:
 
             for link in globals.idmapping['links'].values():
                 link.send_packet()
+
+
+            for flow in globals.idmapping['flows'].values():
+                flow.send_packets()
+                flow.update_flow_statistics()
 
             globals.systime += globals.dt
 

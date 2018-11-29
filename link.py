@@ -72,10 +72,12 @@ class Link:
         # If we are tracking this link and one of the metrics we are tracking
         # is packet loss, it updates the dictionary associated with this
         # link's packet loss metrics.
-        if (self.track and globals.PACKETLOSS in globals.LINKMETRICS):
-            current = globals.statistics[self.id + ":" + globals.PACKETLOSS]
-            current[globals.systime] = self.droppedpackets
-            globals.statistics[self.id + ":" + globals.PACKETLOSS][globals.systime] = current
+        if (added == 0) and (self.track and globals.PACKETLOSS in globals.LINKMETRICS):
+            key = self.id + ":" + globals.PACKETLOSS
+            globals.statistics[key][globals.systime] = self.droppedpackets
+
+            if (globals.systime > 0):
+                globals.statistics[key][globals.systime-globals.dt] = self.droppedpackets -1
 
     def send_packet(self):
         """This function will try to send a packet on both of the half links

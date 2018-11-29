@@ -58,7 +58,7 @@ class Host:
 
         # if it's a standard packet, it's from a flow
         elif (p.get_packet_type() == globals.STANDARDPACKET):
-            print("standard packet received by " + self.id)
+            #print("standard packet received by " + self.id)
             # if we've already seen the flow before, add to its dict
             if flowid in self.flow_packets_seen.keys():
 

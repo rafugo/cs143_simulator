@@ -1,9 +1,6 @@
 import globals
 
 class Packet:
-    # Note: As more packet types are necessary, feel free to add more type codes
-    #       here. If you do this, make sure that the ack_flag and size fields
-    #       are still set appropriately.
     def __init__(self, sourceid, flowid, destinationid, packetid, \
                  packet_type, data = ''):
         """This function initializes a packet object. Input arguments:
