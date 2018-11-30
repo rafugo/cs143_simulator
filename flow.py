@@ -90,7 +90,7 @@ class Flow:
             self.congestion_control = CongestionControllerReno()
         else:
             self.congestion_control = CongestionController()
-        
+
         # flag to demonstrate if the
         self.done = False
 

@@ -109,7 +109,7 @@ class Simulator:
                     y.append(dict[key])
                 lines = plot.plot(x,y)
                 plot.ylabel("round trip time (in seconds)")
-            plot.setp(lines, linewidth = 0.8)
+            plot.setp(lines, linewidth = 0.5)
             plot.xlabel("time (in seconds)")
             plot.title(s)
             plot.savefig(s)
@@ -128,16 +128,16 @@ class Simulator:
             router.init_routing_table()
 
         # run the simulation
-        for i in range(300000):
+        for i in range(600000):
+
+            for link in globals.idmapping['links'].values():
+                link.update_link_statistics()
+                link.send_packet()
 
             if (i+1) % 50000 == 0:
                 # print(globals.systime)
                 for router in globals.idmapping['routers'].values():
                     router.recalculate_routing_table()
-
-            for link in globals.idmapping['links'].values():
-                link.update_link_statistics()
-                link.send_packet()
 
             for flow in globals.idmapping['flows'].values():
                 flow.send_packets()
