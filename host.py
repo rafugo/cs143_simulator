@@ -3,9 +3,9 @@ from packet import Packet
 from link import Link
 
 class Host:
-    def __init__(self, hostid, ip, linkid):
+    def __init__(self, hostid, linkid):
         self.id = hostid
-        self.ip = ip
+        self.ip = 0
         self.linkid = linkid
 
         # NOTE: this is the dictionary of flows to packets seen
@@ -44,7 +44,7 @@ class Host:
 
         # if it's a standard packet, it's from a flow
         elif (p.get_packet_type() == globals.STANDARDPACKET):
-            print("standard packet received by " + self.id)
+            #print("standard packet received by " + self.id)
             # if we've already seen the flow before, add to its dict
             if flowid in self.flow_packets_seen.keys():
 
@@ -109,10 +109,3 @@ class Host:
             # process the acknowledgement
             #print("syn ack given to flow "+flowid+" from host "+self.id)
             flow.process_ack(p)
-
-
-    # TODO:
-    #      - send packets
-    #      - receive packets
-    #      - send acknowledgements
-    #      - reciee acknowledgements

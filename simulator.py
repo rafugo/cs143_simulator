@@ -33,7 +33,7 @@ class Simulator:
             host = None
 
             # add to idmapping
-            host = Host(h['id'], h['ip'], h['linkid'])
+            host = Host(h['id'], h['linkid'])
             globals.idmapping['hosts'][h['id']] = host
 
         # create routers
@@ -48,7 +48,7 @@ class Simulator:
                     link_list.append(globals.idmapping['links'][lin_id])
 
                 # initialize router and add to idmapping
-                router = Router(r['id'], r['ip'], link_list)
+                router = Router(r['id'], link_list)
                 globals.idmapping['routers'][r['id']] = router
 
         for f in network_objects['flows']:
@@ -56,42 +56,61 @@ class Simulator:
             flow = None
             # add to idmapping
             flow = Flow(f['id'], f['source'], f['destination'], f['amount'], \
-                f['start'], f['congestion_control'], f['window_size'], f['min_rtt'])
+                f['start'], f['congestion_control'])
             globals.idmapping['flows'][f['id']] = flow
 
-
-
-    # TODO: we should improve packet loss so that that it is updated more
-    # frequently than just when a packet drops so that the plot appears more
-    # reasonable. Perhaps I will make the buffer occupancy update more
-    # frequently as well
-    # TODO: add flow_rtt, flow_window_size, flor_rate
     def plot_metrics(self):
         for s in globals.statistics.keys():
+            plot.figure(figsize=(8,3))
             x = []
             y = []
+            lines = 0
             dict = globals.statistics[s]
             # converts buffer occupancys from bits to KB
+            print(s)
             if globals.BUFFEROCCUPANCY in s:
                 for key in sorted(dict.keys()):
                     x.append(key)
-                    y.append(dict[key]*1.25*10**(-4))
-                plot.plot(x,y)
+                    # Converts the buffer occupancy from bits to Kilobytes
+                    y.append(dict[key]*globals.BITSTOKILOBITS/8)
+                lines = plot.plot(x,y)
                 plot.ylabel("buffer occupancy (in KB)")
-            # converts link rate from bps to MBps
             if globals.LINKRATE in s:
                 for key in sorted(dict.keys()):
                     x.append(key)
-                    y.append(dict[key]*1.25*10**(-7))
-                plot.plot(x,y)
-                plot.ylabel("link rate (in MBps)")
+                    # converts link rate from bps to Mbps
+                    y.append(dict[key]*globals.BITSTOMEGABITS)
+                lines = plot.plot(x,y)
+                plot.ylabel("link rate (in Mbps)")
             if globals.PACKETLOSS in s:
                 for key in sorted(dict.keys()):
-                    for key in sorted(dict.keys()):
-                        x.append(key)
-                        y.append(dict[key])
-                    plot.plot(x,y)
-                    plot.ylabel("number of packets dropped")
+                    x.append(key)
+                    y.append(dict[key])
+                lines = plot.plot(x,y)
+                plot.ylabel("number of packets dropped")
+            if globals.FLOWRATE in s:
+                for key in sorted(dict.keys()):
+                    x.append(key)
+                    # converts flow rate from bps to Mbps
+                    y.append(dict[key]*globals.BITSTOMEGABITS)
+                lines = plot.plot(x,y)
+                plot.ylabel("flow rate (in Mbps)")
+            if globals.WINDOWSIZE in s:
+                for key in sorted(dict.keys()):
+                    x.append(key)
+                    y.append(dict[key])
+                lines = plot.plot(x,y)
+                plot.ylabel("window size")
+            if globals.FLOWRTT in s:
+                for key in sorted(dict.keys()):
+                    x.append(key)
+                    y.append(dict[key])
+                lines = plot.plot(x,y)
+                plot.ylabel("round trip time (in seconds)")
+            plot.setp(lines, linewidth = 0.8)
+            #fig = plot.figure()
+            #fig.set_figheight(3)
+            #fig.set_figwidth(8)
             plot.xlabel("time (in seconds)")
             plot.title(s)
             plot.savefig(s)
@@ -110,22 +129,21 @@ class Simulator:
             router.init_routing_table()
 
         # run the simulation
-        for i in range(500000):
-            if i % 500 == 0:
-                # print('systime : '+str(globals.systime))
-                if globals.systime >= 3*60:
-                    break
+        for i in range(200000):
 
-            for flow in globals.idmapping['flows'].values():
-                flow.send_packets()
-
-            if i % 5000 == 0:
+            if i % 50000 == 0:
                 for router in globals.idmapping['routers'].values():
                     router.recalculate_routing_table()
                     # print(router.routing_table)
 
             for link in globals.idmapping['links'].values():
                 link.send_packet()
+                link.update_link_statistics()
+
+
+            for flow in globals.idmapping['flows'].values():
+                flow.send_packets()
+                flow.update_flow_statistics()
 
             globals.systime += globals.dt
 
@@ -137,27 +155,3 @@ class Simulator:
             #print("Routing table for " + router.id)
             #print(router.routing_table)
             #print()
-
-
-
-    # def run(self):
-
-    #     # make a packet
-    #     # packet0 = Packet("H0", "0", "H1", None, globals.STANDARDPACKET, data = '143 rox!')
-    #     #
-    #     # host0 = globals.idmapping['hosts']['H0']
-    #     #
-    #     # host0.send_packet(packet0)
-
-    #     for i in range(10000000):
-    #         for flow in globals.idmapping['flows'].values():
-    #             flow.send_packets()
-    #         for link in globals.idmapping['links'].values():
-    #             link.send_packet()
-
-
-    #         globals.systime += globals.dt
-
-    #     print("statistics:")
-    #     print(globals.statistics)
-    #     print("end of statistics")

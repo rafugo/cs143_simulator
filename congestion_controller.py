@@ -117,7 +117,6 @@ class CongestionControllerReno(CongestionController):
                         self.state = congestion_avoidance
                     # reset duplicate count since the chain of dupACKS is broken
                     self.duplicate_count = 0
-
             self.last_ack_received = packet.id + 1
 
             self.send_packet()
@@ -146,8 +145,8 @@ class CongestionControllerReno(CongestionController):
                     self.flow.send_a_packet(self.window_start, 0)
                     self.window_start += 1
 
-        # resend dropped packet
-        else:
+         # resend dropped packet
+         else:
             packet_id = self.last_ack_received
             # packet sent during fast stage
             self.FR_packet = packet_id

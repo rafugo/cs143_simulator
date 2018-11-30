@@ -19,7 +19,7 @@ def initialize():
 
     # the time increment settings, with dt = 0.0001
     global dt
-    dt = 1 * (10**-5)
+    dt = 1 * (10**-4)
 
     # the type: {id : object} mapping of the objects in the network
     global idmapping
@@ -32,6 +32,27 @@ def initialize():
 
         'flows' : {}
     }
+
+    global MEGABITSTOBITS
+    MEGABITSTOBITS = 10**6
+
+    global BITSTOMEGABITS
+    BITSTOMEGABITS = 10**(-6)
+
+    global MSTOS
+    MSTOS = 10**(-3)
+
+    global STOMS
+    STOMS = 10**3
+
+    global KILOBITSTOBITS
+    KILOBITSTOBITS = 10**(3)
+
+    global BITSTOKILOBITS
+    BITSTOKILOBITS = 10**(-3)
+
+    global SMOOTH
+    SMOOTH = True
 
     global statistics
     statistics = {}
@@ -49,7 +70,7 @@ def initialize():
     PACKETLOSS = "packet loss"
 
     global LINKMETRICS
-    LINKMETRICS = []#[PACKETLOSS]
+    LINKMETRICS = [PACKETLOSS]
 
     global FLOWRATE
     FLOWRATE = "flow rate"
@@ -61,7 +82,7 @@ def initialize():
     WINDOWSIZE = "window size"
 
     global FLOWMETRICS
-    FLOWMETRICS = [FLOWRATE, FLOWRTT, WINDOWSIZE]
+    FLOWMETRICS = [WINDOWSIZE, FLOWRATE, FLOWRTT]
 
     global PACKETSIZE
     PACKETSIZE = 1024*8
