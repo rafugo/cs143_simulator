@@ -269,8 +269,8 @@ class HalfLink:
             if (len(self.buffer) != 0):
                 time = globals.dt
                 bitstransmitted = time * self.rate
-            else:
-                print("buffer is empty and the next_packet_send_time is wrong!")
+            # else:
+            #     print("buffer is empty and the next_packet_send_time is wrong!")
 
         # If we are tracking this link and we are tracking link rate for half
         # links, we compute the link rate and update the statistics disctionary

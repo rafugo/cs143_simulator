@@ -130,10 +130,10 @@ class Simulator:
         # run the simulation
         for i in range(300000):
 
-            if i % 50000 == 0:
+            if (i+1) % 50000 == 0:
+                # print(globals.systime)
                 for router in globals.idmapping['routers'].values():
                     router.recalculate_routing_table()
-                    # print(router.routing_table)
 
             for link in globals.idmapping['links'].values():
                 link.update_link_statistics()

@@ -131,6 +131,9 @@ class Router:
     # an external routing table and then calculates the new routing table from those values
     #
     def calc_routing_table(self, table_2_actual):
+
+        #print(self.id + " table is " + str(self.routing_table))
+
         # print (self.id)
         # make a copy of the object so we dont modify it
         table_2 = table_2_actual.copy()
@@ -172,5 +175,5 @@ class Router:
         # If we updated our routing table, send out our new routing table as a packet to all neighboring routers
         # BY: RAFA: Yeah, im currently just making the whole system send out the tables every 5 seconds
         if (updated):
-
+            #print(self.id + " table was updated to " + str(self.routing_table))
             self.send_routing_table()
