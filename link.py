@@ -296,7 +296,7 @@ class HalfLink:
             if (self.track):
                 key = self.id + ":" + self.source + "->" + self.destination + ":" \
                         + globals.LINKRATE
-                        dict = globals.statistics[key][globals.systime] = rate
+                dict = globals.statistics[key][globals.systime] = rate
 
         # If there are no packets in transmission, we don't need to check if
         # any would have arrived at their destination during the last dt.
