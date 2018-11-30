@@ -52,7 +52,7 @@ def initialize():
     BITSTOKILOBITS = 10**(-3)
 
     global SMOOTH
-    SMOOTH = TRUE
+    SMOOTH = True
 
     global statistics
     statistics = {}
