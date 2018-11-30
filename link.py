@@ -153,6 +153,10 @@ class HalfLink:
         self.destination = destination
         self.cost = 0
 
+
+        #print("BUFFER CAPACITY:")
+        #print(buffersize)
+
         # The first time we should try to send a packet is at the next time step.
         self.next_packet_send_time = globals.systime + globals.dt
         self.packets_in_transmission = []
@@ -160,10 +164,10 @@ class HalfLink:
 
         # Variables for metric tracking
         self.track = track
-        self.lrwindow = 20000 * globals.dt
+        self.lrwindow = 15000 * globals.dt
         self.lrsteps = []
         self.buffersteps = []
-        self.bufferwindow = 20000 * globals.dt
+        self.bufferwindow = 1 * globals.dt
         # If we are tracking this half link, we set up dictionaries for all of
         # its metrics which we are tracking.
         if track:
@@ -189,6 +193,8 @@ class HalfLink:
         # if there isn't room in the buffer, we return 0 to indicate that the
         # packet was dropped.
         else:
+            #print("Dropped packet with buffer size:")
+            #print(self.buffersize)
             return 0
 
         # If we are tracking this link and we are tracking buffer occupancy
@@ -263,8 +269,8 @@ class HalfLink:
             if (len(self.buffer) != 0):
                 time = globals.dt
                 bitstransmitted = time * self.rate
-            else:
-                print("buffer is empty and the next_packet_send_time is wrong!")
+            # else:
+            #     print("buffer is empty and the next_packet_send_time is wrong!")
 
         # If we are tracking this link and we are tracking link rate for half
         # links, we compute the link rate and update the statistics disctionary
@@ -272,9 +278,9 @@ class HalfLink:
         if ((self.track) and (globals.LINKRATE in globals.HALFLINKMETRICS)):
             rate = 0
             self.lrsteps.append(bitstransmitted)
-            if(globals.systime < self.lrwindow):
+            if(globals.systime <= self.lrwindow):
                 if (globals.systime != 0):
-                    rate = sum(self.lrsteps)/globals.systime
+                    rate = sum(self.lrsteps)/(globals.systime + globals.dt)
                 # when the time is 0, we will just set the rate to be 0.
                 else:
                     pass
@@ -311,10 +317,10 @@ class HalfLink:
     def update_link_statistics(self):
         if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) and globals.SMOOTH:
             avgocc = 0
-            if(globals.systime < self.bufferwindow):
+            if(globals.systime <= self.bufferwindow):
                 if (globals.systime != 0):
                     self.buffersteps.append(self.buffersize)
-                    avgocc = sum(self.buffersteps)/globals.systime
+                    avgocc = sum(self.buffersteps)*(globals.dt/(globals.systime))
                 # when the time is 0, we will just set the rate to be 0.
                 else:
                     pass
@@ -325,6 +331,7 @@ class HalfLink:
             key = self.id + ":" + self.source + "->" + self.destination + ":" \
                   + globals.BUFFEROCCUPANCY
             dict = globals.statistics[key][globals.systime] = avgocc * globals.dt
+
 
 
     def get_buffer_size(self):

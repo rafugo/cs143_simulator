@@ -24,7 +24,8 @@ class Simulator:
 
             # add to idmapping
             link = Link(l['id'], l['connection1'], l['connection2'], \
-                        l['rate'], l['delay'], l['buffersize'])
+                        l['rate'], l['delay'], l['buffersize'], l['track1'] == 1, \
+                        l['track2'] == 1)
             globals.idmapping['links'][l['id']] = link
 
         # create hosts
@@ -56,7 +57,7 @@ class Simulator:
             flow = None
             # add to idmapping
             flow = Flow(f['id'], f['source'], f['destination'], f['amount'], \
-                f['start'], f['congestion_control'])
+                f['start'], f['congestion_control'], f['track'] == 1)
             globals.idmapping['flows'][f['id']] = flow
 
     def plot_metrics(self):
@@ -69,6 +70,7 @@ class Simulator:
             # converts buffer occupancys from bits to KB
             print(s)
             if globals.BUFFEROCCUPANCY in s:
+                #print(dict)
                 for key in sorted(dict.keys()):
                     x.append(key)
                     # Converts the buffer occupancy from bits to Kilobytes
@@ -107,10 +109,7 @@ class Simulator:
                     y.append(dict[key])
                 lines = plot.plot(x,y)
                 plot.ylabel("round trip time (in seconds)")
-            plot.setp(lines, linewidth = 0.8)
-            #fig = plot.figure()
-            #fig.set_figheight(3)
-            #fig.set_figwidth(8)
+            plot.setp(lines, linewidth = 0.5)
             plot.xlabel("time (in seconds)")
             plot.title(s)
             plot.savefig(s)
@@ -129,17 +128,15 @@ class Simulator:
             router.init_routing_table()
 
         # run the simulation
-        for i in range(200000):
-
-            if i % 50000 == 0:
-                for router in globals.idmapping['routers'].values():
-                    router.recalculate_routing_table()
-                    # print(router.routing_table)
+        for i in range(600000):
 
             for link in globals.idmapping['links'].values():
-                link.send_packet()
                 link.update_link_statistics()
+                link.send_packet()
 
+            if (i+1) % 50000 == 0:
+                for router in globals.idmapping['routers'].values():
+                    router.recalculate_routing_table()
 
             for flow in globals.idmapping['flows'].values():
                 flow.send_packets()
@@ -147,11 +144,5 @@ class Simulator:
 
             globals.systime += globals.dt
 
-        # print (globals.statistics)
         for router in globals.idmapping['routers'].values():
             pass
-
-            #print()
-            #print("Routing table for " + router.id)
-            #print(router.routing_table)
-            #print()

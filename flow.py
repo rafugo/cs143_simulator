@@ -118,10 +118,8 @@ class Flow:
         # check if it's a synack
         if (p.get_packet_type() == globals.SYNACK):
             # set the rtt
-
             self.rtt = globals.systime - float(p.data)
-            print("______________________NEW RTT CALCULATED: " + \
-                str(self.rtt) + "______________________")
+            self.setRTT = True
             self.next_packet = 0
             # good to go ahead and start send packets from the flow now
             self.next_packet_send_time = globals.systime
@@ -140,8 +138,11 @@ class Flow:
             #print("Flow " + self.id + " received ack with number " + str(p.data[0]))
             # send min round trip time
             self.rtt = globals.systime - float(p.data[1])
-            print("______________________NEW RTT CALCULATED: " + \
-                str(self.rtt) + "______________________")
+            #print("______________________NEW RTT CALCULATED: " + \
+            #    str(self.rtt) + "______________________")
+            if (self.track) and globals.FLOWRTT in globals.FLOWMETRICS:
+                key = self.id + ":" + globals.FLOWRTT
+                globals.statistics[key][globals.systime] = self.rtt
             # remove the packet from the list of packets that need to be sent
             # p.data contains the id of the next packet it needs
             if (p.data[0] >  self.next_packet):

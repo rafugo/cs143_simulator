@@ -12,23 +12,6 @@ class Router:
         # received, so that we know when our routing table is done
         self.handshakes_acked = 0
 
-
-
-    # TODO:
-    #       - implement algorithm for routers to discover each other and
-    #         communicate routing tables.
-    #       - recieve and correctly route (send) packets.
-
-
-    # Cortland- Here, you accessed the elements stored in the packets (i.e.
-    # packet.handshake_flag, packet.source, packet.data, etc.). We should not
-    # access these fields directly. Instead, I have created functions in the
-    # packet class to retrieve these values for you to avoid directly accessing
-    # them. In the future, if you want to access something stored in a packet or
-    # link, just use or create functions to access them in their class definition
-    # and use that. I did this as much as I could. Eventually, I reached a part
-    # of your code that tries to access packet.routing_table_flag, which I don't
-    # believe exists, so I just commented out that part for now.
     def receive_packet(self, packet, linkid):
         # Preform different actions depending on what type of packet is sent to the router
         if (packet.is_handshake()):
@@ -131,6 +114,9 @@ class Router:
     # an external routing table and then calculates the new routing table from those values
     #
     def calc_routing_table(self, table_2_actual):
+
+        #print(self.id + " table is " + str(self.routing_table))
+
         # print (self.id)
         # make a copy of the object so we dont modify it
         table_2 = table_2_actual.copy()
@@ -172,5 +158,5 @@ class Router:
         # If we updated our routing table, send out our new routing table as a packet to all neighboring routers
         # BY: RAFA: Yeah, im currently just making the whole system send out the tables every 5 seconds
         if (updated):
-
+            #print(self.id + " table was updated to " + str(self.routing_table))
             self.send_routing_table()
