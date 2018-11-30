@@ -181,11 +181,12 @@ class Flow:
             if (self.next_packet == -1):
                 #print("Sending first sync_packet")
                 # generating sync_packet with data that is the time the packet was sent
-                # data is used to calc min_rtt
+                # data is used to calc rtt
                 sync_packet = Packet(self.source.id, self.id, self.destination.id, \
                     -1, globals.SYNPACKET, globals.systime)
                 self.source.send_packet(sync_packet)
                 self.next_packet_send_time = globals.systime + self.rtt
+
 
             # need to check when to send the next window size of packets
             elif (not self.done):

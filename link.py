@@ -327,17 +327,11 @@ class HalfLink:
             else:
                 self.buffersteps.pop(0)
                 self.buffersteps.append(self.buffersize)
-                #print("NEW")
-                #print(len(self.buffersteps))
-                #print(globals.dt/self.bufferwindow)
-                #print("SHOULD BE SAME")
-                #print(sum(self.buffersteps))
-                #print(self.buffersteps[0])
-                avgocc = sum(self.buffersteps)*(globals.dt/self.bufferwindow)
-                #print(avgocc)
+                avgocc = sum(self.buffersteps)/self.bufferwindow
             key = self.id + ":" + self.source + "->" + self.destination + ":" \
                   + globals.BUFFEROCCUPANCY
-            dict = globals.statistics[key][globals.systime] = avgocc
+            dict = globals.statistics[key][globals.systime] = avgocc * globals.dt
+
 
 
     def get_buffer_size(self):

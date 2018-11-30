@@ -135,7 +135,6 @@ class Simulator:
                 link.send_packet()
 
             if (i+1) % 50000 == 0:
-                # print(globals.systime)
                 for router in globals.idmapping['routers'].values():
                     router.recalculate_routing_table()
 
