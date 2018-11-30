@@ -50,7 +50,7 @@ class Flow:
         # packet number that the window needs to start at, default first packet
         self.next_packet = -1;
         # current size of the window used for the congestion controller
-        self.window_size = 100
+        self.window_size = 80
         # round trip time used for congestion control, starts at arbitrary
         #   value and then is calculated
         self.rtt = 1
