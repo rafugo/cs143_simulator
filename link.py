@@ -320,7 +320,7 @@ class HalfLink:
             if(globals.systime <= self.bufferwindow):
                 if (globals.systime != 0):
                     self.buffersteps.append(self.buffersize)
-                    avgocc = sum(self.buffersteps)*(globals.dt/(globals.systime)
+                    avgocc = sum(self.buffersteps)*(globals.dt/(globals.systime))
                 # when the time is 0, we will just set the rate to be 0.
                 else:
                     pass
