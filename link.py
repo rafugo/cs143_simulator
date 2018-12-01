@@ -56,7 +56,7 @@ class Link:
 
 
     def get_effective_rate(self, sender):
-        return self.links[sender].get_effective_rate
+        return self.links[sender].get_effective_rate()
 
 
     def add_to_buffer(self, packet, sender):
@@ -341,7 +341,7 @@ class HalfLink:
 
 
     def get_effective_rate(self):
-        return self.get_effective_rate
+        return self.effectiverate
 
 
     def get_buffer_size(self):
