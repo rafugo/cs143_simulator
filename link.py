@@ -55,6 +55,10 @@ class Link:
         return self.delay
 
 
+    def get_effective_rate(self, sender):
+        return self.links[sender].get_effective_rate
+
+
     def add_to_buffer(self, packet, sender):
         """This function adds a packet to the buffer on the appropriate side of
            the link if possible, dropping it if there is insufficient space left
@@ -168,6 +172,7 @@ class HalfLink:
         self.lrsteps = []
         self.buffersteps = []
         self.bufferwindow = 1 * globals.dt
+        self.effectiverate = 0
         # If we are tracking this half link, we set up dictionaries for all of
         # its metrics which we are tracking.
         if track:
@@ -275,7 +280,7 @@ class HalfLink:
         # If we are tracking this link and we are tracking link rate for half
         # links, we compute the link rate and update the statistics disctionary
         # appropriately.
-        if ((self.track) and (globals.LINKRATE in globals.HALFLINKMETRICS)):
+        if ((globals.LINKRATE in globals.HALFLINKMETRICS)):
             rate = 0
             self.lrsteps.append(bitstransmitted)
             if(globals.systime <= self.lrwindow):
@@ -287,9 +292,11 @@ class HalfLink:
             else:
                 self.lrsteps.pop(0)
                 rate = sum(self.lrsteps)/self.lrwindow
-            key = self.id + ":" + self.source + "->" + self.destination + ":" \
-                  + globals.LINKRATE
-            dict = globals.statistics[key][globals.systime] = rate
+            self.effectiverate = rate
+            if (self.track):
+                key = self.id + ":" + self.source + "->" + self.destination + ":" \
+                        + globals.LINKRATE
+                dict = globals.statistics[key][globals.systime] = rate
 
         # If there are no packets in transmission, we don't need to check if
         # any would have arrived at their destination during the last dt.
@@ -332,6 +339,9 @@ class HalfLink:
                   + globals.BUFFEROCCUPANCY
             dict = globals.statistics[key][globals.systime] = avgocc * globals.dt
 
+
+    def get_effective_rate(self):
+        return self.get_effective_rate
 
 
     def get_buffer_size(self):
