@@ -128,7 +128,7 @@ class Simulator:
             router.init_routing_table()
 
         # run the simulation
-        for i in range(600000):
+        for i in range(200000):
 
             for link in globals.idmapping['links'].values():
                 link.update_link_statistics()
