@@ -65,8 +65,8 @@ class Router:
                 self.handshakes_acked = 0
 
         elif(packet.is_routing()):
-            if (self.id == 'R2'):
-                print ("R2 is recieving a routing table from " + packet.get_source())
+            # if (self.id == 'R2'):
+            #     print ("R2 is recieving a routing table from " + packet.get_source())
             # print("Router " + self.id + " received a routing table from " + packet.get_source())
             # calculate the new routing table based on the old one
             self.calc_routing_table(packet.get_source(), packet.data, linkid)
@@ -127,8 +127,8 @@ class Router:
         # make a copy of the object so we dont modify it
         table_2 = table_2_actual.copy()
 
-        if (self.id == 'R2'):
-            print ("table2", table_2, "recieved by", self.id)
+        # if (self.id == 'R2'):
+        #     print ("table2", table_2, "recieved by", self.id)
 
 
         # 1) Determine Cost of link between "self" router and table_2 router, and the Link ID that it was sent on
@@ -151,8 +151,6 @@ class Router:
             rt_cost = self.routing_table.get(key, [0, "not_in"])[1]
             # print("self.routing_table.get(key) " + str(self.routing_table.get(key, [0, "not_in"])[1]))
 
-
-
             # if the destination is currently not in the routing table
             if (rt_cost == "not_in"):
                 self.routing_table[key] = [con_link_id, t2_cost]
@@ -160,7 +158,6 @@ class Router:
 
             # If the destination is in the current routing table but table_2 provides a quicker route
             elif (t2_cost < rt_cost):
-
                 self.routing_table[key] = [con_link_id, t2_cost]
                 updated = True
 

@@ -318,6 +318,12 @@ class HalfLink:
                 receiver = globals.idmapping[dest_type][self.destination]
                 receiver.receive_packet(packet_to_send, self.id)
 
+                # if packet_to_send.is_ack() and packet_to_send.data[0] == 2653:
+                #     print(self.id, " is sending ACK ", packet_to_send.data[0])
+                #     print(globals.idmapping['routers']['R1'].routing_table)
+                #     print()
+                #     print(globals.idmapping['routers']['R3'].routing_table)
+
         return amountfreed
 
 
