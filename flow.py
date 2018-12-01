@@ -37,6 +37,8 @@ class Flow:
                window_size :
                min_rtt :
                done :
+               window_start : integer keeping track of the first packet in the 
+                    window
                track : a boolean flag indicating if we are tracking metrics for
                        this flow
                frwindow : the window size of time which we are using to
@@ -73,6 +75,7 @@ class Flow:
         # list of actual packets to be sent
         self.packets = []
         self.setRTT = False
+        self.window_start = 0
 
 
         amountInPackets = 0
@@ -205,6 +208,25 @@ class Flow:
                 self.next_packet_send_time += self.rtt
                 # log if the flow is completed
                 # log when the acknowledgement is received
+
+        # sliding window packet sending
+        def send_packetsV2(self):
+
+            # if the first packet has ACK, move window over and send the next packet
+            # also, if the "new first packet" also has an ACK, repeat the process
+            # until this is not true
+            # if the next_packet is > window start
+            while next_packet > window_start:
+
+                # the first packet of the window has been sent, move the window
+                # over and send the new packet in the window
+                window_start += 1
+                new_packet = self.packets[window_start + window_size]
+                new_packet.data = globals.systime
+                self.source.send_packet(self.packets[p])
+
+            # if the first packet timed out, send it again
+
 
     def update_flow_statistics(self):
         if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
