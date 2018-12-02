@@ -128,18 +128,19 @@ class Simulator:
             router.init_routing_table()
 
         # run the simulation
-        for i in range(600000):
+        for i in range(300000):
 
             for link in globals.idmapping['links'].values():
                 link.update_link_statistics()
                 link.send_packet()
 
             if (i+1) % 50000 == 0:
+                print("systime : ", globals.systime)
                 for router in globals.idmapping['routers'].values():
                     router.recalculate_routing_table()
 
             for flow in globals.idmapping['flows'].values():
-                flow.send_packets()
+                flow.send_packetsV2()
                 flow.update_flow_statistics()
 
             globals.systime += globals.dt

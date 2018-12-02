@@ -33,9 +33,13 @@ class Router:
 
             # Determine the Link Cost Here (Using Link_Delay and Transmit_Time):
             cur_time = globals.systime
-            transmit_time = cur_time - float(router_details[1])
+            # transmit_time = cur_time - float(router_details[1])
             link_delay = globals.idmapping['links'][linkid].get_delay()
-            link_cost = link_delay + transmit_time
+            # print ("getting effective rate for " + self.id + " on link " + linkid)
+            # print ("packet is coming from sender: " + router_details[0])
+            link_rate = globals.idmapping['links'][linkid].get_effective_rate(router_details[0])
+            link_cost = link_delay + link_rate
+
             # print (link_delay)
 
             # get the old_cost, the old cost is 0 if it didnt exist
@@ -61,10 +65,11 @@ class Router:
                 self.handshakes_acked = 0
 
         elif(packet.is_routing()):
-
+            # if (self.id == 'R2'):
+            #     print ("R2 is recieving a routing table from " + packet.get_source())
             # print("Router " + self.id + " received a routing table from " + packet.get_source())
             # calculate the new routing table based on the old one
-            self.calc_routing_table(packet.data)
+            self.calc_routing_table(packet.get_source(), packet.data, linkid)
 
         else:
             self.forward_packet(packet)
@@ -82,7 +87,9 @@ class Router:
         # print(self.id)
         # print(packet.get_destination())
         # print(self.routing_table)
+
         globals.idmapping['links'][link_path].add_to_buffer(packet, self.id)
+        
 
     def send_routing_table(self):
         # print ("ROUTING TABLE SENT")
@@ -113,27 +120,29 @@ class Router:
     # this takes the current routing table that our router has and
     # an external routing table and then calculates the new routing table from those values
     #
-    def calc_routing_table(self, table_2_actual):
+    def calc_routing_table(self, source, table_2_actual, linkid):
 
-        #print(self.id + " table is " + str(self.routing_table))
-
+        # print(self.id + " table is " + str(self.routing_table))
         # print (self.id)
         # make a copy of the object so we dont modify it
         table_2 = table_2_actual.copy()
-        # print ("table2", table_2, "recieved by", self.id)
+
+        # if (self.id == 'R2'):
+        #     print ("table2", table_2, "recieved by", self.id)
 
 
         # 1) Determine Cost of link between "self" router and table_2 router, and the Link ID that it was sent on
         updated = False
+        con_link = globals.idmapping['links'][linkid]
         router_id = self.id
-        con_link_id = table_2.get(router_id)[0]
-        cost_between = table_2.get(router_id)[1]
+        con_link_id = linkid
+        cost_between = con_link.get_effective_rate(source) + con_link.get_delay()
 
 
         # Add link cost to all cost values in table_2 routing table
         for key in table_2:
-
             table_2[key] = [table_2[key][0], table_2[key][1] + cost_between]
+
 
 
         # For each key in table_2, check if it is in the routing table or has a smaller value than the current path
@@ -142,8 +151,6 @@ class Router:
             rt_cost = self.routing_table.get(key, [0, "not_in"])[1]
             # print("self.routing_table.get(key) " + str(self.routing_table.get(key, [0, "not_in"])[1]))
 
-
-
             # if the destination is currently not in the routing table
             if (rt_cost == "not_in"):
                 self.routing_table[key] = [con_link_id, t2_cost]
@@ -151,7 +158,6 @@ class Router:
 
             # If the destination is in the current routing table but table_2 provides a quicker route
             elif (t2_cost < rt_cost):
-
                 self.routing_table[key] = [con_link_id, t2_cost]
                 updated = True
 

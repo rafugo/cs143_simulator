@@ -44,6 +44,9 @@ class Host:
 
         # if it's a standard packet, it's from a flow
         elif (p.get_packet_type() == globals.STANDARDPACKET):
+            # if p.get_packetid() == 2652:
+            #     print("received ", p.get_packetid())
+
             #print("standard packet received by " + self.id)
             # if we've already seen the flow before, add to its dict
             if flowid in self.flow_packets_seen.keys():
@@ -77,6 +80,8 @@ class Host:
 
             # we now have the smallest value that is missing consecutively
             # send the ack packet
+            # if packetid_needed == 2652:
+            #     print("sending ACK with value ", packetid_needed+1)
             ack = Packet(self.id, flowid, p.get_source(), None, \
                             globals.ACKPACKET, data = [packetid_needed + 1, p.get_data()])
             self.send_packet(ack)

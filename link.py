@@ -274,8 +274,8 @@ class HalfLink:
             if (len(self.buffer) != 0):
                 time = globals.dt
                 bitstransmitted = time * self.rate
-            # else:
-            #     print("buffer is empty and the next_packet_send_time is wrong!")
+            else:
+                print("buffer is empty and the next_packet_send_time is wrong!")
 
         # If we are tracking this link and we are tracking link rate for half
         # links, we compute the link rate and update the statistics disctionary
@@ -317,6 +317,12 @@ class HalfLink:
                     dest_type = 'routers'
                 receiver = globals.idmapping[dest_type][self.destination]
                 receiver.receive_packet(packet_to_send, self.id)
+
+                # if packet_to_send.is_ack() and packet_to_send.data[0] == 2653:
+                #     print(self.id, " is sending ACK ", packet_to_send.data[0])
+                #     print(globals.idmapping['routers']['R1'].routing_table)
+                #     print()
+                #     print(globals.idmapping['routers']['R3'].routing_table)
 
         return amountfreed
 
