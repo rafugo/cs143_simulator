@@ -162,6 +162,7 @@ class Flow:
             # -----------------------------------------------------------------
 
             # check for unacknowledged packets that have timed out
+            print("acknowledging packet " + str(p.packetid))
             for p_id in self.send_times.keys():
                 sent_time = self.send_times[p_id]
                 elapsed_time = globals.systime - sent_time
@@ -277,6 +278,23 @@ class Flow:
 
             else:
             # we have received the sync packet and are ready to begin
+                if (self.state == "slow_start" or self.state == "congestion_avoidance"):
+                   # if we have packets that have timed out that we need to retransmit
+                   if self.retransmit == True:
+                       # Retransmit timed out packets
+                       # if it will all fit into one window
+                       while (len(self.send_times < self.window_size) and (len(self.timedout_packets) > 0):
+                           # get the first timed out packet
+                           packet_id = self.timedout_packets[0]
+                           # set time on the not acknowledgement packet for when it is sent
+                           self.send_times[packet_id] = globals.systime
+                           self.dup_count[packet_id] = self.dup_count[packet_id] + 1
+                           # when this packet is sent, add to the map with the send time
+                           self.source.send_packet(self.packets[packet_id])
+                           self.packet_timeout_times[packet_id] = globals.systime + self.timeout_time
+                           # remove the timed out packet from the list to resend
+                           del self.timed_out[0]
+
 
                 # if we just started, send out the whole window
                 if self.started == False:
@@ -373,7 +391,6 @@ class Flow:
                     avgrtt = sum(self.rttsteps)/(self.rttwindow) * globals.dt
                 key = self.id + ":" + globals.FLOWRTT
                 globals.statistics[key][globals.systime] = avgrtt
-
 
         self.added = False
 
