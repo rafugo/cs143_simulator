@@ -3,7 +3,8 @@ import globals
 from host import Host
 from link import Link
 from packet import Packet
-from router import Router
+# from router import Router
+from routerv2 import Router
 from flow import Flow
 import json
 from pprint import pprint
@@ -125,10 +126,10 @@ class Simulator:
 
         # Make Handshakes
         for router in globals.idmapping['routers'].values():
-            router.init_routing_table()
+            router.send_handshake()
 
         # run the simulation
-        for i in range(300000):
+        for i in range(200000):
 
             for link in globals.idmapping['links'].values():
                 link.update_link_statistics()
@@ -136,8 +137,15 @@ class Simulator:
 
             if (i+1) % 50000 == 0:
                 print("systime : ", globals.systime)
+
+
                 for router in globals.idmapping['routers'].values():
-                    router.recalculate_routing_table()
+                    router.recalc_link_state()
+
+
+            if (i + 1) % 50000 == 25000:
+                for router in globals.idmapping['routers'].values():
+                    print (router.id, "'s Routing table is: ", router.routing_table);
 
             for flow in globals.idmapping['flows'].values():
                 flow.send_packetsV2()
@@ -147,3 +155,10 @@ class Simulator:
 
         for router in globals.idmapping['routers'].values():
             pass
+
+    def test_dijkstra(self):
+        router = Router('R1', [])
+        router.link_state_array = [['R1', 'H1', 'L0', 367957.3433311556], ['H1', 'R1', 'L0', 5887317.343342742], ['R1', 'R2', 'L1', 6010853.3433503], ['R2', 'R1', 'L1', 367957.3433311556], ['R1', 'R3', 'L2', 0.01], ['R3', 'R1', 'L2', 0.01], ['R2', 'R4', 'L3', 6056544.010017095], ['R4', 'R2', 'L3', 367957.3433311556], ['R3', 'R4', 'L4', 0.01], ['R4', 'R3', 'L4', 0.01], ['R4', 'H2', 'L5', 6870814.676676182], ['H2', 'R4', 'L5', 1268640.00999782]]
+
+        router.run_dijkstra()
+        print (router.routing_table)
