@@ -18,8 +18,6 @@ class Flow:
                              sending packets to
                amount : The amount of data that the flow is transmitting (in MB)
                start : The time that the flow should start (in seconds)
-               congestion_control : The congestion control algorithm the flow
-                                    will use
                track : a boolean value indicating if we are tracking metrics
                        for this flow
            NOTE- I don't think we need min_rtt here and i dont know about
@@ -39,7 +37,7 @@ class Flow:
                window_start : integer marking beginning of window
                min_rtt :
                done :
-               packet_timeouts : dictionary of packetid : systime, where the
+               packet_timeout_times : dictionary of packetid : systime, where the
                     systime is the time when the packetid will have timedout
                track : a boolean flag indicating if we are tracking metrics for
                        this flow
@@ -76,13 +74,12 @@ class Flow:
         self.started = False
         # next time to send a packet
         self.next_packet_send_time = self.start
-        # list of actual packets to be sent
-        self.packets = []
-        self.packet_timeouts = {}
+        self.packet_timeout_times = {}
         self.timeout_time = 1       # in seconds
         self.setRTT = False
-
-
+        self.state = "slow_start"
+        # list of actual packets to be sent
+        self.packets = []
         amountInPackets = 0
         i = 0
         while (amountInPackets < self.amount):
@@ -92,15 +89,22 @@ class Flow:
             self.packets.append(p)
             amountInPackets = amountInPackets + globals.PACKETSIZE - globals.PACKETHEADERSIZE
             i = i + 1
-
-        # instance of our congestion controllers
-        if (congestion_control == 'reno'):
-            self.congestion_control = CongestionControllerReno(self.id, self.window_size)
-        else:
-            self.congestion_control = CongestionController(self.id, self.window_size)
-
         # flag to demonstrate if the
         self.done = False
+
+        self.ssthresh = 50
+        self.timeout = 1000
+        # packets that have been sent but not acknowledged yet
+        self.send_times = dict()
+        # used to calculate RTT
+        self.dup_count = dict()
+        self.timedout_packets = []
+
+        self.retransmit = False
+        # congestion signals to keep track of
+        self.duplicate_count = 0
+        self.last_ack_received = -1
+        self.first_packet = 0
 
         # Variables for metric tracking
         self.track = track
@@ -116,13 +120,7 @@ class Flow:
             for m in globals.FLOWMETRICS:
                 globals.statistics[id+":"+m] = {}
 
-
     def process_ack(self, p):
-        """ This function processes the acknowledgement packet recieved by its
-            source. It should pop the corresponding packet off the queue (may
-            bot be the first one if the first wasn't acknowledged).
-            Does congestion control if needed
-        """
         # check if it's a synack
         if (p.get_packet_type() == globals.SYNACK):
             # set the rtt
@@ -143,7 +141,8 @@ class Flow:
             assert p.sourceid == self.destination.id
             assert p.destinationid == self.source.id
             # send current round trip time
-            self.rtt = globals.systime - float(p.data[1])
+            if self.dup_count[p.packetid] < 2:
+                self.rtt = globals.systime - self.send_times[p.packetid]
 
             # for metrics
             if (self.track) and globals.FLOWRTT in globals.FLOWMETRICS:
@@ -158,8 +157,81 @@ class Flow:
             if (self.next_packet >= len(self.packets)):
                 self.done = True
 
-            # call congestion_controller
-            self.congestion_control.ack_received(p)
+            ##################################################################
+            #CONGESTION CONTROL
+            # -----------------------------------------------------------------
+
+            # check for unacknowledged packets that have timed out
+            for p_id in self.send_times.keys():
+                sent_time = self.send_times[p_id]
+                elapsed_time = globals.systime - sent_time
+                # if the unacknowledged packet has timed out, move it from
+                #   unacknowleged to timed out
+                if elapsed_time > self.timeout:
+                    del self.send_times[p_id]
+                    self.timedout_packets.append(p_id)
+                    print("packet timed out" + str(p_id))
+
+            # if we have packets that have timed out, we want to retransmit these
+            if len(self.timedout_packets) > 0:
+                print(self.timedout_packets)
+                self.retransmit = True
+                # Half the window size
+                print(self.window_size)
+                self.window_size = self.window_size / 2
+                print(self.window_size)
+            else:
+                self.retransmit = False
+
+            # if we receive an ack for a packet, want to remove it from the list of unacked packets
+            # TODO: NEED TO IMPLEMENT DUPLICATE COUNT FOR PACKETS
+            if p.packetid in self.send_times.keys():
+                del self.send_times[p.packetid]
+
+            # In slow start phase, increase congestion window size by 1
+            if (self.state == "slow_start"):
+                self.window_size += 1
+                # If congestion window becomes larger than slow start threshold,
+                # switch to congestion avoidance phase
+                if (self.window_size >= self.ssthresh):
+                    self.state = "congestion_avoidance"
+
+            elif (self.state == "congestion_avoidance"):
+                # Check if this is a duplicate acknowledgement
+                if p.data[0] == self.last_ack_received:
+                    self.duplicate_count += 1
+                    # After 3 duplicate acknowledgements, if the packet has not
+                    # already been received, halve the congestion window size and
+                    # move into fast recovery phase
+                    if (self.duplicate_count == 3) and ((p.data) in \
+                        [key[0] for key in self.send_times.keys()]):
+                        self.window_size = self.window_size / 2
+                        self.ssthresh = self.window_size
+                        self.state = "fast_recovery"
+
+                # if this is not a duplicate acknowledgement
+                else:
+                    self.window_size += 1 / self.window_size
+                    # reset duplicate count since the chain of dupACKS is broken
+                    self.duplicate_count = 0
+
+            # if we're in fast recovery instead
+            elif (self.state == "fast_recovery"):
+                # Check if this is a duplicate acknowledgement
+                if p.data == self.last_ack_received:
+                    self.duplicate_count += 1
+                    return
+                else:
+                    # check if this is the ACK for the packet transmitted during Fast Recovery
+                    if p.packetid == self.FR_packet:
+                        self.window_size = self.ssthresh
+                        self.state = "congestion_avoidance"
+                    # reset duplicate count since the chain of dupACKS is broken
+                    self.duplicate_count = 0
+            self.last_ack_received = p.packetid + 1
+
+            # --------------------------------------------------------------------------
+            # END CONGESTION control
 
             # Time to do some metric tracking
             if (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
@@ -180,44 +252,6 @@ class Flow:
                 globals.statistics[key][globals.systime] = rate
 
 
-    # # attempts to send window_size amount of packets through the host
-    # def send_packets(self):
-    #     # make sure it's send time
-    #     if (globals.systime >= self.next_packet_send_time):
-    #         # if sending first packet in the flow
-    #         # SEND SYNC PACKET FIRST
-    #         if (self.next_packet == -1):
-    #             #print("Sending first sync_packet")
-    #             # generating sync_packet with data that is the time the packet was sent
-    #             # data is used to calc rtt
-    #             sync_packet = Packet(self.source.id, self.id, self.destination.id, \
-    #                 -1, globals.SYNPACKET, globals.systime)
-    #             self.source.send_packet(sync_packet)
-    #             self.next_packet_send_time = globals.systime + self.rtt
-    #
-    #
-    #         # need to check when to send the next window size of packets
-    #         elif (not self.done):
-    #
-    #             #print("flow " + self.id + " is sending packets")
-    #             # check to see if more than 0 packets exist need to be sent
-    #             assert(self.amount > 0)
-    #             # assumes packet id is the same as its index in the list
-    #             # send a window size of packets
-    #             #if ()
-    #             for p in range(self.next_packet, min(self.next_packet + self.window_size, len(self.packets))):
-    #                 #print("flow " + self.id + " is sending packet no. " + str(self.packets[p].get_packetid()))
-    #                 # adding info to packet about when it is sent
-    #                 self.packets[p].data = globals.systime
-    #                 self.source.send_packet(self.packets[p])
-    #             self.next_packet_send_time += self.rtt
-    #             # log if the flow is completed
-    #             # log when the acknowledgement is received
-
-    # function for sending a standard packet
-    def send_a_packet(self, packet_id):
-        self.source.send_packet(new_packet)
-
     # sliding window packet sending
     def send_packetsV2(self):
         # make sure it's send time
@@ -227,13 +261,19 @@ class Flow:
             if (self.next_packet == -1):
 
                 # if it's the first one or it's timed out, send it again
-                if -1 not in self.packet_timeouts.keys() or \
-                        self.packet_timeouts[-1] <= globals.systime:
+                if -1 not in self.packet_timeout_times.keys() or \
+                        self.packet_timeout_times[-1] <= globals.systime:
 
                     sync_packet = Packet(self.source.id, self.id, self.destination.id, \
                         -1, globals.SYNPACKET, globals.systime)
+
+                    if -1 not in self.dup_count.keys():
+                        self.dup_count[-1] = 1
+                    else:
+                        self.dup_count[-1] = self.dup_count[-1] + 1
+
                     self.source.send_packet(sync_packet)
-                    self.packet_timeouts[-1] = globals.systime + self.timeout_time
+                    self.packet_timeout_times[-1] = globals.systime + self.timeout_time
 
             else:
             # we have received the sync packet and are ready to begin
@@ -242,10 +282,16 @@ class Flow:
                 if self.started == False:
                     self.started = True
                     # send the whole first window
-                    for i in range(self.window_size+1):
-                        self.packets[i].data = globals.systime
+                    for i in range(round(self.window_size+1)):
+                        self.send_times[i] = globals.systime
+
+                        if i not in self.dup_count.keys():
+                            self.dup_count[i] = 1
+                        else:
+                            self.dup_count[i] = self.dup_count[i] + 1
+
                         self.source.send_packet(self.packets[i])
-                        self.packet_timeouts[i] = globals.systime + self.timeout_time
+                        self.packet_timeout_times[i] = globals.systime + self.timeout_time
                 else:
                     # this flow has sent all its first window
 
@@ -261,30 +307,37 @@ class Flow:
                             # if there is a packet after the window, add it to the window and
                             # send the packet
                             if (self.window_start + self.window_size < len(self.packets)):
-                                new_packet = self.packets[self.window_start + self.window_size]
-                                new_packet.data = globals.systime
+                                i = round(self.window_start + self.window_size)
+                                new_packet = self.packets[i]
+                                self.send_times[i] = globals.systime
+
+                                if i not in self.dup_count.keys():
+                                    self.dup_count[i] = 1
+                                else:
+                                    self.dup_count[i] = self.dup_count[i] + 1
+
                                 self.source.send_packet(new_packet)
-                                self.packet_timeouts[self.window_start + self.window_size] \
+                                self.packet_timeout_times[i] \
                                     = globals.systime + self.timeout_time
 
 
                         assert(self.window_start == self.next_packet)
 
                     # if the first packet timed out, send it again
-                    elif self.window_start in self.packet_timeouts.keys() and \
-                        self.packet_timeouts[self.window_start] <= globals.systime:
+                    elif self.window_start in self.packet_timeout_times.keys() and \
+                        self.packet_timeout_times[self.window_start] <= globals.systime:
 
                         # send all the consecutive timedout packets starting
                         # from the front of the window
                         counter = self.window_start
-                        while counter in self.packet_timeouts.keys() and \
-                            self.packet_timeouts[counter] <= globals.systime:
+                        while counter in self.packet_timeout_times.keys() and \
+                            self.packet_timeout_times[counter] <= globals.systime:
                             # print("resending packet ", counter, "   time : ", globals.systime)
                             # send the packet again, and update the timeout
                             new_packet = self.packets[counter]
                             new_packet.data = globals.systime
                             self.source.send_packet(new_packet)
-                            self.packet_timeouts[counter] \
+                            self.packet_timeout_times[counter] \
                                 = globals.systime + self.timeout_time
 
                             counter += 1

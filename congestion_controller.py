@@ -23,11 +23,14 @@ class CongestionController:
         self.ssthresh = 50
         self.window_size = cwnd
         self.timeout = 1000
+        # packets that have been sent but not acknowledged yet
         self.not_acknowledged = dict()
-        self.timed_out = []
+
         self.retransmit = False
+        # congestion signals to keep track of
         self.duplicate_count = 0
         self.last_ack_received = -1
+        self.timed_out = []
         self.first_packet = 0
 
     # functions to use before congestion contoller method has actually been implemented
@@ -55,7 +58,7 @@ class CongestionControllerReno(CongestionController):
     # packet refers to an acknowledgement packet
     def ack_received(self, packet):
         flow = globals.idmapping['flows'][self.flow_id]
-
+        print("received ack for packet " + str(packet.packetid))
         # check for unacknowledged packets that have timed out
         for (p_id, num_dup) in self.not_acknowledged.keys():
             sent_time = self.not_acknowledged[(p_id, num_dup)]
@@ -66,6 +69,7 @@ class CongestionControllerReno(CongestionController):
             if elapsed_time > self.timeout:
                 del self.not_acknowledged[(p_id, num_dup)]
                 self.timed_out.append((p_id, num_dup))
+                print("packet timed out" + str(packet.packetid))
 
             # if we have packets that have timed out, we want to retransmit these
             if len(self.timed_out) > 0:
@@ -95,7 +99,7 @@ class CongestionControllerReno(CongestionController):
                     # After 3 duplicate acknowledgements, if the packet has not
                     # already been received, halve the congestion window size and
                     # move into fast recovery phase
-                    if (self.duplicate_count == 3) and ((packet.id + 1) in \
+                    if (self.duplicate_count == 3) and ((packet.data(0)) in \
                         [key[0] for key in self.not_acknowledged.keys()]):
                         self.window_size /= 2
                         self.ssthresh = self.window_size
@@ -138,6 +142,7 @@ class CongestionControllerReno(CongestionController):
                     # set time on the not acknowledgement packet for when it is sent
                     self.not_acknowledged[(packet_id, dup_num + 1)] = globals.systime
                     # TODO: write a function in flow to send a packet
+                    # when this packet is sent, add to the map with the send time
                     flow.send_a_packet(packet_id, dup_num + 1)
                     # remove the timed out packet from the list to resend
                     del self.timed_out[0]
