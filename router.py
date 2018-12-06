@@ -54,7 +54,9 @@ class Router:
                     oldval = self.routing_table[key][1]
                     self.routing_table[key] = [linkid, oldval - difference]
 
-
+            if(linkid == 'L1' and self.id == 'R1'):
+                print(link_cost);
+                print(old_cost);
             # our handshake was acknowledged
             self.handshakes_acked += 1
 
@@ -148,6 +150,7 @@ class Router:
         # For each key in table_2, check if it is in the routing table or has a smaller value than the current path
         for key in table_2:
             t2_cost = table_2.get(key)[1]
+            key_link = table_2.get(key)[0]
             rt_cost = self.routing_table.get(key, [0, "not_in"])[1]
             # print("self.routing_table.get(key) " + str(self.routing_table.get(key, [0, "not_in"])[1]))
 
@@ -155,7 +158,10 @@ class Router:
             if (rt_cost == "not_in"):
                 self.routing_table[key] = [con_link_id, t2_cost]
                 updated = True
-
+            # if the connection link is the link that table2 takes to go to the destination, we do not 
+            # need to change our table
+            elif(con_link_id == key_link):
+                continue;
             # If the destination is in the current routing table but table_2 provides a quicker route
             elif (t2_cost < rt_cost):
                 self.routing_table[key] = [con_link_id, t2_cost]
