@@ -103,7 +103,7 @@ class Host:
             if flowid not in self.flow_packets_seen.keys():
                 self.flow_packets_seen[flowid] = [p.get_packetid()]
 
-            ack = Packet(self.id, flowid, p.get_source(), None, \
+            ack = Packet(self.id, flowid, p.get_source(), p.get_packetid(), \
                             globals.SYNACK, data = p.get_data())
             self.send_packet(ack)
 
