@@ -113,6 +113,7 @@ class Flow:
         self.rttwindow = 20000 * globals.dt
         self.rttsteps = []
         self.added = False
+        self.successfullytransmitted = {}
 
         # If this flow is being tracked, we set up the dictionaries for all of
         # the metrics to be tracked.
@@ -236,21 +237,22 @@ class Flow:
 
             # Time to do some metric tracking
             if (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
-                self.added = True
-                rate = 0
-                assert globals.systime >= self.start
-                if (len(self.frsteps) < self.frwindow/globals.dt):
-                    self.frsteps.append(1)
-                    if (globals.systime != self.start ):
-                        rate = sum(self.frsteps)/(globals.systime - self.start)
-                else:
-                    self.frsteps.pop(0)
-                    self.frsteps.append(globals.PACKETSIZE)
-                    rate = sum(self.frsteps)/(self.frwindow)
+                if p.packetid not in self.successfullytransmitted.keys():
+                    self.successfullytransmitted[p.packetid] = 1
+                    self.added = True
+                    rate = 0
+                    assert globals.systime >= self.start
+                    if (len(self.frsteps) < self.frwindow/globals.dt):
+                        self.frsteps.append(globals.PACKETSIZE)
+                        if (globals.systime != self.start ):
+                            rate = sum(self.frsteps)/(globals.systime - self.start)
+                    else:
+                        self.frsteps.pop(0)
+                        rate = sum(self.frsteps)/(self.frwindow)
 
-                key = self.id + ":" + globals.FLOWRATE
-                #print("STORING FLOW RATE")
-                globals.statistics[key][globals.systime] = rate
+                    key = self.id + ":" + globals.FLOWRATE
+                    #print("STORING FLOW RATE")
+                    globals.statistics[key][globals.systime] = rate
 
 
     # sliding window packet sending
