@@ -82,8 +82,8 @@ class Host:
             # send the ack packet
             # if packetid_needed == 2652:
             #     print("sending ACK with value ", packetid_needed+1)
-            ack = Packet(self.id, flowid, p.get_source(), None, \
-                            globals.ACKPACKET, data = [packetid_needed + 1, p.get_data()])
+            ack = Packet(self.id, flowid, p.get_source(), p.get_packetid(), \
+                            globals.ACKPACKET, data = [packetid_needed + 1])
             self.send_packet(ack)
 
         # if it's an acknowledgement, let the flow know we got one
@@ -103,7 +103,7 @@ class Host:
             if flowid not in self.flow_packets_seen.keys():
                 self.flow_packets_seen[flowid] = [p.get_packetid()]
 
-            ack = Packet(self.id, flowid, p.get_source(), None, \
+            ack = Packet(self.id, flowid, p.get_source(), p.get_packetid(), \
                             globals.SYNACK, data = p.get_data())
             self.send_packet(ack)
 
