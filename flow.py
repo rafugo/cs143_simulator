@@ -57,7 +57,7 @@ class Flow:
         # round trip time used for congestion control, starts at arbitrary
         #   value and then is calculated
         self.rtt = 1
-
+        self.rto = self.rtt
         self.id = id
         if source[0] == 'H':
             self.source = globals.idmapping['hosts'][source]
@@ -74,10 +74,8 @@ class Flow:
         self.started = False
         # next time to send a packet
         self.next_packet_send_time = self.start
-        self.packet_timeout_times = {}
 
-
-        self.min_timeout_time = 0.5       # in seconds
+        self.min_timeout_time = 1      # in seconds
         self.setRTT = False
         self.state = "slow_start"
         # list of actual packets to be sent
@@ -99,9 +97,6 @@ class Flow:
         self.send_times = dict()
         # used to calculate RTT
         self.dup_count = dict()
-        self.timedout_packets = []
-
-        self.retransmit = False
         # congestion signals to keep track of
         self.duplicate_count = 0
         self.last_ack_received = -1
@@ -162,36 +157,12 @@ class Flow:
             # -----------------------------------------------------------------
             # CONGESTION CONTROL
             # -----------------------------------------------------------------
-
-            # check for unacknowledged packets that have timed out
-            # print("acknowledging packet " + str(p.packetid))
-            send_times_copy = list(self.send_times.keys()).copy()
-            for p_id in send_times_copy:
-                sent_time = self.send_times[p_id]
-                elapsed_time = globals.systime - sent_time
-                print("elapsed_time")
-                # if the unacknowledged packet has timed out, move it from
-                #   unacknowleged to timed out
-                if elapsed_time > self.timeout_time:
-                    del self.send_times[p_id]
-                    self.timedout_packets.append(p_id)
-
-            print("len(self.timedout_packets ", len(self.timedout_packets))
-
-            # if we have packets that have timed out, we want to retransmit these
-            if len(self.timedout_packets) > 0:
-                print(self.timedout_packets)
-                self.retransmit = True
-                # Half the window size
-
-                self.ssthresh = self.window_size / 2
-                self.window_size = 1
-                self.state = "slow_start"
-            else:
-                self.retransmit = False
+            # check to see if this is a duplicate ack
+            if self.dup_count[p.packetid] < 2:
+                self.rto = max(self.min_timeout_time, 1.3 * self.rtt)
+                self.timeout_marker = self.send_times[p.packetid] + self.rto
 
             # if we receive an ack for a packet, want to remove it from the list of unacked packets
-            # TODO: NEED TO IMPLEMENT DUPLICATE COUNT FOR PACKETS
             if p.packetid in self.send_times.keys():
                 del self.send_times[p.packetid]
 
@@ -201,8 +172,6 @@ class Flow:
                 # If congestion window becomes larger than slow start threshold,
                 # switch to congestion avoidance phase
                 if (self.window_size >= self.ssthresh):
-                    print("entering congestion_avoidance")
-                    print("window size: ", self.window_size)
                     self.state = "congestion_avoidance"
                     print("entering congestion avoidance")
 
@@ -268,45 +237,33 @@ class Flow:
     def send_packetsV2(self):
         # make sure it's send time
         if (globals.systime >= self.start and self.done == False):
-            # if sending first packet in the flow
+            # checking timeout marker
+            if (globals.systime >= self.timeout_marker):
+                # we have timed out, so we need to re-enter slow start
+                self.state = "slow_start"
+                self.ssthresh = max(self.window_size / 2, 1)
+                self.window_size = 1
+                print("entering slow start after time out ")
+
             # SEND SYNC PACKET FIRST
             if (self.next_packet == -1):
-
-                # if it's the first one or it's timed out, send it again
-                if -1 not in self.packet_timeout_times.keys() or \
-                        self.packet_timeout_times[-1] <= globals.systime:
-
-                    sync_packet = Packet(self.source.id, self.id, self.destination.id, \
-                        -1, globals.SYNPACKET, globals.systime)
-
-                    if -1 not in self.dup_count.keys():
-                        self.dup_count[-1] = 1
-                    else:
-                        self.dup_count[-1] = self.dup_count[-1] + 1
-
-                    self.source.send_packet(sync_packet)
-                    self.packet_timeout_times[-1] = globals.systime + self.timeout_time
+                if timesout, send again and change marker
+                # # if it's the first one or it's timed out, send it again
+                # if -1 not in self.packet_timeout_times.keys() or \
+                #         self.packet_timeout_times[-1] <= globals.systime:
+                #
+                #     sync_packet = Packet(self.source.id, self.id, self.destination.id, \
+                #         -1, globals.SYNPACKET, globals.systime)
+                #
+                #     if -1 not in self.dup_count.keys():
+                #         self.dup_count[-1] = 1
+                #     else:
+                #         self.dup_count[-1] = self.dup_count[-1] + 1
+                #
+                #     self.source.send_packet(sync_packet)
+                #     self.packet_timeout_times[-1] = globals.systime + self.timeout_time
 
             else:
-            # we have received the sync packet and are ready to begin
-                if (self.state == "slow_start" or self.state == "congestion_avoidance"):
-                   # if we have packets that have timed out that we need to retransmit
-                   if self.retransmit == True:
-                       # Retransmit timed out packets
-                       # if it will all fit into one window
-                       while (len(self.send_times) < self.window_size) and (len(self.timedout_packets) > 0):
-                           # get the first timed out packet
-                           packet_id = self.timedout_packets[0]
-                           # set time on the not acknowledgement packet for when it is sent
-                           self.send_times[packet_id] = globals.systime
-                           self.dup_count[packet_id] = self.dup_count[packet_id] + 1
-                           # when this packet is sent, add to the map with the send time
-                           self.source.send_packet(self.packets[packet_id])
-                           self.packet_timeout_times[packet_id] = globals.systime + self.timeout_time
-                           # remove the timed out packet from the list to resend
-                           del self.timedout_packets[0]
-
-
                 # if we just started, send out the whole window
                 if self.started == False:
                     self.started = True

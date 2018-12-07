@@ -5,7 +5,8 @@ from link import Link
 from packet import Packet
 # from router import Router
 from routerv2 import Router
-from flow import Flow
+# from flow import Flow
+from flow2 import Flow
 import json
 from pprint import pprint
 
@@ -145,7 +146,7 @@ class Simulator:
 
             # send out the flow packets
             for flow in globals.idmapping['flows'].values():
-                flow.send_packetsV2()
+                flow.send_packets()
                 flow.update_flow_statistics()
 
             globals.systime += globals.dt
