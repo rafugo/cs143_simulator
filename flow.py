@@ -109,7 +109,7 @@ class Flow:
 
         # Variables for metric tracking
         self.track = track
-        self.frwindow = 20000 * globals.dt
+        self.frwindow = 1000 * globals.dt #was 20000
         self.frsteps = []
         self.rttwindow = 20000 * globals.dt
         self.rttsteps = []
@@ -164,7 +164,8 @@ class Flow:
             # -----------------------------------------------------------------
 
             # check for unacknowledged packets that have timed out
-            print("acknowledging packet " + str(p.packetid))
+            #
+            #print("acknowledging packet " + str(p.packetid))
             for p_id in self.send_times.keys():
                 sent_time = self.send_times[p_id]
                 elapsed_time = globals.systime - sent_time
@@ -173,16 +174,16 @@ class Flow:
                 if elapsed_time > self.timeout:
                     del self.send_times[p_id]
                     self.timedout_packets.append(p_id)
-                    print("packet timed out" + str(p_id))
+                    #print("packet timed out" + str(p_id))
 
             # if we have packets that have timed out, we want to retransmit these
             if len(self.timedout_packets) > 0:
-                print(self.timedout_packets)
+                #print(self.timedout_packets)
                 self.retransmit = True
                 # Half the window size
-                print(self.window_size)
+                #print(self.window_size)
                 self.window_size = self.window_size / 2
-                print(self.window_size)
+                #print(self.window_size)
             else:
                 self.retransmit = False
 
@@ -322,7 +323,7 @@ class Flow:
                     if self.next_packet > self.window_start:
 
 
-                        # move the window over, since the first packets have 
+                        # move the window over, since the first packets have
                         # been acked
                         self.window_start = self.next_packet
 
@@ -330,7 +331,7 @@ class Flow:
                         # yet (it has to be packets that have never been sent
                         # before)
                         for i in range(self.window_start, round(self.window_start + self.window_size)):
-                            
+
                             # if the packet never been sent
                             if i not in self.send_times.keys() and \
                                 i not in self.timedout_packets:
@@ -344,7 +345,7 @@ class Flow:
                                 else:
                                     self.dup_count[i] = self.dup_count[i] + 1
 
-                                print("sending packet: ", round(self.window_start + self.window_size))
+                                #print("sending packet: ", round(self.window_start + self.window_size))
                                 self.source.send_packet(new_packet)
 
 

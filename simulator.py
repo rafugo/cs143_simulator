@@ -63,7 +63,7 @@ class Simulator:
 
     def plot_metrics(self):
         for s in globals.statistics.keys():
-            plot.figure(figsize=(8,3))
+            plot.figure(figsize=(12,4.5))
             x = []
             y = []
             lines = 0
@@ -129,7 +129,7 @@ class Simulator:
             router.send_handshake()
 
         # run the simulation
-        for i in range(200000):
+        for i in range(200000): #was 200000
 
             # send link stuff
             for link in globals.idmapping['links'].values():

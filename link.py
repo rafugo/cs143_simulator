@@ -168,7 +168,7 @@ class HalfLink:
 
         # Variables for metric tracking
         self.track = track
-        self.lrwindow = 15000 * globals.dt
+        self.lrwindow = 5000 * globals.dt #was 15000
         self.lrsteps = []
         self.buffersteps = []
         self.bufferwindow = 1 * globals.dt
@@ -275,7 +275,7 @@ class HalfLink:
                 time = globals.dt
                 bitstransmitted = time * self.rate
             else:
-                print("buffer is empty and the next_packet_send_time is wrong!")
+                pass
 
         # If we are tracking this link and we are tracking link rate for half
         # links, we compute the link rate and update the statistics disctionary
