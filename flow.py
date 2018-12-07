@@ -151,8 +151,8 @@ class Flow:
 
             # remove the packet from the list of packets that need to be sent
             # p.data contains the id of the next packet it needs
-            if (p.data[0] >  self.next_packet):
-                self.next_packet = p.data[0]
+            if (p.data >  self.next_packet):
+                self.next_packet = p.data
             # the next packet to send is out of index so we've sent everything
             if (self.next_packet >= len(self.packets)):
                 self.done = True
@@ -199,7 +199,7 @@ class Flow:
 
             elif (self.state == "congestion_avoidance"):
                 # Check if this is a duplicate acknowledgement
-                if p.data[0] == self.last_ack_received:
+                if p.data == self.last_ack_received:
                     self.duplicate_count += 1
                     # After 3 duplicate acknowledgements, if the packet has not
                     # already been received, halve the congestion window size and
@@ -280,6 +280,7 @@ class Flow:
             # we have received the sync packet and are ready to begin
                 if (self.state == "slow_start" or self.state == "congestion_avoidance"):
                    # if we have packets that have timed out that we need to retransmit
+                   print(self.state)
                    if self.retransmit == True:
                        # Retransmit timed out packets
                        # if it will all fit into one window

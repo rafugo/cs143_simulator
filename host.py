@@ -83,7 +83,7 @@ class Host:
             # if packetid_needed == 2652:
             #     print("sending ACK with value ", packetid_needed+1)
             ack = Packet(self.id, flowid, p.get_source(), p.get_packetid(), \
-                            globals.ACKPACKET, data = [packetid_needed + 1])
+                            globals.ACKPACKET, data = packetid_needed + 1)
             self.send_packet(ack)
 
         # if it's an acknowledgement, let the flow know we got one

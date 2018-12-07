@@ -143,9 +143,9 @@ class Simulator:
                     router.recalc_link_state()
 
 
-            if (i + 1) % 50000 == 25000:
-                for router in globals.idmapping['routers'].values():
-                    print (router.id, "'s Routing table is: ", router.routing_table);
+            # if (i + 1) % 50000 == 25000:
+            #     for router in globals.idmapping['routers'].values():
+            #         print (router.id, "'s Routing table is: ", router.routing_table);
 
             for flow in globals.idmapping['flows'].values():
                 flow.send_packetsV2()
