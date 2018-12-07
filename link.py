@@ -70,6 +70,7 @@ class Link:
         # If added is 0, we added 0 bytes to the link buffer, so the packet was
         # dropped.
         if (added == 0):
+            print("dropped packet: ", packet.packetid)
             self.droppedpackets = self.droppedpackets + 1
 
         # If we are tracking this link and one of the metrics we are tracking

@@ -44,8 +44,8 @@ class Host:
 
         # if it's a standard packet, it's from a flow
         elif (p.get_packet_type() == globals.STANDARDPACKET):
-            if p.packetid == 403:
-                print(" i got 403 ")
+            if p.packetid == 169:
+                print("++++++++++++++++++++++++++++++host has received 169 ", globals.systime)
 
 
             #print("standard packet received by " + self.id)
