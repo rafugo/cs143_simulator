@@ -91,7 +91,7 @@ class Router:
         # print(self.routing_table)
 
         globals.idmapping['links'][link_path].add_to_buffer(packet, self.id)
-        
+
 
     def send_routing_table(self):
         # print ("ROUTING TABLE SENT")
@@ -158,7 +158,7 @@ class Router:
             if (rt_cost == "not_in"):
                 self.routing_table[key] = [con_link_id, t2_cost]
                 updated = True
-            # if the connection link is the link that table2 takes to go to the destination, we do not 
+            # if the connection link is the link that table2 takes to go to the destination, we do not
             # need to change our table
             elif(con_link_id == key_link):
                 continue;

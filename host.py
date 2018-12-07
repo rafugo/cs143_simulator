@@ -44,8 +44,9 @@ class Host:
 
         # if it's a standard packet, it's from a flow
         elif (p.get_packet_type() == globals.STANDARDPACKET):
-            # if p.get_packetid() == 2652:
-            #     print("received ", p.get_packetid())
+            if p.packetid == 403:
+                print(" i got 403 ")
+
 
             #print("standard packet received by " + self.id)
             # if we've already seen the flow before, add to its dict
@@ -65,7 +66,7 @@ class Host:
             # now we need to send an ack back!
             # note that we need to find the smallest number that has not been
             # received in the sequence
-            packetid_needed = -2
+            packetid_needed = -1
             packets_gotten = self.flow_packets_seen[flowid]
 
             for i in range(len(packets_gotten)):
@@ -80,37 +81,18 @@ class Host:
 
             # we now have the smallest value that is missing consecutively
             # send the ack packet
-            # if packetid_needed == 2652:
-            #     print("sending ACK with value ", packetid_needed+1)
+
             ack = Packet(self.id, flowid, p.get_source(), p.get_packetid(), \
-                            globals.ACKPACKET, data = [packetid_needed + 1])
+                            globals.ACKPACKET, data = packetid_needed + 1)
             self.send_packet(ack)
 
         # if it's an acknowledgement, let the flow know we got one
         elif (p.get_packet_type() == globals.ACKPACKET):
+
             flowid = p.get_flowid()
             flow = globals.idmapping['flows'][flowid]
 
             # process the acknowledgement
 
             #print("ack given to flow "+flowid+" from host "+self.id)
-            flow.process_ack(p)
-
-        elif (p.get_packet_type() == globals.SYNPACKET):
-            #print("syn packet received")
-
-            # if it's a new flow, add it to the table
-            if flowid not in self.flow_packets_seen.keys():
-                self.flow_packets_seen[flowid] = [p.get_packetid()]
-
-            ack = Packet(self.id, flowid, p.get_source(), p.get_packetid(), \
-                            globals.SYNACK, data = p.get_data())
-            self.send_packet(ack)
-
-        elif (p.get_packet_type() == globals.SYNACK):
-            flowid = p.get_flowid()
-            flow = globals.idmapping['flows'][flowid]
-
-            # process the acknowledgement
-            #print("syn ack given to flow "+flowid+" from host "+self.id)
             flow.process_ack(p)
