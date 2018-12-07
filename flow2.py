@@ -74,14 +74,15 @@ class Flow:
                 globals.statistics[id+":"+m] = {}
 
     def process_ack(self, p):
-
         print("received ack with data ", p.data)
+        print("recieved ack for ", p.packetid)
         # print(p.packetid)
 
-        # check to see if this is a duplicate ack
+        # check to see if this is a packet that has been sent multiple times
         if self.dup_count[p.packetid] < 2:
-            self.rto = max(self.min_timeout_time, 1.3 * self.rtt)
-            self.timeout_marker = self.send_times[p.packetid] + self.rto
+            self.rto = 2 * self.rtt
+            #self.rto = max(self.min_timeout_time, 1.3 * self.rtt)
+            self.timeout_marker = globals.systime + self.rto
 
         # check if it's a synack
         if (p.packetid == 0):
@@ -90,6 +91,7 @@ class Flow:
             print(self.send_times)
             self.rtt = globals.systime - self.send_times[p.packetid]
             self.window_start += 1
+            del self.send_times[p.packetid]
 
             self.setRTT = True
             self.synack_received = True
@@ -100,42 +102,48 @@ class Flow:
                 globals.statistics[key][globals.systime] = self.rtt
             return
 
+        # if we receive an ack for a packet, want to remove it from the list of unacked packets
+        # need to remove the timed out packets from send_times
+        remove = [k for k in self.send_times.keys() if k < p.data]
+        for k in remove:
+            del self.send_times[k]
+
         # otherwise we have a normal acknowledgment
         # if we have a duplicate packet
         print(p.data)
         print(self.duplicate_packet)
         print("-------------------------------------------------------------")
+        print("window size", self.window_size)
         if (p.data == self.duplicate_packet):
             print(self.duplicate_count)
             self.duplicate_count = self.duplicate_count + 1
             if (self.duplicate_count == 3 and globals.systime >= \
-                self.next_cut_time):
+                self.next_cut_time and p.data in self.send_times.keys()):
                 # retransmit the packet
                 # fast recovery
                 print("fast recovery")
-                print("sending packet ", self.duplicate_packet)
+                print("sending packet ", self.duplicate_packet, " at ", globals.systime)
                 self.source.send_packet(self.packets[self.duplicate_packet])
                 self.ssthresh = self.window_size / 2
-                self.window_size = self.ssthresh
+                self.window_size = self.ssthresh + 3
                 print('window_size ', self.window_size)
                 self.state = "congestion_avoidance"
                 print(self.state)
 
-                self.duplicate_count = 0
-                self.duplicate_packet = p.data
                 self.window_start = p.data
                 self.next_cut_time = globals.systime + self.rto
-
+            else:
+                #window inflation
+                self.window_size +=1
 
         else:
             # reset our counter for duplicates if we have a new ACK
+            if(self.duplicate_count > 0):
+                self.window_size = self.ssthresh
             self.duplicate_count = 0
             self.duplicate_packet = p.data
             self.window_start = p.data
-
-            # if we receive an ack for a packet, want to remove it from the list of unacked packets
-            if p.packetid in self.send_times.keys():
-                del self.send_times[p.packetid]
+            print("current window start ", self.window_start)
 
             # if we are in slow_start
             if (self.state == "slow_start"):
@@ -173,31 +181,34 @@ class Flow:
 
     # gets called every dt
     def send_packets(self):
-        # if we shouldnt do anything, leave
+        # if we shouldn't do anything, leave
         if self.start >= globals.systime or self.done == True:
             return
 
         # if we have timed out (not recently)
         if globals.systime >= self.timeout_marker and \
             globals.systime >= self.next_cut_time:
-
+            print("timeout_marker ", self.timeout_marker)
+            print("next cut time", self.next_cut_time)
             # enter slow_start
             self.ssthresh = self.window_size / 2
             self.window_size = 1
 
-            print('window_size ', self.window_size)
+            #print('window_size ', self.window_size)
             self.state = 'slow_start'
-            print(self.state)
+            #print(self.state)
             self.next_cut_time = globals.systime + self.rto
-            # maybe we should update time out marker here???????????????
+
+            if (self.window_start in self.send_times.keys()):
+                del self.send_times[self.window_start]
+            self.rto = 2 * self.rto
 
 
+        # maybe we should update time out marker here???????????????
         # send everything in the window that has not been sent
-        for i in range(self.window_start, round(self.window_start + self.window_size)):
-
-            # if it has not been sent
+        for i in range(self.window_start, min(round(self.window_start + self.window_size), self.amount - 1)):
             if i not in self.send_times.keys():
-
+                print("sending ", i, " with window start ", self.window_start," and window size ", self.window_size)
                 # update duplicate counter
                 if i not in self.dup_count.keys():
                     self.dup_count[i] = 1
@@ -208,11 +219,10 @@ class Flow:
                 self.send_times[i] = globals.systime
 
                 # # send the packet
-                # print("sending packet ", i, self.send_times[i])
-                if i == 403:
-                    print("flow sending 403")
                 self.source.send_packet(self.packets[i])
 
+            if (i == self.amount - 1):
+                self.done = True
 
     def update_flow_statistics(self):
         if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
