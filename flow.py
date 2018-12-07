@@ -52,7 +52,7 @@ class Flow:
         # packet number that the window needs to start at, default first packet
         self.next_packet = -1;
         # current size of the window used for the congestion controller
-        self.window_size = 60
+        self.window_size = 1
         self.window_start = 0
         # round trip time used for congestion control, starts at arbitrary
         #   value and then is calculated
@@ -69,6 +69,7 @@ class Flow:
             self.destination = globals.idmapping['routers'][destination]
         # converts the amount of data from Megabytes to bits
         self.amount = amount * 8 * globals.MEGABITSTOBITS
+        print(self.amount)
         # time at which the flow simulation starts, in s
         self.start = start
         self.started = False
@@ -92,7 +93,7 @@ class Flow:
         # flag to demonstrate if the
         self.done = False
 
-        self.ssthresh = 50
+        self.ssthresh = 500
         self.timeout = 1000
         # packets that have been sent but not acknowledged yet
         self.send_times = dict()
@@ -113,6 +114,7 @@ class Flow:
         self.rttwindow = 20000 * globals.dt
         self.rttsteps = []
         self.added = False
+        self.successfullytransmitted = {}
 
         # If this flow is being tracked, we set up the dictionaries for all of
         # the metrics to be tracked.
@@ -157,8 +159,8 @@ class Flow:
             if (self.next_packet >= len(self.packets)):
                 self.done = True
 
-            ##################################################################
-            #CONGESTION CONTROL
+            # -----------------------------------------------------------------
+            # CONGESTION CONTROL
             # -----------------------------------------------------------------
 
             # check for unacknowledged packets that have timed out
@@ -178,9 +180,10 @@ class Flow:
                 print(self.timedout_packets)
                 self.retransmit = True
                 # Half the window size
-                print(self.window_size)
-                self.window_size = self.window_size / 2
-                print(self.window_size)
+
+                self.ssthresh = self.window_size / 2
+                self.window_size = 1
+                self.state = "slow_start"
             else:
                 self.retransmit = False
 
@@ -196,6 +199,7 @@ class Flow:
                 # switch to congestion avoidance phase
                 if (self.window_size >= self.ssthresh):
                     self.state = "congestion_avoidance"
+                    print("entering congestion avoidance")
 
             elif (self.state == "congestion_avoidance"):
                 # Check if this is a duplicate acknowledgement
@@ -204,11 +208,11 @@ class Flow:
                     # After 3 duplicate acknowledgements, if the packet has not
                     # already been received, halve the congestion window size and
                     # move into fast recovery phase
-                    if (self.duplicate_count == 3) and ((p.data) in \
-                        [key[0] for key in self.send_times.keys()]):
+                    if (self.duplicate_count == 3) and ((p.data) in self.send_times.keys()):
                         self.window_size = self.window_size / 2
                         self.ssthresh = self.window_size
                         self.state = "fast_recovery"
+                        print("switched to fast recovery")
 
                 # if this is not a duplicate acknowledgement
                 else:
@@ -227,6 +231,7 @@ class Flow:
                     if p.packetid == self.FR_packet:
                         self.window_size = self.ssthresh
                         self.state = "congestion_avoidance"
+                        print("switch to congestion avoidance")
                     # reset duplicate count since the chain of dupACKS is broken
                     self.duplicate_count = 0
             self.last_ack_received = p.packetid + 1
@@ -236,21 +241,22 @@ class Flow:
 
             # Time to do some metric tracking
             if (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
-                self.added = True
-                rate = 0
-                assert globals.systime >= self.start
-                if (len(self.frsteps) < self.frwindow/globals.dt):
-                    self.frsteps.append(1)
-                    if (globals.systime != self.start ):
-                        rate = sum(self.frsteps)/(globals.systime - self.start)
-                else:
-                    self.frsteps.pop(0)
-                    self.frsteps.append(globals.PACKETSIZE)
-                    rate = sum(self.frsteps)/(self.frwindow)
+                if p.packetid not in self.successfullytransmitted.keys():
+                    self.successfullytransmitted[p.packetid] = 1
+                    self.added = True
+                    rate = 0
+                    assert globals.systime >= self.start
+                    if (len(self.frsteps) < self.frwindow/globals.dt):
+                        self.frsteps.append(globals.PACKETSIZE)
+                        if (globals.systime != self.start ):
+                            rate = sum(self.frsteps)/(globals.systime - self.start)
+                    else:
+                        self.frsteps.pop(0)
+                        rate = sum(self.frsteps)/(self.frwindow)
 
-                key = self.id + ":" + globals.FLOWRATE
-                #print("STORING FLOW RATE")
-                globals.statistics[key][globals.systime] = rate
+                    key = self.id + ":" + globals.FLOWRATE
+                    #print("STORING FLOW RATE")
+                    globals.statistics[key][globals.systime] = rate
 
 
     # sliding window packet sending
@@ -280,7 +286,6 @@ class Flow:
             # we have received the sync packet and are ready to begin
                 if (self.state == "slow_start" or self.state == "congestion_avoidance"):
                    # if we have packets that have timed out that we need to retransmit
-                   print(self.state)
                    if self.retransmit == True:
                        # Retransmit timed out packets
                        # if it will all fit into one window
@@ -318,15 +323,22 @@ class Flow:
                     # also, if the "new first packet" also has an ACK, repeat the process
                     # until this is not true
                     if self.next_packet > self.window_start:
-                        while self.next_packet > self.window_start:
-                            # the first packet of the window has been sent, move the window
-                            # over and send the new packet in the window
-                            self.window_start += 1
 
-                            # if there is a packet after the window, add it to the window and
-                            # send the packet
-                            if (self.window_start + self.window_size < len(self.packets)):
-                                i = round(self.window_start + self.window_size)
+
+                        # move the window over, since the first packets have
+                        # been acked
+                        self.window_start = self.next_packet
+
+                        # send all packets that havent been sent in the window
+                        # yet (it has to be packets that have never been sent
+                        # before)
+                        for i in range(self.window_start, round(self.window_start + self.window_size)):
+
+                            # if the packet never been sent
+                            if i not in self.send_times.keys() and \
+                                i not in self.timedout_packets:
+
+                                # send the packet
                                 new_packet = self.packets[i]
                                 self.send_times[i] = globals.systime
 
@@ -335,12 +347,44 @@ class Flow:
                                 else:
                                     self.dup_count[i] = self.dup_count[i] + 1
 
+                                print("sending packet: ", round(self.window_start + self.window_size))
                                 self.source.send_packet(new_packet)
-                                self.packet_timeout_times[i] \
-                                    = globals.systime + self.timeout_time
 
 
-                        assert(self.window_start == self.next_packet)
+
+
+
+                        # while self.next_packet > self.window_start:
+                        #     # the first packet of the window has been sent, move the window
+                        #     # over and send the new packet in the window
+                        #     self.window_start += 1
+
+
+
+
+                        #     # if there is a packet after the window, add it to the window and
+                        #     # send the packet
+                        #     if (self.window_start + self.window_size < len(self.packets)):
+                        #         i = round(self.window_start + self.window_size)
+                        #         new_packet = self.packets[i]
+                        #         self.send_times[i] = globals.systime
+
+                        #         if i not in self.dup_count.keys():
+                        #             self.dup_count[i] = 1
+                        #         else:
+                        #             self.dup_count[i] = self.dup_count[i] + 1
+
+                        #         print("sending packet: ", round(self.window_start + self.window_size))
+                        #         self.source.send_packet(new_packet)
+                        #         self.packet_timeout_times[i] \
+                        #             = globals.systime + self.timeout_time
+
+
+                        # assert(self.window_start == self.next_packet)
+                        # print("self.state     :       ", self.state)
+                        # print("window set to: ", self.window_start, "  :  ", \
+                        #         self.window_start + self.window_size)
+
 
                     # if the first packet timed out, send it again
                     elif self.window_start in self.packet_timeout_times.keys() and \

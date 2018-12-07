@@ -107,15 +107,15 @@ class Router:
             in_array = False
             for value in self.link_state_array:
                 if (item[0], item[1]) == (value[0], value[1]):
-                    if(self.id == 'R1' and item[0] == 'R2' and item[1] == 'R4'):
-                        print ("item:", item[3])
+                    # if(self.id == 'R1' and item[0] == 'R2' and item[1] == 'R4'):
+                    #     print ("item:", item[3])
 
-                        print ("value", value[3])
+                    #     print ("value", value[3])
 
                     in_array = True     
                     if(value[3] != item[3]):
                         value[3] = item[3]
-                        print ("went in this")
+                        # print ("went in this")
                         is_updated = True
 
             if in_array == False:
@@ -137,8 +137,8 @@ class Router:
 
     def run_dijkstra(self):
 
-        if(self.id == "R1"):
-            print ("R1 state array Before: ", self.link_state_array)
+        # if(self.id == "R1"):
+        #     print ("R1 state array Before: ", self.link_state_array)
 
         unvisited_nodes = []
         nodes = {}
@@ -192,8 +192,8 @@ class Router:
         self.routing_table = rt
 
 
-        if(self.id == "R1"):
-            print ("R1 routing table: ", self.routing_table)
+        # if(self.id == "R1"):
+        #     print ("R1 routing table: ", self.routing_table)
 
 
 
