@@ -131,22 +131,19 @@ class Simulator:
         # run the simulation
         for i in range(200000):
 
+            # send link stuff
             for link in globals.idmapping['links'].values():
                 link.update_link_statistics()
                 link.send_packet()
 
+            # send link states if it's 5 seconds
             if (i+1) % 50000 == 0:
                 print("systime : ", globals.systime)
-
 
                 for router in globals.idmapping['routers'].values():
                     router.recalc_link_state()
 
-
-            if (i + 1) % 50000 == 25000:
-                for router in globals.idmapping['routers'].values():
-                    print (router.id, "'s Routing table is: ", router.routing_table);
-
+            # send out the flow packets
             for flow in globals.idmapping['flows'].values():
                 flow.send_packetsV2()
                 flow.update_flow_statistics()

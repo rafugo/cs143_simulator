@@ -54,9 +54,9 @@ class Router:
                     oldval = self.routing_table[key][1]
                     self.routing_table[key] = [linkid, oldval - difference]
 
-            if(linkid == 'L1' and self.id == 'R1'):
-                print(link_cost);
-                print(old_cost);
+            # if(linkid == 'L1' and self.id == 'R1'):
+            #     print(link_cost);
+            #     print(old_cost);
             # our handshake was acknowledged
             self.handshakes_acked += 1
 

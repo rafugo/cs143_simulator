@@ -52,7 +52,7 @@ class Flow:
         # packet number that the window needs to start at, default first packet
         self.next_packet = -1;
         # current size of the window used for the congestion controller
-        self.window_size = 60
+        self.window_size = 1
         self.window_start = 0
         # round trip time used for congestion control, starts at arbitrary
         #   value and then is calculated
@@ -69,6 +69,7 @@ class Flow:
             self.destination = globals.idmapping['routers'][destination]
         # converts the amount of data from Megabytes to bits
         self.amount = amount * 8 * globals.MEGABITSTOBITS
+        print(self.amount)
         # time at which the flow simulation starts, in s
         self.start = start
         self.started = False
@@ -92,7 +93,7 @@ class Flow:
         # flag to demonstrate if the
         self.done = False
 
-        self.ssthresh = 50
+        self.ssthresh = 64
         self.timeout = 1000
         # packets that have been sent but not acknowledged yet
         self.send_times = dict()
@@ -157,8 +158,8 @@ class Flow:
             if (self.next_packet >= len(self.packets)):
                 self.done = True
 
-            ##################################################################
-            #CONGESTION CONTROL
+            # -----------------------------------------------------------------
+            # CONGESTION CONTROL
             # -----------------------------------------------------------------
 
             # check for unacknowledged packets that have timed out
@@ -317,15 +318,22 @@ class Flow:
                     # also, if the "new first packet" also has an ACK, repeat the process
                     # until this is not true
                     if self.next_packet > self.window_start:
-                        while self.next_packet > self.window_start:
-                            # the first packet of the window has been sent, move the window
-                            # over and send the new packet in the window
-                            self.window_start += 1
 
-                            # if there is a packet after the window, add it to the window and
-                            # send the packet
-                            if (self.window_start + self.window_size < len(self.packets)):
-                                i = round(self.window_start + self.window_size)
+
+                        # move the window over, since the first packets have 
+                        # been acked
+                        self.window_start = self.next_packet
+
+                        # send all packets that havent been sent in the window
+                        # yet (it has to be packets that have never been sent
+                        # before)
+                        for i in range(self.window_start, round(self.window_start + self.window_size)):
+                            
+                            # if the packet never been sent
+                            if i not in self.send_times.keys() and \
+                                i not in self.timedout_packets:
+
+                                # send the packet
                                 new_packet = self.packets[i]
                                 self.send_times[i] = globals.systime
 
@@ -334,12 +342,44 @@ class Flow:
                                 else:
                                     self.dup_count[i] = self.dup_count[i] + 1
 
+                                print("sending packet: ", round(self.window_start + self.window_size))
                                 self.source.send_packet(new_packet)
-                                self.packet_timeout_times[i] \
-                                    = globals.systime + self.timeout_time
 
 
-                        assert(self.window_start == self.next_packet)
+
+
+
+                        # while self.next_packet > self.window_start:
+                        #     # the first packet of the window has been sent, move the window
+                        #     # over and send the new packet in the window
+                        #     self.window_start += 1
+
+
+
+
+                        #     # if there is a packet after the window, add it to the window and
+                        #     # send the packet
+                        #     if (self.window_start + self.window_size < len(self.packets)):
+                        #         i = round(self.window_start + self.window_size)
+                        #         new_packet = self.packets[i]
+                        #         self.send_times[i] = globals.systime
+
+                        #         if i not in self.dup_count.keys():
+                        #             self.dup_count[i] = 1
+                        #         else:
+                        #             self.dup_count[i] = self.dup_count[i] + 1
+
+                        #         print("sending packet: ", round(self.window_start + self.window_size))
+                        #         self.source.send_packet(new_packet)
+                        #         self.packet_timeout_times[i] \
+                        #             = globals.systime + self.timeout_time
+
+
+                        # assert(self.window_start == self.next_packet)
+                        # print("self.state     :       ", self.state)
+                        # print("window set to: ", self.window_start, "  :  ", \
+                        #         self.window_start + self.window_size)
+
 
                     # if the first packet timed out, send it again
                     elif self.window_start in self.packet_timeout_times.keys() and \
