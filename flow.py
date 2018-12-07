@@ -283,7 +283,7 @@ class Flow:
                    if self.retransmit == True:
                        # Retransmit timed out packets
                        # if it will all fit into one window
-                       while (len(self.send_times < self.window_size) and (len(self.timedout_packets) > 0):
+                       while (len(self.send_times) < self.window_size) and (len(self.timedout_packets) > 0):
                            # get the first timed out packet
                            packet_id = self.timedout_packets[0]
                            # set time on the not acknowledgement packet for when it is sent
