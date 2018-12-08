@@ -6,8 +6,9 @@ from packet import Packet
 # from router import Router
 from routerv2 import Router
 # from flow import Flow
-#from flow2 import Flow
-from flow3 import Flow
+# from flow2 import Flow
+# from flow3 import Flow
+from flowrafa import Flow
 import json
 from pprint import pprint
 
@@ -131,7 +132,7 @@ class Simulator:
             router.send_handshake()
 
         # run the simulation
-        for i in range(50000): #was 200000
+        for i in range(150000): #was 200000
 
             # send link stuff
             for link in globals.idmapping['links'].values():
@@ -147,13 +148,13 @@ class Simulator:
 
             # send out the flow packets
             for flow in globals.idmapping['flows'].values():
-                flow.send_packets()
+                flow.run()
                 flow.update_flow_statistics()
 
             globals.systime += globals.dt
 
-        for router in globals.idmapping['routers'].values():
-            pass
+        for flow in globals.idmapping['flows'].values():
+            print(flow.states_tracker)               
 
     def test_dijkstra(self):
         router = Router('R1', [])
