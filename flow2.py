@@ -74,8 +74,8 @@ class Flow:
                 globals.statistics[id+":"+m] = {}
 
     def process_ack(self, p):
-        print("received ack with data ", p.data)
-        print("recieved ack for ", p.packetid)
+        #print("received ack with data ", p.data)
+        #print("recieved ack for ", p.packetid)
         # print(p.packetid)
 
         # check to see if this is a packet that has been sent multiple times
@@ -88,7 +88,7 @@ class Flow:
         if (p.packetid == 0):
             # set the rtt
             # get send time from the packet data to calculate intial RTT
-            print(self.send_times)
+            #print(self.send_times)
             self.rtt = globals.systime - self.send_times[p.packetid]
             self.window_start += 1
             del self.send_times[p.packetid]
@@ -110,10 +110,10 @@ class Flow:
 
         # otherwise we have a normal acknowledgment
         # if we have a duplicate packet
-        print(p.data)
-        print(self.duplicate_packet)
-        print("-------------------------------------------------------------")
-        print("window size", self.window_size)
+        #print(p.data)
+        #print(self.duplicate_packet)
+        #print("-------------------------------------------------------------")
+        #print("window size", self.window_size)
         if (p.data == self.duplicate_packet):
             print(self.duplicate_count)
             self.duplicate_count = self.duplicate_count + 1
@@ -121,12 +121,12 @@ class Flow:
                 self.next_cut_time and p.data in self.send_times.keys()):
                 # retransmit the packet
                 # fast recovery
-                print("fast recovery")
-                print("sending packet ", self.duplicate_packet, " at ", globals.systime)
+                #print("fast recovery")
+                #print("sending packet ", self.duplicate_packet, " at ", globals.systime)
                 self.source.send_packet(self.packets[self.duplicate_packet])
                 self.ssthresh = self.window_size / 2
                 self.window_size = self.ssthresh + 3
-                print('window_size ', self.window_size)
+                #print('window_size ', self.window_size)
                 self.state = "congestion_avoidance"
                 print(self.state)
 
@@ -143,12 +143,12 @@ class Flow:
             self.duplicate_count = 0
             self.duplicate_packet = p.data
             self.window_start = p.data
-            print("current window start ", self.window_start)
+            #print("current window start ", self.window_start)
 
             # if we are in slow_start
             if (self.state == "slow_start"):
                 self.window_size+=1
-                print('window_size ', self.window_size)
+                #print('window_size ', self.window_size)
                 if (self.window_size >= self.ssthresh):
                     self.state = "congestion_avoidance"
                     print(self.state)
@@ -156,7 +156,7 @@ class Flow:
 
                 # if we are in congestion_avoidance
                 self.window_size += 1/self.window_size
-                print('window_size ', self.window_size)
+                #print('window_size ', self.window_size)
 
 
             # Time to do some metric tracking
@@ -188,8 +188,8 @@ class Flow:
         # if we have timed out (not recently)
         if globals.systime >= self.timeout_marker and \
             globals.systime >= self.next_cut_time:
-            print("timeout_marker ", self.timeout_marker)
-            print("next cut time", self.next_cut_time)
+            #print("timeout_marker ", self.timeout_marker)
+            #print("next cut time", self.next_cut_time)
             # enter slow_start
             self.ssthresh = self.window_size / 2
             self.window_size = 1
@@ -208,7 +208,7 @@ class Flow:
         # send everything in the window that has not been sent
         for i in range(self.window_start, min(round(self.window_start + self.window_size), self.amount - 1)):
             if i not in self.send_times.keys():
-                print("sending ", i, " with window start ", self.window_start," and window size ", self.window_size)
+                #print("sending ", i, " with window start ", self.window_start," and window size ", self.window_size)
                 # update duplicate counter
                 if i not in self.dup_count.keys():
                     self.dup_count[i] = 1
