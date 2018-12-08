@@ -6,7 +6,8 @@ from packet import Packet
 # from router import Router
 from routerv2 import Router
 # from flow import Flow
-from flow2 import Flow
+#from flow2 import Flow
+from flow3 import Flow
 import json
 from pprint import pprint
 
@@ -130,7 +131,7 @@ class Simulator:
             router.send_handshake()
 
         # run the simulation
-        for i in range(200000): #was 200000
+        for i in range(50000): #was 200000
 
             # send link stuff
             for link in globals.idmapping['links'].values():
