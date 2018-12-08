@@ -28,7 +28,7 @@ class Flow:
             self.destination = globals.idmapping['routers'][destination]
 
         # converts the amount of data from Megabytes to bits
-        self.amount = round(((amount * 100 *  globals.MEGABITSTOBITS) / globals.PACKETSIZE)) + 1
+        self.amount = round((amount * globals.MEGABITSTOBITS) / (globals.PACKETSIZE - (20 * 8))) + 1
 
         # time at which the flow simulation starts, in s
         self.start = start
@@ -116,11 +116,7 @@ class Flow:
             self.rto = 2 * self.rtt
         
         # this is a new ACK, update rto
-        # print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-        # print("timeout_marker before: ", self.timeout_marker)
         self.timeout_marker = globals.systime + self.rto
-        # print("timeout_marker after: ", self.timeout_marker)
-        # print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 
 
         # if it's the synack, start metrics
@@ -130,7 +126,6 @@ class Flow:
 
         # if we hit the threshold, enter congestion avoidance
         if self.window_size >= self.ssthresh and self.state == 'slow_start':
-            print("------------------------------------entering congestion_avoidance")
             self.state = 'congestion_avoidance'
             self.states_tracker.append((self.state, globals.systime))
 
@@ -154,7 +149,6 @@ class Flow:
     def handle_dup_ack(self, p):
 
         self.duplicate_count += 1
-        print("duplicate_count ", self.duplicate_count)
 
         if self.state != 'fast_recovery' and self.duplicate_count == 3:
             self.ssthresh = self.window_size / 2
@@ -164,17 +158,10 @@ class Flow:
 
             self.window_size = self.ssthresh + 3
             self.state = 'fast_recovery'
-            print("------------------------------------entering fast_recovery")
-            print("------------------------------------entering fast_recovery")
-            print("------------------------------------entering fast_recovery")
-            print("------------------------------------entering fast_recovery")
-            print("------------------------------------entering fast_recovery")
-            print("------------------------------------entering fast_recovery")
             self.states_tracker.append((self.state, globals.systime))
 
 
         elif self.state == 'fast_recovery':
-            print("----------------------------------------------here")
             self.window_start += 1
 
             # send any packets we can send
@@ -188,12 +175,11 @@ class Flow:
             globals.systime >= self.next_cut_time:
             # enter slow_start
             self.ssthresh = self.window_size / 2
-            print(self.ssthresh)
+
             self.window_size = 1
 
             self.state = 'slow_start'
             self.next_cut_time = globals.systime + self.rto
-            print("------------------------------------entering slow_start")
             self.states_tracker.append((self.state, globals.systime))
 
             '''
