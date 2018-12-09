@@ -1,0 +1,171 @@
+{
+    "hosts": [
+        {
+            "id": "H0",
+            "linkid" : "L4"
+        },
+        {
+            "id": "H1",
+            "linkid" : "L7"
+        },
+        {
+            "id": "H2",
+            "linkid" : "L0"
+        },
+        {
+            "id": "H3",
+            "linkid" : "L5"
+        },
+        {
+            "id": "H4",
+            "linkid" : "L6"
+        },
+        {
+            "id": "H5",
+            "linkid" : "L8"
+        }
+    ],
+    "links": [
+        {
+            "id": "L0",
+            "connection1" : "H2",
+            "connection2" : "R1",
+            "rate" : 12.5,
+            "delay" : 10,
+            "buffersize" : 128,
+            "track1" : 0,
+            "track2" : 0
+        },
+        {
+            "id": "L1",
+            "connection1" : "R1",
+            "connection2" : "R2",
+            "rate" : 10.0,
+            "delay" : 10,
+            "buffersize" : 128,
+            "track1" : 1,
+            "track2" : 0
+        },
+        {
+            "id": "L2",
+            "connection1" : "R2",
+            "connection2" : "R3",
+            "rate" : 10.0,
+            "delay" : 10,
+            "buffersize" : 128,
+            "track1" : 1,
+            "track2" : 0
+        },
+        {
+            "id": "L3",
+            "connection1" : "R3",
+            "connection2" : "R4",
+            "rate" : 10.0,
+            "delay" : 10,
+            "buffersize" : 128,
+            "track1" : 0,
+            "track2" : 1
+        },
+        {
+            "id": "L4",
+            "connection1" : "H0",
+            "connection2" : "R1",
+            "rate" : 12.5,
+            "delay" : 10,
+            "buffersize" : 128,
+            "track1" : 0,
+            "track2" : 0
+        },
+        {
+            "id": "L5",
+            "connection1" : "H3",
+            "connection2" : "R2",
+            "rate" : 12.5,
+            "delay" : 10,
+            "buffersize" : 128,
+            "track1" : 0,
+            "track2" : 0
+        },
+        {
+            "id": "L6",
+            "connection1" : "H4",
+            "connection2" : "R3",
+            "rate" : 12.5,
+            "delay" : 10,
+            "buffersize" : 128,
+            "track1" : 0,
+            "track2" : 0
+        },
+        {
+            "id": "L7",
+            "connection1" : "H1",
+            "connection2" : "R4",
+            "rate" : 12.5,
+            "delay" : 10,
+            "buffersize" : 128,
+            "track1" : 0,
+            "track2" : 0
+        },
+        {
+            "id": "L8",
+            "connection1" : "R4",
+            "connection2" : "H5",
+            "rate" : 12.5,
+            "delay" : 10,
+            "buffersize" : 64,
+            "track1" : 0,
+            "track2" : 0
+        }
+    ],
+    "routers": [
+        {
+            "id": "R1",
+            "links": ["L0", "L1", "L4"]
+
+        },
+        {
+            "id": "R2",
+            "links": ["L1", "L2", "L5"]
+
+        },
+        {
+            "id": "R3",
+            "links": ["L2", "L3", "L6"]
+
+        },
+        {
+            "id": "R4",
+            "links": ["L3", "L7", "L8"]
+
+        }
+    ],
+    "flows": [
+      {
+          "id": "F1",
+          "source": "H0",
+          "destination": "H1",
+          "amount": 35,
+          "start": 0.5,
+          "congestion_control": "nope",
+          "track" : 1
+      },
+      {
+          "id": "F2",
+          "source": "H2",
+          "destination": "H3",
+          "amount": 15,
+          "start": 10,
+          "congestion_control": "nope",
+          "track" : 1
+      },
+      {
+          "id": "F3",
+          "source": "H4",
+          "destination": "H5",
+          "amount": 30,
+          "start": 20,
+          "congestion_control": "nope",
+          "track" : 1
+      }
+    ]
+}

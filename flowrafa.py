@@ -28,7 +28,7 @@ class Flow:
             self.destination = globals.idmapping['routers'][destination]
 
         # converts the amount of data from Megabytes to bits
-        self.amount = round((amount * globals.MEGABITSTOBITS) / (globals.PACKETSIZE - (20 * 8))) + 1
+        self.amount = round((amount * 8 * globals.MEGABITSTOBITS) / (globals.PACKETSIZE - (20 * 8))) + 1
 
         # time at which the flow simulation starts, in s
         self.start = start
