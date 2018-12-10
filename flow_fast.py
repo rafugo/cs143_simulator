@@ -5,7 +5,7 @@ from link import Link
 from packet import Packet
 from router import Router
 
-class Flow:
+class Flow_FAST:
     def __init__(self, id, source, destination, amount,\
                     start, congestion_control, track=True):
         # current size of the window used for the congestion controller
@@ -68,6 +68,28 @@ class Flow:
         self.added = False
         self.successfullytransmitted = {}
 
+        ### DECLARATIONS FOR FAST FLOW
+        self.alpha = 15     # has to be positive
+        self.gamma = 0.5    # has to be between (0, 1]
+
+        # variables for window updates
+        self.window_upd_interval_size = 0.020       # in seconds
+        self.window_upd_interval = 0
+
+        # variables for RTT window updates (for the every other rtt stuff)
+        self.rtt_interval = 1       # either 1 or 2 (2 is the frozen interval)
+        self.rtt_interval_time = 0  # works similar to the window_upd_interval
+        self.rtt_interval_size = 0
+        self.window_increment = 0
+
+        # variables for windows
+        self.next_window = 0
+        self.goal_window = 0
+
+        # min rtt
+        self.min_rtt = float('inf')
+
+
         # If this flow is being tracked, we set up the dictionaries for all of
         # the metrics to be tracked.
         if (track):
@@ -85,36 +107,89 @@ class Flow:
             self.state == "fast_recovery":
             return
 
-        # send any available packets otherwise
+        if self.state == 'congestion_avoidance':
+
+            # if we finished the current rtt window
+            if self.rtt_interval_time >= self.rtt_interval_size:
+
+                # we are in a new interval
+                if self.rtt_interval == 1:
+                    # set the rtt interval to be the second rtt interval
+                    # set the rtt to be the last seen rtt
+                    # also, check the goal window has been reached
+
+                    self.rtt_interval = 2
+
+                    self.rtt_interval_time = 0
+                    self.rtt_interval_size = self.rtt
+
+                    # if we didnt reach the goal window exactly, make sure we 
+                    # reach it (this should def not be a big jump...)
+                    if self.goal_window != self.window_size:
+                        self.window_size = self.goal_window
+                else:
+                    # calculate new window increment,
+                    # set rtt interval to be the first rtt interval
+                    # and the rtt to be the last seen rtt
+                    # also, set the goal window to be the value of the next window
+
+                    self.rtt_interval = 1
+
+                    # new window increment
+                    self.window_increment = \
+                        (self.next_window - self.window_size) / (self.rtt * globals.dt)
+
+                    self.goal_window = self.next_window
+                    self.rtt_interval_time = 0
+                    self.rtt_interval_size = self.rtt
+
+
+            else:
+                # we are inside an rtt interval
+                rtt_interval_time += globals.dt
+
+                if self.rtt_interval == 1:
+                    # if it's not the frozen interval
+                    self.window_size += self.window_increment
+
+            
+
+        # send any available packets
         self.send_packets()
 
     def process_ack(self, p):
+
+        # if we done, we done
         if p.data >= self.amount:
             self.done = True
-
-        if self.done:
             return
 
-        # handle duplicate packets
-        if p.data == self.duplicate_packet:
+        # duplicate packet handling
+        if self.duplicate_packet == p.data:
+            # still want it to count for our CA alg
+            if self.duplicate_count<2 and self.state == 'congestion_avoidance':
+                self.process_ack_ca(p)
+
             self.handle_dup_ack(p)
             return
 
-        # if we're in fast_recovery with a new packet, enter congestion_avoidance
-        if self.state == 'fast_recovery':
-            self.state = 'congestion_avoidance'
-            self.states_tracker.append((self.state, globals.systime))
-
-        self.duplicate_count = 0
+        # not a duplicate, move the window up
         self.duplicate_packet = p.data
+        self.duplicate_count = 0
         self.window_start = p.data
+
 
         # if this is first successful transmission of packet, set new rtt & rto
         if self.dup_count[p.packetid] == 1:
             self.rtt = globals.systime - self.send_times[p.packetid]
             self.rto = 2 * self.rtt
-        
-        # this is a new ACK, update rto
+            self.rtt_interval_size = self.rtt
+
+            # update min_rtt
+            if self.rtt < self.min_rtt:
+                self.min_rtt = self.rtt
+
+        # this is a new ACK, update timeout_marker
         self.timeout_marker = globals.systime + self.rto
 
         # if it's the synack, start metrics
@@ -122,40 +197,62 @@ class Flow:
             self.start_metrics()
             return
 
-        # if we hit the threshold, enter congestion avoidance
-        if self.window_size >= self.ssthresh and self.state == 'slow_start':
+        # if we're in fast_recovery with a new packet, enter congestion_avoidance
+        if self.state == 'fast_recovery':
             self.state = 'congestion_avoidance'
             self.states_tracker.append((self.state, globals.systime))
 
-        # slow start
-        if self.state == 'slow_start':
-            self.window_size += 1
-            self.window_start = p.data
+        # handling by state
+        if self.state == 'congestion_avoidance':
+            self.process_ack_ca(p)
 
+        elif self.state == 'slow_start':
+            self.process_ack_ss(p)
 
-        # congestion avoidance
-        elif self.state == 'congestion_avoidance':
-            self.window_size += 1 / self.window_size
-            self.window_start = p.data
-        
 
         # Time to do some metric tracking
         self.track_metrics(p)
         return
         
 
+    def process_ack_ss(self, p):
+        '''
+        currently how reno does it
+        '''
+        self.window_size += 1
+
+        # if we hit the threshhold, go into CA
+        if self.window_size >= self.ssthresh:
+            self.state = 'congestion_avoidance'
+            self.states_tracker.append((self.state, globals.systime))
+
+
+    def process_ack_ca(self, p):
+
+        # if past the 20 ms, then calculate the next window
+        if self.window_upd_interval >= self.window_upd_interval_size:
+
+            # use the equation
+            self.next_window = min(2 * self.window_size, \
+                (1 - self.gamma) * self.window_size + \
+                self.gamma * ((self.min_rtt / self.rtt) * self.window_size + self.alpha))
+
+
     def handle_dup_ack(self, p):
 
         self.duplicate_count += 1
 
         if self.state != 'fast_recovery' and self.duplicate_count == 3:
-            self.ssthresh = self.window_size / 2
+            
+            self.state = 'fast_recovery'
 
             # retransmit
             self.source.send_packet(self.packets[p.data])
 
+            # window modifications
+            self.ssthresh = self.window_size / 2
             self.window_size = self.ssthresh + 3
-            self.state = 'fast_recovery'
+            
             self.states_tracker.append((self.state, globals.systime))
 
 
