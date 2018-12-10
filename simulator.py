@@ -3,18 +3,10 @@ import globals
 from host import Host
 from link import Link
 from packet import Packet
-<<<<<<< HEAD
-# from router import Router
-from routerv2 import Router
-# from flow import Flow
-# from flow2 import Flow
-# from flow3 import Flow
-from flowrafa import Flow
 from flow_fast import Flow_FAST
-=======
 from router import Router
 from flow_reno import Flow
->>>>>>> cde5b288e2c32ed0070ca8bdbbffc64e6bb21b2e
+
 import json
 from pprint import pprint
 
@@ -73,7 +65,7 @@ class Simulator:
         for f in network_objects['flows']:
             # Clear the variable
             flow = None
-<<<<<<< HEAD
+
             # add to idmapping
             if f['congestion_control'] == 'reno':
                 flow = Flow(f['id'], f['source'], f['destination'], f['amount'], \
@@ -82,12 +74,7 @@ class Simulator:
                 flow = Flow_FAST(f['id'], f['source'], f['destination'], f['amount'], \
                     f['start'], f['congestion_control'], f['track'] == 1)
 
-=======
 
-            # Add to idmapping
-            flow = Flow(f['id'], f['source'], f['destination'], f['amount'], \
-                f['start'], f['congestion_control'], f['track'] == 1)
->>>>>>> cde5b288e2c32ed0070ca8bdbbffc64e6bb21b2e
             globals.idmapping['flows'][f['id']] = flow
 
     # Plots metrics based on data collected while the simulations was running
