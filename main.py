@@ -3,7 +3,7 @@
 import sys 
 import globals 
 import time
-# supressing warnings about time clock being deprecated for high versions of Python
+# Supressing warnings about time clock being deprecated for higher versions of Python3
 import warnings
 warnings.filterwarnings("ignore")
 from simulator import Simulator
