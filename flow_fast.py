@@ -107,17 +107,26 @@ class Flow_FAST:
             self.state == "fast_recovery":
             return
 
+        self.window_upd_interval += globals.dt
+
+        if self.ssthresh == 0:
+            print(globals.systime)
+            sys.exit()
+
+        if self.window_size <= 0:
+            print(self.ssthresh)
+            print(globals.systime)
+            sys.exit()
+
         if self.state == 'congestion_avoidance':
 
             # if we finished the current rtt window
             if self.rtt_interval_time >= self.rtt_interval_size:
-
                 # we are in a new interval
                 if self.rtt_interval == 1:
                     # set the rtt interval to be the second rtt interval
                     # set the rtt to be the last seen rtt
                     # also, check the goal window has been reached
-
                     self.rtt_interval = 2
 
                     self.rtt_interval_time = 0
@@ -132,12 +141,11 @@ class Flow_FAST:
                     # set rtt interval to be the first rtt interval
                     # and the rtt to be the last seen rtt
                     # also, set the goal window to be the value of the next window
-
                     self.rtt_interval = 1
 
                     # new window increment
                     self.window_increment = \
-                        (self.next_window - self.window_size) / (self.rtt * globals.dt)
+                        (self.next_window - self.window_size) / (self.rtt / globals.dt)
 
                     self.goal_window = self.next_window
                     self.rtt_interval_time = 0
@@ -158,8 +166,6 @@ class Flow_FAST:
         self.send_packets()
 
     def process_ack(self, p):
-
-        print("received ACK ", p.data)
 
         # if we done, we done
         if p.data >= self.amount:
@@ -202,6 +208,13 @@ class Flow_FAST:
         # if we're in fast_recovery with a new packet, enter congestion_avoidance
         if self.state == 'fast_recovery':
             self.state = 'congestion_avoidance'
+
+            self.rtt_interval = 2
+            self.rtt_interval_size = self.rtt
+            self.rtt_interval_time = 0
+
+            self.goal_window = self.next_window
+
             self.states_tracker.append((self.state, globals.systime))
 
         # handling by state
@@ -226,6 +239,13 @@ class Flow_FAST:
         # if we hit the threshhold, go into CA
         if self.window_size >= self.ssthresh:
             self.state = 'congestion_avoidance'
+
+            self.rtt_interval = 2
+            self.rtt_interval_size = self.rtt
+            self.rtt_interval_time = 0
+
+            self.goal_window = self.next_window
+
             self.states_tracker.append((self.state, globals.systime))
 
 
@@ -239,6 +259,7 @@ class Flow_FAST:
                 (1 - self.gamma) * self.window_size + \
                 self.gamma * ((self.min_rtt / self.rtt) * self.window_size + self.alpha))
 
+            self.window_upd_interval = 0
 
     def handle_dup_ack(self, p):
 
@@ -270,10 +291,16 @@ class Flow_FAST:
         # if we have timed out (not recently)
         if globals.systime >= self.timeout_marker and \
             globals.systime >= self.next_cut_time:
+            print("entering slow_start")
+
             # enter slow_start
+            print("self.window_size  ", self.window_size)
             self.ssthresh = self.window_size / 2
 
             self.window_size = 1
+
+            print("setting ssthresh: ", self.ssthresh)
+            print("setting window_size: ", self.window_size)
 
             self.state = 'slow_start'
             self.next_cut_time = globals.systime + self.rto
