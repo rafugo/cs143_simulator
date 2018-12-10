@@ -8,60 +8,72 @@ from flow_reno import Flow
 import json
 from pprint import pprint
 
+# This class runs a simulation of a network with a certain congestion
+# control algorithm. 
 class Simulator:
+    """
+    This function initializes a simulator object by loading the input
+    file and creating the objects according to their specifications. 
+    Input arguments:
+        - filename : name of the input file
+    Attributes:
+        - network_objects: 3-dimensional list of all network objects
+    """
     def __init__(self, filename):
         self.filename = filename
-
-        # import the network object parameters
+        # Import the network object parameters
         with open(self.filename) as f:
             network_objects = json.load(f)
-
-        # create the network objects
-        # create links
+        # Create links
         for l in network_objects['links']:
-            # clear the variable
+            # Clear the variable
             link = None
 
-            # add to idmapping
+            # Add to idmapping
             link = Link(l['id'], l['connection1'], l['connection2'], \
                         l['rate'], l['delay'], l['buffersize'], l['track1'] == 1, \
                         l['track2'] == 1)
             globals.idmapping['links'][l['id']] = link
 
-        # create hosts
+        # Create hosts
         for h in network_objects['hosts']:
-            # clear the variable
+            # Clear the variable
             host = None
 
-            # add to idmapping
+            # Add to idmapping
             host = Host(h['id'], h['linkid'])
             globals.idmapping['hosts'][h['id']] = host
 
-        # create routers
+        # Create routers
         if network_objects['routers'] != [{}]:
             for r in network_objects['routers']:
-                # clear the variable
+                # Clear the variable
                 router = None
 
-                # get the list of links connected to each router
+                # Get the list of links connected to each router
                 link_list = []
                 for lin_id in r['links']:
                     link_list.append(globals.idmapping['links'][lin_id])
 
-                # initialize router and add to idmapping
+                # Initialize router and add to idmapping
                 router = Router(r['id'], link_list)
                 globals.idmapping['routers'][r['id']] = router
 
+        # Create flows
         for f in network_objects['flows']:
-            # clear the variable
+            # Clear the variable
             flow = None
-            # add to idmapping
+
+            # Add to idmapping
             flow = Flow(f['id'], f['source'], f['destination'], f['amount'], \
                 f['start'], f['congestion_control'], f['track'] == 1)
             globals.idmapping['flows'][f['id']] = flow
 
+    # Plots metrics based on data collected while the simulations was running
     def plot_metrics2(self):
+        # Access all metrics
         all_metrics = globals.LINKMETRICS + globals.HALFLINKMETRICS + globals.FLOWMETRICS
+        # For every timestep
         for t in all_metrics:
             legend = []
             plot.figure(figsize = (12,4.5))
@@ -74,6 +86,8 @@ class Simulator:
                 name = s.split(":")
                 name.pop()
                 name = ":".join(name)
+
+                # Plot buffer occupancy
                 if globals.BUFFEROCCUPANCY in s and globals.BUFFEROCCUPANCY == t:
                     for key in sorted(dict.keys()):
                         x.append(key)
@@ -82,6 +96,8 @@ class Simulator:
                     lines = plot.plot(x,y)
                     plot.ylabel("buffer occupancy (in KB)")
                     legend.append(name)
+
+                # Plot link rates
                 if globals.LINKRATE in s and globals.LINKRATE == t:
                     for key in sorted(dict.keys()):
                         x.append(key)
@@ -89,6 +105,8 @@ class Simulator:
                     lines = plot.plot(x,y)
                     plot.ylabel("link rate (in Mbps)")
                     legend.append(name)
+
+                # Plot packet loss
                 if globals.PACKETLOSS in s and globals.PACKETLOSS == t:
                     for key in sorted(dict.keys()):
                         x.append(key)
@@ -96,6 +114,8 @@ class Simulator:
                     lines = plot.plot(x,y)
                     plot.ylabel("number of packets dropped")
                     legend.append(name)
+
+                # Plot flow rates
                 if globals.FLOWRATE in s and globals.FLOWRATE == t:
                     for key in sorted(dict.keys()):
                         x.append(key)
@@ -104,6 +124,8 @@ class Simulator:
                     lines = plot.plot(x,y)
                     plot.ylabel("flow rate (in Mbps)")
                     legend.append(name)
+                
+                # Plot window size
                 if globals.WINDOWSIZE in s and globals.WINDOWSIZE == t:
                     for key in sorted(dict.keys()):
                         x.append(key)
@@ -111,6 +133,8 @@ class Simulator:
                     lines = plot.plot(x,y)
                     plot.ylabel("window size")
                     legend.append(name)
+
+                # Plot round trip times
                 if globals.FLOWRTT in s and globals.FLOWRTT == t:
                     for key in sorted(dict.keys()):
                         x.append(key)
@@ -126,101 +150,47 @@ class Simulator:
             plot.savefig(t)
             plot.gcf().clear()
 
-    def plot_metrics(self):
-        for s in globals.statistics.keys():
-            plot.figure(figsize=(12,4.5))
-            x = []
-            y = []
-            lines = 0
-            dict = globals.statistics[s]
-            # converts buffer occupancys from bits to KB
-            print(s)
-            if globals.BUFFEROCCUPANCY in s:
-                #print(dict)
-                for key in sorted(dict.keys()):
-                    x.append(key)
-                    # Converts the buffer occupancy from bits to Kilobytes
-                    y.append(dict[key]*globals.BITSTOKILOBITS/8)
-                lines = plot.plot(x,y)
-                plot.ylabel("buffer occupancy (in KB)")
-            if globals.LINKRATE in s:
-                for key in sorted(dict.keys()):
-                    x.append(key)
-                    # converts link rate from bps to Mbps
-                    y.append(dict[key]*globals.BITSTOMEGABITS)
-                lines = plot.plot(x,y)
-                plot.ylabel("link rate (in Mbps)")
-            if globals.PACKETLOSS in s:
-                for key in sorted(dict.keys()):
-                    x.append(key)
-                    y.append(dict[key])
-                lines = plot.plot(x,y)
-                plot.ylabel("number of packets dropped")
-            if globals.FLOWRATE in s:
-                for key in sorted(dict.keys()):
-                    x.append(key)
-                    # converts flow rate from bps to Mbps
-                    y.append(dict[key]*globals.BITSTOMEGABITS)
-                lines = plot.plot(x,y)
-                plot.ylabel("flow rate (in Mbps)")
-            if globals.WINDOWSIZE in s:
-                for key in sorted(dict.keys()):
-                    x.append(key)
-                    y.append(dict[key])
-                lines = plot.plot(x,y)
-                plot.ylabel("window size")
-            if globals.FLOWRTT in s:
-                for key in sorted(dict.keys()):
-                    x.append(key)
-                    y.append(dict[key])
-                lines = plot.plot(x,y)
-                plot.ylabel("round trip time (in seconds)")
-            plot.setp(lines, linewidth = 0.5)
-            plot.xlabel("time (in seconds)")
-            plot.title(s)
-            plot.savefig(s)
-            plot.gcf().clear()
-
-
-
+    # Function to actually run the simulator
     def run(self):
-
-        for router in globals.idmapping['routers'].values():
-            pass
-                #print(router.routing_table)
-
-        # Make Handshakes
+        # Make handshakes to learn routing table
         for router in globals.idmapping['routers'].values():
             router.send_handshake()
 
-        # run the simulation
-        for i in range(250000): #was 200000
+        # Run the simulation for so many dt's
+        # For every dt
+        for i in range(250000): 
 
-            # send link stuff
+            # Send packs from links
             for link in globals.idmapping['links'].values():
                 link.update_link_statistics()
                 link.send_packet()
 
-            # send link states if it's 5 seconds
+            # Send link states every 5 seconds
             if (i+1) % 50000 == 0:
                 print("systime : ", globals.systime)
 
                 for router in globals.idmapping['routers'].values():
                     router.recalc_link_state()
 
-            # send out the flow packets
+            # Send out packets from the flows
             for flow in globals.idmapping['flows'].values():
                 flow.run()
                 flow.update_flow_statistics()
 
+            # Increment the global clock
             globals.systime += globals.dt
 
         for flow in globals.idmapping['flows'].values():
             print(flow.states_tracker)
 
+    # Function to dest dijkstra's algorithm
     def test_dijkstra(self):
         router = Router('R1', [])
-        router.link_state_array = [['R1', 'H1', 'L0', 367957.3433311556], ['H1', 'R1', 'L0', 5887317.343342742], ['R1', 'R2', 'L1', 6010853.3433503], ['R2', 'R1', 'L1', 367957.3433311556], ['R1', 'R3', 'L2', 0.01], ['R3', 'R1', 'L2', 0.01], ['R2', 'R4', 'L3', 6056544.010017095], ['R4', 'R2', 'L3', 367957.3433311556], ['R3', 'R4', 'L4', 0.01], ['R4', 'R3', 'L4', 0.01], ['R4', 'H2', 'L5', 6870814.676676182], ['H2', 'R4', 'L5', 1268640.00999782]]
-
+        router.link_state_array = [['R1', 'H1', 'L0', 367957.3433311556], \
+        ['H1', 'R1', 'L0', 5887317.343342742], ['R1', 'R2', 'L1', 6010853.3433503], \
+        ['R2', 'R1', 'L1', 367957.3433311556], ['R1', 'R3', 'L2', 0.01], ['R3', 'R1', 'L2', 0.01], \
+        ['R2', 'R4', 'L3', 6056544.010017095], ['R4', 'R2', 'L3', 367957.3433311556], \
+        ['R3', 'R4', 'L4', 0.01], ['R4', 'R3', 'L4', 0.01], ['R4', 'H2', 'L5', 6870814.676676182], \
+        ['H2', 'R4', 'L5', 1268640.00999782]]
         router.run_dijkstra()
         print (router.routing_table)

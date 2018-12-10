@@ -4,7 +4,7 @@ from link import Link
 
 # This class simulates the behavior of a host in our network
 class Host:
-     """
+    """
     This function initializes a host object. Input arguments:
         - hostid : the string id of the host object
         - linkid : the id of the link associated with the host

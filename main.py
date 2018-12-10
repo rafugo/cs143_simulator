@@ -9,11 +9,11 @@ warnings.filterwarnings("ignore")
 from simulator import Simulator
 
 now = time.clock()
-# initialize all the global variables
+# Initialize all the global variables
 globals.initialize()
 
-#without smoothing of buffer size: 422.254539 seconds
-# create the simulator with the given filename
+# Without smoothing of buffer size: 422.254539 seconds
+# Create the simulator with the given filename
 if (len(sys.argv) < 2):
     sys.exit("Please include the input file as an argument.\n example: \
         python3 main.py test_case1.json")
@@ -24,7 +24,6 @@ except:
 sim.run()
 print("The simulation finished.")
 sim.plot_metrics2()
-# sim.test_dijkstra()
 end = time.clock()
 elapsed = end - now
 print("TIME ELAPSED: ")
