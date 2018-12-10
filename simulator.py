@@ -132,7 +132,7 @@ class Simulator:
             router.send_handshake()
 
         # run the simulation
-        for i in range(150000): #was 200000
+        for i in range(250000): #was 200000
 
             # send link stuff
             for link in globals.idmapping['links'].values():
@@ -154,7 +154,7 @@ class Simulator:
             globals.systime += globals.dt
 
         for flow in globals.idmapping['flows'].values():
-            print(flow.states_tracker)               
+            print(flow.states_tracker)
 
     def test_dijkstra(self):
         router = Router('R1', [])

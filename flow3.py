@@ -180,7 +180,7 @@ class Flow:
             #print("current window start ", self.window_start)
 
             if (self.window_size < self.ssthresh):
-                self.state == "slow_start"
+                self.state = "slow_start"
                 self.window_size += 1
                 #print('window_size ', self.window_size)
 
@@ -222,7 +222,7 @@ class Flow:
             self.window_size = 1
             if (globals.systime >= self.next_cut_time):
                 self.ssthresh = max(self.window_size/2, 2)
-                self.next_cut_time = globals.systime + self.rto
+                self.next_cut_time = globals.systime + self.rto*2
 
             self.state = 'slow_start'
             #self.next_cut_time = globals.systime + self.rto
