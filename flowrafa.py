@@ -1,4 +1,5 @@
 import globals
+import math
 
 from host import Host
 from link import Link
@@ -61,7 +62,7 @@ class Flow:
         self.next_cut_time = 0
         # Variables for metric tracking
         self.track = track
-        self.frwindow = 20000 * globals.dt
+        self.frwindow = 1000 * globals.dt
         self.frsteps = []
         self.rttwindow = 20000 * globals.dt
         self.rttsteps = []
@@ -113,7 +114,7 @@ class Flow:
         if self.dup_count[p.packetid] == 1:
             self.rtt = globals.systime - self.send_times[p.packetid]
             self.rto = 2 * self.rtt
-        
+
         # this is a new ACK, update rto
         self.timeout_marker = globals.systime + self.rto
 
@@ -137,12 +138,12 @@ class Flow:
         elif self.state == 'congestion_avoidance':
             self.window_size += 1 / self.window_size
             self.window_start = p.data
-        
+
 
         # Time to do some metric tracking
         self.track_metrics(p)
         return
-        
+
 
     def handle_dup_ack(self, p):
 
@@ -165,7 +166,7 @@ class Flow:
             # send any packets we can send
             self.send_packets()
 
-        
+
     # gets called every dt
     def send_packets(self):
         # if we have timed out (not recently)
@@ -245,16 +246,42 @@ class Flow:
                 self.added = True
                 rate = 0
                 assert globals.systime >= self.start
-                if (len(self.frsteps) < self.frwindow/globals.dt):
-                    self.frsteps.append(globals.PACKETSIZE)
-                    if (globals.systime != self.start ):
-                        rate = sum(self.frsteps)/(globals.systime - self.start)
-                else:
-                    self.frsteps.pop(0)
-                    rate = sum(self.frsteps)/(self.frwindow)
 
-                key = self.id + ":" + globals.FLOWRATE
-                globals.statistics[key][globals.systime] = rate
+                if (True):
+                    self.frsteps.append(globals.PACKETSIZE)
+                    if (len(self.frsteps) <= self.frwindow/globals.dt):
+                        if (globals.systime != self.start ):
+                            rate = sum(self.frsteps)/(globals.systime - self.start)
+                    else:
+                        self.frsteps.pop(0)
+                        rate = sum(self.frsteps)/(self.frwindow)
+
+                    key = self.id + ":" + globals.FLOWRATE
+                    globals.statistics[key][globals.systime] = rate
+
+                else:
+                    self.frsteps.append(0)
+                    link = globals.idmapping['links'][self.source.linkid]
+                    linkrate = link.rate
+                    transmission_time = globals.PACKETSIZE/link.rate
+                    if (len(self.frsteps) <= self.frwindow/globals.dt):
+                        segments = min(len(self.frsteps), transmission_time/globals.dt)
+                        segments = math.ceil(segments)
+                        for i in range(segments):
+                            self.frsteps[len(self.frsteps)-1-i] += float(globals.PACKETSIZE)/segments
+                        if (globals.systime != self.start):
+                            rate = sum(self.frsteps)/(globals.systime - self.start)
+                    else:
+                        self.frsteps.pop(0)
+                        segments = min(len(self.frsteps), transmission_time/globals.dt)
+                        segments = math.ceil(segments)
+                        for i in range(segments):
+                            self.frsteps[len(self.frsteps)-1-i] += float(globals.PACKETSIZE)/segments
+                        rate = sum(self.frsteps)/(self.frwindow)
+                    key = self.id + ":" + globals.FLOWRATE
+                    globals.statistics[key][globals.systime] = rate
+
+
 
 
     def update_flow_statistics(self):
