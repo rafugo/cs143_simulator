@@ -23,7 +23,7 @@ except:
     sys.exit("Please check the format of your input file.")
 sim.run()
 print("The simulation finished.")
-sim.plot_metrics()
+sim.plot_metrics2()
 # sim.test_dijkstra()
 end = time.clock()
 elapsed = end - now
