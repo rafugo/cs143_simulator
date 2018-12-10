@@ -146,7 +146,7 @@ class Flow_FAST:
 
             else:
                 # we are inside an rtt interval
-                rtt_interval_time += globals.dt
+                self.rtt_interval_time += globals.dt
 
                 if self.rtt_interval == 1:
                     # if it's not the frozen interval
@@ -158,6 +158,8 @@ class Flow_FAST:
         self.send_packets()
 
     def process_ack(self, p):
+
+        print("received ACK ", p.data)
 
         # if we done, we done
         if p.data >= self.amount:

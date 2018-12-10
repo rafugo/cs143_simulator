@@ -9,6 +9,7 @@ from routerv2 import Router
 # from flow2 import Flow
 # from flow3 import Flow
 from flowrafa import Flow
+from flow_fast import Flow_FAST
 import json
 from pprint import pprint
 
@@ -60,8 +61,13 @@ class Simulator:
             # clear the variable
             flow = None
             # add to idmapping
-            flow = Flow(f['id'], f['source'], f['destination'], f['amount'], \
-                f['start'], f['congestion_control'], f['track'] == 1)
+            if f['congestion_control'] == 'reno':
+                flow = Flow(f['id'], f['source'], f['destination'], f['amount'], \
+                    f['start'], f['congestion_control'], f['track'] == 1)
+            else:
+                flow = Flow_FAST(f['id'], f['source'], f['destination'], f['amount'], \
+                    f['start'], f['congestion_control'], f['track'] == 1)
+
             globals.idmapping['flows'][f['id']] = flow
 
     def plot_metrics2(self):
@@ -199,7 +205,7 @@ class Simulator:
 
         # run the simulation
 
-        for i in range(250000): #was 200000
+        for i in range(50000): #was 200000
 
             # send link stuff
             for link in globals.idmapping['links'].values():
