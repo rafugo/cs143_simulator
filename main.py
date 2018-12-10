@@ -13,7 +13,7 @@ globals.initialize()
 sim = Simulator('test_case1.json')
 sim.run()
 print("The simulation finished.")
-sim.plot_metrics()
+sim.plot_metrics2()
 # sim.test_dijkstra()
 end = time.clock()
 elapsed = end - now

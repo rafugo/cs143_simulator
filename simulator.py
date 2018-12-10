@@ -64,6 +64,72 @@ class Simulator:
                 f['start'], f['congestion_control'], f['track'] == 1)
             globals.idmapping['flows'][f['id']] = flow
 
+    def plot_metrics2(self):
+        all_metrics = globals.LINKMETRICS + globals.HALFLINKMETRICS + globals.FLOWMETRICS
+        for t in all_metrics:
+            legend = []
+            plot.figure(figsize = (12,4.5))
+            for s in globals.statistics.keys():
+                x = []
+                y = []
+                lines = 0
+                dict = globals.statistics[s]
+                print(s)
+                name = s.split(":")
+                name.pop()
+                name = ":".join(name)
+                if globals.BUFFEROCCUPANCY in s and globals.BUFFEROCCUPANCY == t:
+                    for key in sorted(dict.keys()):
+                        x.append(key)
+                        # Converts the buffer occupancy from bits to Kilobytes
+                        y.append(dict[key]*globals.BITSTOKILOBITS/8)
+                    lines = plot.plot(x,y)
+                    plot.ylabel("buffer occupancy (in KB)")
+                    legend.append(name)
+                if globals.LINKRATE in s and globals.LINKRATE == t:
+                    for key in sorted(dict.keys()):
+                        x.append(key)
+                        y.append(dict[key]*globals.BITSTOMEGABITS)
+                    lines = plot.plot(x,y)
+                    plot.ylabel("link rate (in Mbps)")
+                    legend.append(name)
+                if globals.PACKETLOSS in s and globals.PACKETLOSS == t:
+                    for key in sorted(dict.keys()):
+                        x.append(key)
+                        y.append(dict[key])
+                    lines = plot.plot(x,y)
+                    plot.ylabel("number of packets dropped")
+                    legend.append(name)
+                if globals.FLOWRATE in s and globals.FLOWRATE == t:
+                    for key in sorted(dict.keys()):
+                        x.append(key)
+                        # converts flow rate from bps to Mbps
+                        y.append(dict[key]*globals.BITSTOMEGABITS)
+                    lines = plot.plot(x,y)
+                    plot.ylabel("flow rate (in Mbps)")
+                    legend.append(name)
+                if globals.WINDOWSIZE in s and globals.WINDOWSIZE == t:
+                    for key in sorted(dict.keys()):
+                        x.append(key)
+                        y.append(dict[key])
+                    lines = plot.plot(x,y)
+                    plot.ylabel("window size")
+                    legend.append(name)
+                if globals.FLOWRTT in s and globals.FLOWRTT == t:
+                    for key in sorted(dict.keys()):
+                        x.append(key)
+                        y.append(dict[key])
+                    lines = plot.plot(x,y)
+                    plot.ylabel("round trip time (in seconds)")
+                    legend.append(name)
+                if (lines != 0):
+                    plot.setp(lines, linewidth = 0.5)
+                    plot.xlabel("time (in seconds)")
+            plot.title(t)
+            plot.legend(legend)
+            plot.savefig(t)
+            plot.gcf().clear()
+
     def plot_metrics(self):
         for s in globals.statistics.keys():
             plot.figure(figsize=(12,4.5))

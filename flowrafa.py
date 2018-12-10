@@ -1,4 +1,5 @@
 import globals
+import math
 
 from host import Host
 from link import Link
@@ -248,16 +249,41 @@ class Flow:
                 rate = 0
                 assert globals.systime >= self.start
 
-                self.frsteps.append(globals.PACKETSIZE)
-                if (len(self.frsteps) < self.frwindow/globals.dt):
-                    if (globals.systime != self.start ):
-                        rate = sum(self.frsteps)/(globals.systime - self.start)
-                else:
-                    self.frsteps.pop(0)
-                    rate = sum(self.frsteps)/(self.frwindow)
+                if (True):
+                    self.frsteps.append(globals.PACKETSIZE)
+                    if (len(self.frsteps) <= self.frwindow/globals.dt):
+                        if (globals.systime != self.start ):
+                            rate = sum(self.frsteps)/(globals.systime - self.start)
+                    else:
+                        self.frsteps.pop(0)
+                        rate = sum(self.frsteps)/(self.frwindow)
 
-                key = self.id + ":" + globals.FLOWRATE
-                globals.statistics[key][globals.systime] = rate
+                    key = self.id + ":" + globals.FLOWRATE
+                    globals.statistics[key][globals.systime] = rate
+
+                else:
+                    self.frsteps.append(0)
+                    link = globals.idmapping['links'][self.source.linkid]
+                    linkrate = link.rate
+                    transmission_time = globals.PACKETSIZE/link.rate
+                    if (len(self.frsteps) <= self.frwindow/globals.dt):
+                        segments = min(len(self.frsteps), transmission_time/globals.dt)
+                        segments = math.ceil(segments)
+                        for i in range(segments):
+                            self.frsteps[len(self.frsteps)-1-i] += float(globals.PACKETSIZE)/segments
+                        if (globals.systime != self.start):
+                            rate = sum(self.frsteps)/(globals.systime - self.start)
+                    else:
+                        self.frsteps.pop(0)
+                        segments = min(len(self.frsteps), transmission_time/globals.dt)
+                        segments = math.ceil(segments)
+                        for i in range(segments):
+                            self.frsteps[len(self.frsteps)-1-i] += float(globals.PACKETSIZE)/segments
+                        rate = sum(self.frsteps)/(self.frwindow)
+                    key = self.id + ":" + globals.FLOWRATE
+                    globals.statistics[key][globals.systime] = rate
+
+
 
 
     def update_flow_statistics(self):
