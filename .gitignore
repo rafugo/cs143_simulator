@@ -29,6 +29,7 @@ __pycache__/
 *.log
 *.sql
 *.sqlite
+.vscode/settings.json
 
 # OS generated files #
 ######################
@@ -42,3 +43,5 @@ Thumbs.db
 
 #ignore generated graphs
 *.png
+
+get-pip.py

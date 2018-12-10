@@ -33,20 +33,20 @@ class Link:
                droppedpackets : The number of packets that have been dropped
                track : A boolean value indicating if this link is being
                        tracked."""
-        # buffer is the size of the buffer in bits (buffersize is in KB)
+        # Buffer is the size of the buffer in bits (buffersize is in KB)
         buffer = buffersize * 8 * globals.KILOBITSTOBITS
         self.links = {connection1: HalfLink(linkid, connection1, connection2, rate, delay, buffer, track1),  \
                       connection2: HalfLink(linkid, connection2, connection1, rate, delay, buffer, track2)}
-        # converts delay from ms to s
+        # Converts delay from ms to s
         self.delay = delay * globals.MSTOS
         self.id = linkid
         self.rate = rate
 
-        # variables for metric tracking
+        # Variables for metric tracking
         self.droppedpackets = 0
         self.track = (track1 or track2)
-        # sets up the dictionaries to track all necessary statistics for this
-        # link
+        # Sets up the dictionaries to track all necessary statistics for this
+            # link
         if (self.track):
             for m in globals.LINKMETRICS:
                 globals.statistics[linkid+":"+m] = {}
@@ -55,10 +55,8 @@ class Link:
     def get_delay(self):
         return self.delay
 
-
     def get_effective_rate(self, sender):
         return self.links[sender].get_effective_rate()
-
 
     def add_to_buffer(self, packet, sender):
         """This function adds a packet to the buffer on the appropriate side of
@@ -95,11 +93,9 @@ class Link:
         for link in self.links.values():
             link.send_packet()
 
-
     def update_link_statistics(self):
         for link in self.links.values():
             link.update_link_statistics()
-
 
 
 # This class will represent one direction of the Link. (i.e. all packets
@@ -162,10 +158,6 @@ class HalfLink:
         self.destination = destination
         self.cost = 0
 
-
-        #print("BUFFER CAPACITY:")
-        #print(buffersize)
-
         # The first time we should try to send a packet is at the next time step.
         self.next_packet_send_time = globals.systime + globals.dt
         self.packets_in_transmission = []
@@ -198,7 +190,6 @@ class HalfLink:
         # Checks that there is room to add the packet to the buffer
         if (packet.get_size() + self.buffersize <= self.buffercapacity):
             self.buffersize = self.buffersize + packet.get_size()
-            #print("Buffer size %d", self.buffersize, "time:", globals.systime, "flow:", packet.get_flowid())
             self.buffer.append(packet)
         # if there isn't room in the buffer, we return 0 to indicate that the
         # packet was dropped.
@@ -209,11 +200,14 @@ class HalfLink:
 
         # If we are tracking this link and we are tracking buffer occupancy
         # statistics, we will update the corresponding dictionary accordingly.
-        if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) and (not globals.SMOOTH):
+        if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) \
+            and (not globals.SMOOTH):
             key = self.id+":"+self.source+"->"+self.destination+":"+globals.BUFFEROCCUPANCY
             globals.statistics[key][globals.systime] = self.buffersize
-            if (globals.systime > 0) and not (globals.systime-globals.dt in globals.statistics[key].keys()):
-                globals.statistics[key][globals.systime-globals.dt] = self.buffersize - packet.get_size()
+            if (globals.systime > 0) and not (globals.systime-globals.dt in \
+                globals.statistics[key].keys()):
+                globals.statistics[key][globals.systime-globals.dt] = self.buffersize - \
+                    packet.get_size()
 
         # returns the size of the packet that was succesfully added to the
         # buffer.
@@ -240,11 +234,14 @@ class HalfLink:
                 # at the front of the buffer from the buffer.
                 self.buffersize = self.buffersize - amountfreed
 
-                if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) and (not globals.SMOOTH):
+                if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) \
+                    and (not globals.SMOOTH):
                     key = self.id+":"+self.source+"->"+self.destination+":"+globals.BUFFEROCCUPANCY
                     globals.statistics[key][globals.systime] = self.buffersize
-                    if (globals.systime > 0) and not (globals.systime-globals.dt in globals.statistics[key].keys()):
-                        globals.statistics[key][globals.systime-globals.dt] = self.buffersize + amountfreed
+                    if (globals.systime > 0) and not (globals.systime-globals.dt \
+                        in globals.statistics[key].keys()):
+                        globals.statistics[key][globals.systime-globals.dt] = self.buffersize \
+                            + amountfreed
 
                 # Time represents the amount of time in the previous dt that we
                 # were transmitting. (i.e. between the previous systime and the
@@ -322,24 +319,18 @@ class HalfLink:
                     dest_type = 'routers'
                 receiver = globals.idmapping[dest_type][self.destination]
                 receiver.receive_packet(packet_to_send, self.id)
-
-                # if packet_to_send.is_ack() and packet_to_send.data[0] == 2653:
-                #     print(self.id, " is sending ACK ", packet_to_send.data[0])
-                #     print(globals.idmapping['routers']['R1'].routing_table)
-                #     print()
-                #     print(globals.idmapping['routers']['R3'].routing_table)
-
         return amountfreed
 
 
     def update_link_statistics(self):
-        if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) and globals.SMOOTH:
+        if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) \
+            and globals.SMOOTH:
             avgocc = 0
             if(globals.systime <= self.bufferwindow):
                 if (globals.systime != 0):
                     self.buffersteps.append(self.buffersize)
                     avgocc = sum(self.buffersteps)*(globals.dt/(globals.systime))
-                # when the time is 0, we will just set the rate to be 0.
+                # When the time is 0, we will just set the rate to be 0.
                 else:
                     pass
             else:
