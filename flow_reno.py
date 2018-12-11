@@ -29,7 +29,6 @@ class Flow:
             - destination (Host/Router) : refers to the dest object of the flow
             - amount (int) : number of packets within the flow
             - start (float) : time the flow is scheduled to start
-            - min_timeout_time (float): minimum amount of time for a timeout to occur
             - setRTT (bool) : determine if we have set an RTT yet
             - state (string) : determines what start the congestion control is in
                 can take on values of "slow_start", "congestion_avoidance", "fast_recovery"
@@ -78,7 +77,6 @@ class Flow:
 
         # time at which the flow simulation starts, in s
         self.start = start
-        self.min_timeout_time = 1      # in seconds
 
         self.setRTT = False
         self.state = "slow_start"
@@ -159,7 +157,6 @@ class Flow:
 
         # This is a new ACK, update rto
         self.timeout_marker = globals.systime + self.rto
-
 
         # If it's the synack, start metrics
         if p.packetid == 0:
