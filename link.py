@@ -62,7 +62,7 @@ class Link:
         """This function adds a packet to the buffer on the appropriate side of
            the link if possible, dropping it if there is insufficient space left
            in the buffer. It also updates the global tracking of buffer occupancy
-           and packet lossas necessary. """
+           and packet losses necessary. """
         # Added will store the number of bits added to the buffer.
         added= self.links[sender].add_to_buffer(packet)
 
@@ -194,8 +194,6 @@ class HalfLink:
         # if there isn't room in the buffer, we return 0 to indicate that the
         # packet was dropped.
         else:
-            #print("Dropped packet with buffer size:")
-            #print(self.buffersize)
             return 0
 
         # If we are tracking this link and we are tracking buffer occupancy
