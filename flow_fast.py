@@ -80,6 +80,7 @@ class Flow_FAST:
         self.rtt_interval = 1       # either 1 or 2 (2 is the frozen interval)
         self.rtt_interval_time = 0  # works similar to the window_upd_interval
         self.rtt_interval_size = 0
+        self.rtt_interval_prev_size = 0
         self.window_increment = 0
 
         # variables for windows
@@ -88,6 +89,10 @@ class Flow_FAST:
 
         # min rtt
         self.min_rtt = float('inf')
+
+        # rtt threshhold for when to enter CA from SS
+        self.estimate_packets_received = -1
+        self.actual_packets_received = 0
 
 
         # If this flow is being tracked, we set up the dictionaries for all of
@@ -103,11 +108,14 @@ class Flow_FAST:
 
     def run(self):
         # if we shouldn't do anything, leave
-        if self.start >= globals.systime or self.done == True or \
-            self.state == "fast_recovery":
+        if self.start >= globals.systime or self.done == True:
             return
 
+        # this has to happen every dt
         self.window_upd_interval += globals.dt
+
+        if self.state == 'fast_recovery':
+            return
 
         if self.ssthresh == 0:
             print(globals.systime)
@@ -118,47 +126,74 @@ class Flow_FAST:
             print(globals.systime)
             sys.exit()
 
-        if self.state == 'congestion_avoidance':
+        
 
-            # if we finished the current rtt window
-            if self.rtt_interval_time >= self.rtt_interval_size:
-                # we are in a new interval
-                if self.rtt_interval == 1:
-                    # set the rtt interval to be the second rtt interval
-                    # set the rtt to be the last seen rtt
-                    # also, check the goal window has been reached
+        # if we finished the current rtt window
+        if self.rtt_interval_time >= self.rtt_interval_size:
+
+            # we are in a new interval
+            if self.rtt_interval == 1:
+                
+                self.rtt_interval = 2
+
+                self.rtt_interval_time = 0
+                self.rtt_interval_size = self.rtt
+
+                # only really needed for slow_start
+                if self.state == 'slow_start':
+
+                    if self.rtt_interval_prev_size != 0:
+                        self.estimate_packets_received = \
+                            2 * self.actual_packets_received * self.rtt_interval_size / self.rtt_interval_prev_size
+
+                    self.actual_packets_received = 0
+
+
+                # if we didnt reach the goal window exactly, make sure we 
+                # reach it (this should def not be a big jump...)
+                if self.state == 'congestion_avoidance' and \
+                        self.goal_window != self.window_size:
+                    self.window_size = self.goal_window
+
+            else:
+                
+                # if everything is swell
+                self.rtt_interval = 1
+                self.rtt_interval_time = 0
+                self.rtt_interval_prev_size = self.rtt_interval_size
+                self.rtt_interval_size = self.rtt
+
+
+                # only really needed for slow_start
+                if self.state == 'slow_start' and \
+                        self.actual_packets_received <= .90 * self.estimate_packets_received:
+                    self.state = 'congestion_avoidance'
+
                     self.rtt_interval = 2
-
-                    self.rtt_interval_time = 0
                     self.rtt_interval_size = self.rtt
+                    self.rtt_interval_time = 0
 
-                    # if we didnt reach the goal window exactly, make sure we 
-                    # reach it (this should def not be a big jump...)
-                    if self.goal_window != self.window_size:
-                        self.window_size = self.goal_window
-                else:
-                    # calculate new window increment,
-                    # set rtt interval to be the first rtt interval
-                    # and the rtt to be the last seen rtt
-                    # also, set the goal window to be the value of the next window
-                    self.rtt_interval = 1
+                    self.goal_window = self.next_window
 
+                    self.states_tracker.append((self.state, globals.systime))
+
+
+                if self.state == 'congestion_avoidance':
                     # new window increment
                     self.window_increment = \
                         (self.next_window - self.window_size) / (self.rtt / globals.dt)
 
                     self.goal_window = self.next_window
-                    self.rtt_interval_time = 0
-                    self.rtt_interval_size = self.rtt
+                
 
 
-            else:
-                # we are inside an rtt interval
-                self.rtt_interval_time += globals.dt
+        else:
+            # we are inside an rtt interval
+            self.rtt_interval_time += globals.dt
 
-                if self.rtt_interval == 1:
-                    # if it's not the frozen interval
-                    self.window_size += self.window_increment
+            if self.rtt_interval == 1:
+                # if it's not the frozen interval
+                self.window_size += self.window_increment
 
             
 
@@ -171,6 +206,9 @@ class Flow_FAST:
         if p.data >= self.amount:
             self.done = True
             return
+
+        # we received a packet so count it in our interval
+        self.actual_packets_received += 1
 
         # duplicate packet handling
         if self.duplicate_packet == p.data:
@@ -231,13 +269,14 @@ class Flow_FAST:
         
 
     def process_ack_ss(self, p):
-        '''
-        currently how reno does it
-        '''
-        self.window_size += 1
+        
+        # only double window size if in the first rtt window
+        if self.rtt_interval == 1:
+            self.window_size += 1
 
         # if we hit the threshhold, go into CA
         if self.window_size >= self.ssthresh:
+
             self.state = 'congestion_avoidance'
 
             self.rtt_interval = 2
@@ -294,17 +333,24 @@ class Flow_FAST:
             print("entering slow_start")
 
             # enter slow_start
-            print("self.window_size  ", self.window_size)
             self.ssthresh = self.window_size / 2
 
             self.window_size = 1
 
-            print("setting ssthresh: ", self.ssthresh)
-            print("setting window_size: ", self.window_size)
-
             self.state = 'slow_start'
             self.next_cut_time = globals.systime + self.rto
             self.states_tracker.append((self.state, globals.systime))
+
+
+            # rtt interval stuff
+            self.rtt_interval = 1
+            self.rtt_interval_time = 0
+            self.rtt_interval_size = self.rtt
+
+            self.actual_packets_received = 0
+
+            # we dont have an estimate anymore, so set it to -1
+            self.estimate_packets_received = -1
 
             '''
             THIS IS JANK YO
