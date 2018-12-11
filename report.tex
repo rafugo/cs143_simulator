@@ -95,7 +95,15 @@ Our congestion control takes place in our flow class. For our project, we've imp
 
 \subsection{TCP Reno}
 
+In our TCP Reno implementation, we have three possible states for the algorithm to be in: slow start, congestion avoidance, or fast recovery. Dependent on these states, we have different behavior. If we are in the slow start state of our algorithm, for every acknowledgement that is not a duplicate acknowledgement received, we increase our window size by one. If we are in the congestion avoidance state, we increase our window size by $\frac{1}{cwnd}$ where $cwnd$ is the current window size. If we are in fast recovery, we do not send any packets until the retransmission of the dropped packet is successful. We then half our window size and enter congestion avoidance.
 
+To start, our window size is initialized at 1 packet. Our window start, which refers to the first packet in the next window of consecutive packets to be sent, starts at 0. The congestion control algorithm starts in the slow start state with a slow start threshold of 1000. We chose this initial value to be arbitrarily large, so the network will either timeout or receive three duplicate acknowledgements before it enters congestion avoidance for the first time. Before we start sending any packets from our flow, we send a synchronization packet. We then wait for this packet to return and be acknowledged to calculate our initial RTT value.
+
+To send packets for our flow, at every timestep, we see if there are any packets in our current window that have not yet been sent, and if there are, we send them. To keep track of duplicate acknowledgements, we have a counter for consecutive duplicate acknowledgements. Once we reach three, we enter fast retransmit and fast recovery. 
+
+Morever, to calculate the round trip time for our packets, we use Karn's algorithm, which states that the round trip time calculation is only based on packets that are sent and acknowledged only once. All other packets are ignored in the metric. To keep track of round trip times, we have a dictionary send\_times as an attribute of the flow\_reno class. This maps packet IDs to the time at which they were last attempted to be sent. This dictionary only includes packets that have been sent but not yet acknowledged. Likewise, we have a dictionary dup\_count that maps packet ids to the number of times they have been sent. So if a packet has a dup\_count larger than 1, then we do not consider it in the calculation of the round trip time. Thus, every time we process an acknowledgment, we check the dup\_count of the packet that is acknowledged, and then access its send\_time to calculate the latest RTT. 
+
+For packet timeouts, we use a timeout marker. This timeout marker is based on the last non-duplicate acknowledgement received and an RTO value. This RTO value is calculated as $2 \times RTT$. Thus, every time an acknowledgement is processed, the timeout marker is reset to be the current system time $+$ RTO. Then, at every time step, we check if we have passed this timeout marker, meaning a packet has timed out -- specifically the first packet that we have sent but have not received an acknowledgement for. Upon recognizing a packet timeout, we set our slow start threshold to half of the current window size and set our window size to 1 and enter the slow start state. We also retransmit the lost packet and then double the RTO for future timeouts. Additionally, to avoid entering a loop where packets timeout repeatedly, resulting in overpenalizing the network for dropping packets, we keep track of a next\_cut\_time. This variable refers to the next time that cut our threshold in half and ensures that we wait 1 RTO before cutting the threshold again. 
 
 \section{Metrics Tracking}
 
@@ -103,9 +111,21 @@ Our congestion control takes place in our flow class. For our project, we've imp
 
 \subsection{Test Case 0}
 
+\subsubsection{TCP Reno}
+
+\subsubsection{TCP Fast}
+
 \subsection{Test Case 1}
 
+\subsubsection{TCP Reno}
+
+\subsubsection{TCP Fast}
+
 \subsection{Test Case 2}
+
+\subsubsection{TCP Reno}
+
+\subsubsection{TCP Fast}
 
 \section{Timeline \& Division of Labor}
 
