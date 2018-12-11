@@ -100,7 +100,7 @@
           "destination": "H2",
           "amount": 20,
           "start": 0.5,
-          "congestion_control": "nope",
+          "congestion_control": "fast",
           "track" : 1
       }
     ]

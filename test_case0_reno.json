@@ -1,0 +1,38 @@
+{
+    "hosts": [
+        {
+            "id": "H1",
+            "linkid" : "L1"
+        },
+        {
+            "id": "H2",
+            "linkid" : "L1"
+        }
+    ],
+    "links": [
+        {
+            "id": "L1",
+            "connection1" : "H1",
+            "connection2" : "H2",
+            "rate" : 10,
+            "delay" : 10,
+            "buffersize" : 64,
+            "track1" : 1,
+            "track2" : 1
+        }
+    ],
+    "routers": [
+        {}
+    ],
+    "flows": [
+        {
+            "id": "F0",
+            "source": "H1",
+            "destination": "H2",
+            "amount": 20,
+            "start": 1,
+            "congestion_control": "fast",
+            "track" : 1
+        }
+    ]
+}

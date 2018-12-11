@@ -1,0 +1,151 @@
+\documentclass{article}
+\usepackage{blindtext, graphicx}
+\usepackage{amsmath}
+\usepackage{verbatim}
+\usepackage{hyperref}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+
+\begin{document}
+%
+% paper title
+% can use linebreaks \\ within to get better formatting as desired
+\title{CS 143: Final Report}
+
+
+% author names and affiliations
+% use a multiple column layout for up to three different
+% affiliations
+\author{{Rafael Fueyo-Gomez}
+\and
+{Cortland Perry}
+\and
+{Kelsi Riley}
+\and
+{Sakthi Vetrivel}}
+\maketitle
+\section{Introduction}
+
+For our term project, our team decided to pursue the network simulator. At a high level, the simulator takes in a input of a the description of network, such as its hosts, routers, links, and flows, runs a simulation for a user-specified duration, and outputs graph demonstrating the progression of certain metrics, such as flow rate, window size, or buffer occupancy, after the end of the run. 
+
+This simulator is written in Python3 and makes use of the matplotlib package. Code can be found at \url{https://github.com/rafugo/cs143_simulator}. Instructions to run the test cases can be found in the repository's README file.
+
+\section{Simulator Architecture}
+
+\subsection{Simulator Class}
+
+Our simulator class contains all of the network objects needed to simulate our network. 
+
+\begin{description}
+	\item[$\bullet$ \_\_init\_\_(self, string filename)] This function uses the input file specified in filename to create network objects based on a network description.
+	\item[$\bullet$ plot\_metrics(self)] This function uses all of the metrics that were recorded during simulation and plots them. The graphs are then outputted as png files in the directory of the code.
+	\item[$\bullet$ run(self)] This function runs the actual simulator. Upon starting the simulator, we first have all of router make their handshakes to learn the routing table for the network. Then, we run all network events on a timestep basis. So, for a user-specified amount of time, we run the simulator for so many timesteps. For every timestep, we make calls to link class to try to send all packets in the buffer, and calls to every flow to send packets in the flow. We then increment our global clock. Moreover, every five seconds, we send all of our link states throughout the router to update the link states and the routing table if needed.
+	% Maybe we need to explain more about the timesteps here?
+
+\end{description}
+
+\subsection{Host Class}
+
+Our host class simulates the behavior of a host in our network.
+
+\begin{description}
+	\item [$\bullet$ \_\_init\_\_(self, int hostid, int linkid)] Initializes a host object. The hostid allows us to identify against different host objects and the linkid allows to identify which link is associated with this host.
+	\item [$\bullet$ send\_packet(self, Packet p)] Send the packet p by adding (or attempting to add) the packet to the link buffer.
+	\item [$\bullet$ receive\_packet(self, Packet p, int linkid)] Sends acknowledgements of packets received and notifies the correct flow of these acknowledgements.
+\end{description}
+
+\subsection{Router Class}
+
+\begin{description}
+	\item [$\bullet$ \_\_init\_\_(self, int id, List<Link> links)] Initializes a router object. The id allows us to identify different routers, and the list of links refers to the links that are connected to this router object. 
+	\item [$\bullet$ receive\_packet(self, Packet packet, int linkid)]  Processes packets and has case handling for the different packets it might receive such as handshake packets, handshake acknowledgements, standard packets or routing packets. 
+	\item [$\bullet$ forward\_packet(self, Packet packet)] Forwards packets based on the routing table and their destination.
+	\item [$\bullet$ send\_handshake(self)] Send the initial handshake packet to the adjacent routers to determine which nodes are connected.
+	\item [$\bullet$ recalc\_link\_state(self)] Recalculates the link states.
+	\item [$\bullet$ send\_link\_state(self)] Send out our link state array to neighbors.
+	\item [$\bullet$ receive\_handshake\_ack(self, Packet packet, int linkid)] Processes handshake acknowledgement.
+	\item [$\bullet$ receive\_link\_state(self, string array  state\_array\_actual)] Upon receiving a link state, the router updates its own link state array.
+	\item [$\bullet$ run\_dijkstra(self)] Run's Dijkstra's algorithm to determine the routing table.
+\end{description}
+
+\subsection{Packet Class}
+
+\begin{description}
+	\item [$\bullet$ \_\_init\_\_(self, int sourceid, int flowid, int destinationid, int packetid, string packet\_type, string data = '')] Initialize a packet object. sourceid referes to the id of the source (whether it's a router or a host). flowid refers to the id of the flow the packet belongs to. destinationid referes to the id of the destination (whether it's a router or a host). packetid is the identification of the packet within the flow and is its number in the sequence. packet\_type is the type of the packet and can take on the values of STANDARDPACKET: a normal packet, ACKPACKET: an acknowledgement packet, ROUTINGPACKET: a routing table packet, SYNPACKET: a synchronization packet, SYNACK: a synchronization packet acknowledgement. 
+\end{description}
+
+\subsection{Link Class}
+\begin{description}
+	\item [$\bullet$ \_\_init\_\_(self, int linkid, int connection1, int connection2, float rate, float delay, int buffersize, bool track1=True, bool track2=True)] Initializes a link object for our network. linkid is the ID for this link object. connection1 and connection2 are the id's of the hosts/routers at the ends of the link. rate and delay are floats that refer to the rate and propagation delay of the link. buffersize is the size of the buffer for this link. track1 and track2 are boolean values to determine if we should track metrics for this link. 
+	\item [$\bullet$ add\_to\_buffer(self, Packet packet, int sender)] Add packet to buffer based on the sender of the packet.
+	\item [$\bullet$ send\_packet(self)] Tries to send a packet on both of the half links corresponding to the link.
+	\item [$\bullet$ HalfLink] Represents one direction of the Link. (i.e. all packets travelling across a given HalfLink will be going to the same destination) Class has its own definitions for add\_to\_buffer and send\_packet.
+	
+\end{description}
+
+\section{Congestion Control}
+
+Our congestion control takes place in our flow class. For our project, we've implemented two congestion control algorithms, TCP Reno and TCP Fast. To do this, we have two different Flow classes (flow\_reno.py and flow\_fast.py), with different implementations of the same public methods. Here's an overview of all of the public methods. 
+
+\begin{description}
+	\item [$\bullet$ run(self)] This function is called at every timestep by the simulator for the flow to process any acknowledgements or send any packets as necessary for that timestep.
+	\item [$\bullet$ process\_ack(self, Packet p)] Process an acknowledgement once it's received by a host. Checks for duplicate acknowledgements and changes congestion control states, window size, and threshold accordingly.
+	\item [$\bullet$ send\_packets(self)] Send the packets for the flow depending on the current system time and the acknowledgements that have been received thus far.
+\end{description}
+
+\subsection{TCP Reno}
+
+In our TCP Reno implementation, we have three possible states for the algorithm to be in: slow start, congestion avoidance, or fast recovery. Dependent on these states, we have different behavior. If we are in the slow start state of our algorithm, for every acknowledgement that is not a duplicate acknowledgement received, we increase our window size by one. If we are in the congestion avoidance state, we increase our window size by $\frac{1}{cwnd}$ where $cwnd$ is the current window size. If we are in fast recovery, we do not send any packets until the retransmission of the dropped packet is successful. We then half our window size and enter congestion avoidance.
+
+To start, our window size is initialized at 1 packet. Our window start, which refers to the first packet in the next window of consecutive packets to be sent, starts at 0. The congestion control algorithm starts in the slow start state with a slow start threshold of 1000. We chose this initial value to be arbitrarily large, so the network will either timeout or receive three duplicate acknowledgements before it enters congestion avoidance for the first time. Before we start sending any packets from our flow, we send a synchronization packet. We then wait for this packet to return and be acknowledged to calculate our initial RTT value.
+
+To send packets for our flow, at every timestep, we see if there are any packets in our current window that have not yet been sent, and if there are, we send them. To keep track of duplicate acknowledgements, we have a counter for consecutive duplicate acknowledgements. Once we reach three, we enter fast retransmit and fast recovery. 
+
+Morever, to calculate the round trip time for our packets, we use Karn's algorithm, which states that the round trip time calculation is only based on packets that are sent and acknowledged only once. All other packets are ignored in the metric. To keep track of round trip times, we have a dictionary send\_times as an attribute of the flow\_reno class. This maps packet IDs to the time at which they were last attempted to be sent. This dictionary only includes packets that have been sent but not yet acknowledged. Likewise, we have a dictionary dup\_count that maps packet ids to the number of times they have been sent. So if a packet has a dup\_count larger than 1, then we do not consider it in the calculation of the round trip time. Thus, every time we process an acknowledgment, we check the dup\_count of the packet that is acknowledged, and then access its send\_time to calculate the latest RTT. 
+
+For packet timeouts, we use a timeout marker. This timeout marker is based on the last non-duplicate acknowledgement received and an RTO value. This RTO value is calculated as $2 \times RTT$. Thus, every time an acknowledgement is processed, the timeout marker is reset to be the current system time $+$ RTO. Then, at every time step, we check if we have passed this timeout marker, meaning a packet has timed out -- specifically the first packet that we have sent but have not received an acknowledgement for. Upon recognizing a packet timeout, we set our slow start threshold to half of the current window size and set our window size to 1 and enter the slow start state. We also retransmit the lost packet and then double the RTO for future timeouts. Additionally, to avoid entering a loop where packets timeout repeatedly, resulting in overpenalizing the network for dropping packets, we keep track of a next\_cut\_time. This variable refers to the next time that cut our threshold in half and ensures that we wait 1 RTO before cutting the threshold again. 
+
+\section{Metrics Tracking}
+
+\section{Results}
+
+\subsection{Test Case 0}
+
+\subsubsection{TCP Reno}
+
+\subsubsection{TCP Fast}
+
+\subsection{Test Case 1}
+
+\subsubsection{TCP Reno}
+
+\subsubsection{TCP Fast}
+
+\subsection{Test Case 2}
+
+\subsubsection{TCP Reno}
+
+\subsubsection{TCP Fast}
+
+\section{Timeline \& Division of Labor}
+
+\subsection{Timeline}
+
+\begin{description}
+  \item[$\bullet$ Weeks 4-6:] Completed initial architecture design of simulator and initial implementation of a few simulator classes, such as Packet and Link classes
+  \item[$\bullet$ Weeks 7-8:] Completed initial implementation of all class in the simulator, started debugging Router and Flow classes 
+  \item[$\bullet$ Week 9:] Finished debugging fundamental architecture for simulator, started work on implementing and debugging TCP Reno congestion control
+  \item[$\bullet$ Week 10:] Finished implementation of TCP Reno Congestion Control, debugging metric tracking
+  \item[$\bullet$ Week 11:] Finished implementation of TCP Fast, finished report and presentation
+\end{description}
+
+\subsection{Division of Labor}
+
+\begin{description}
+	\item[$\bullet$ Rafael Fueyo-Gomez:] Initial architecture design, routers, flow, congestion control (TCP Reno and TCP Fast)
+	\item[$\bullet$ Cortland Perry:] Initial architecture design, routers, congestion control (TCP Fast)
+	\item[$\bullet$ Kelsi Riley:] Initial architecture design, initial implementation, metric tracking, congestion control (TCP Fast)
+	\item[$\bullet$ Sakthi Vetrivel:] Initial architecture design, flows, congestion control (TCP Reno), report \& presentation slides
+\end{description}
+
+\end{document}
