@@ -168,7 +168,7 @@ class Simulator:
         # For every dt
         for i in range(100000):
 
-            # Send packs from links
+            # Send packets from links
             for link in globals.idmapping['links'].values():
                 link.update_link_statistics()
                 link.send_packet()

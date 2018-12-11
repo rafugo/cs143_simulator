@@ -26,10 +26,9 @@ class Router:
     def receive_packet(self, packet, linkid):
         # Perform different actions depending on what type of packet is sent to the router
         if (packet.is_handshake()):
-            # Send back an awknoledgement packet if it recieves a handshake
+            # Send back an acknoledgement packet if it recieves a handshake
             data = self.id
             ack = Packet(self.id, None, packet.get_source(), None, globals.HANDSHAKEACK, data = data)
-            # print ("HANDSHAKE RECIEVED")
             # Add the acknowledgement packet to the buffer on the link that sent the data
             globals.idmapping['links'][linkid].add_to_buffer(ack, self.id)
 
@@ -48,7 +47,7 @@ class Router:
         link_path = self.routing_table.get(packet.get_destination())
         globals.idmapping['links'][link_path].add_to_buffer(packet, self.id)
         
-    # Send the initial handshake packet to the adjacent routers and to determine which nodes are connected
+    # Send the initial handshake packet to the adjacent routers to determine which nodes are connected
     def send_handshake(self):
         # Define the handshake packet with the router id as its data
         handshake_packet = Packet(self.id, None, None, None, globals.HANDSHAKEPACKET, data = self.id)
@@ -87,7 +86,6 @@ class Router:
             link.get_effective_rate(other_router)])
 
         if self.handshakes_acked == len(self.links):
-            # print ("sending link state array for router: ", self.id)
             self.recalc_link_state()
             self.handshakes_acked = 0
 
@@ -95,7 +93,7 @@ class Router:
     def receive_link_state(self, state_array_actual):
         state_array = state_array_actual.copy()
         is_updated = False
-
+        
         for value in state_array:
             if self.id in (value[0], value[1]):
                 state_array.remove(value)
@@ -107,7 +105,6 @@ class Router:
                     in_array = True     
                     if(value[3] != item[3]):
                         value[3] = item[3]
-                        # print ("went in this")
                         is_updated = True
 
             if in_array == False:
