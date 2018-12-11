@@ -3,8 +3,10 @@ import globals
 from host import Host
 from link import Link
 from packet import Packet
+from flow_fast import Flow_FAST
 from router import Router
 from flow_reno import Flow
+
 import json
 from pprint import pprint
 
@@ -64,9 +66,15 @@ class Simulator:
             # Clear the variable
             flow = None
 
-            # Add to idmapping
-            flow = Flow(f['id'], f['source'], f['destination'], f['amount'], \
-                f['start'], f['congestion_control'], f['track'] == 1)
+            # add to idmapping
+            if f['congestion_control'] == 'reno':
+                flow = Flow(f['id'], f['source'], f['destination'], f['amount'], \
+                    f['start'], f['congestion_control'], f['track'] == 1)
+            else:
+                flow = Flow_FAST(f['id'], f['source'], f['destination'], f['amount'], \
+                    f['start'], f['congestion_control'], f['track'] == 1)
+
+
             globals.idmapping['flows'][f['id']] = flow
 
     # Plots metrics based on data collected while the simulations was running
@@ -158,7 +166,7 @@ class Simulator:
 
         # Run the simulation for so many dt's
         # For every dt
-        for i in range(250000): 
+        for i in range(100000):
 
             # Send packets from links
             for link in globals.idmapping['links'].values():

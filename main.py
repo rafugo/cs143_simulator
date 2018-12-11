@@ -12,6 +12,7 @@ now = time.clock()
 # Initialize all the global variables
 globals.initialize()
 
+
 # Without smoothing of buffer size: 422.254539 seconds
 # Create the simulator with the given filename
 if (len(sys.argv) < 2):
@@ -21,6 +22,7 @@ try:
     sim = Simulator(sys.argv[1])
 except:
     sys.exit("Please check the format of your input file.")
+    
 sim.run()
 print("The simulation finished.")
 sim.plot_metrics2()
