@@ -126,14 +126,14 @@ class Flow_FAST:
             print(globals.systime)
             sys.exit()
 
-        
+
 
         # if we finished the current rtt window
         if self.rtt_interval_time >= self.rtt_interval_size:
 
             # we are in a new interval
             if self.rtt_interval == 1:
-                
+
                 self.rtt_interval = 2
 
                 self.rtt_interval_time = 0
@@ -149,14 +149,14 @@ class Flow_FAST:
                     self.actual_packets_received = 0
 
 
-                # if we didnt reach the goal window exactly, make sure we 
+                # if we didnt reach the goal window exactly, make sure we
                 # reach it (this should def not be a big jump...)
                 if self.state == 'congestion_avoidance' and \
                         self.goal_window != self.window_size:
                     self.window_size = self.goal_window
 
             else:
-                
+
                 # if everything is swell
                 self.rtt_interval = 1
                 self.rtt_interval_time = 0
@@ -184,7 +184,7 @@ class Flow_FAST:
                         (self.next_window - self.window_size) / (self.rtt / globals.dt)
 
                     self.goal_window = self.next_window
-                
+
 
 
         else:
@@ -195,7 +195,7 @@ class Flow_FAST:
                 # if it's not the frozen interval
                 self.window_size += self.window_increment
 
-            
+
 
         # send any available packets
         self.send_packets()
@@ -266,10 +266,10 @@ class Flow_FAST:
         # Time to do some metric tracking
         self.track_metrics(p)
         return
-        
+
 
     def process_ack_ss(self, p):
-        
+
         # only double window size if in the first rtt window
         if self.rtt_interval == 1:
             self.window_size += 1
@@ -305,7 +305,7 @@ class Flow_FAST:
         self.duplicate_count += 1
 
         if self.state != 'fast_recovery' and self.duplicate_count == 3:
-            
+
             self.state = 'fast_recovery'
 
             # retransmit
@@ -314,7 +314,7 @@ class Flow_FAST:
             # window modifications
             self.ssthresh = self.window_size / 2
             self.window_size = self.ssthresh + 3
-            
+
             self.states_tracker.append((self.state, globals.systime))
 
 
@@ -324,7 +324,7 @@ class Flow_FAST:
             # send any packets we can send
             self.send_packets()
 
-        
+
     # gets called every dt
     def send_packets(self):
         # if we have timed out (not recently)
@@ -417,18 +417,42 @@ class Flow_FAST:
                 self.added = True
                 rate = 0
                 assert globals.systime >= self.start
-                if (len(self.frsteps) < self.frwindow/globals.dt):
+
+                if (True):
                     self.frsteps.append(globals.PACKETSIZE)
-                    if (globals.systime != self.start ):
-                        rate = sum(self.frsteps)/(globals.systime - self.start)
+                    if (len(self.frsteps) <= self.frwindow/globals.dt):
+                        if (globals.systime != self.start ):
+                            rate = sum(self.frsteps)/(globals.systime - self.start)
+                    else:
+                        self.frsteps.pop(0)
+                        rate = sum(self.frsteps)/(self.frwindow)
+
+                    key = self.id + ":" + globals.FLOWRATE
+                    globals.statistics[key][globals.systime] = rate
+
                 else:
-                    self.frsteps.pop(0)
-                    rate = sum(self.frsteps)/(self.frwindow)
+                    self.frsteps.append(0)
+                    link = globals.idmapping['links'][self.source.linkid]
+                    linkrate = link.rate
+                    transmission_time = globals.PACKETSIZE/link.rate
+                    if (len(self.frsteps) <= self.frwindow/globals.dt):
+                        segments = min(len(self.frsteps), transmission_time/globals.dt)
+                        segments = math.ceil(segments)
+                        for i in range(segments):
+                            self.frsteps[len(self.frsteps)-1-i] += float(globals.PACKETSIZE)/segments
+                        if (globals.systime != self.start):
+                            rate = sum(self.frsteps)/(globals.systime - self.start)
+                    else:
+                        self.frsteps.pop(0)
+                        segments = min(len(self.frsteps), transmission_time/globals.dt)
+                        segments = math.ceil(segments)
+                        for i in range(segments):
+                            self.frsteps[len(self.frsteps)-1-i] += float(globals.PACKETSIZE)/segments
+                        rate = sum(self.frsteps)/(self.frwindow)
+                    key = self.id + ":" + globals.FLOWRATE
+                    globals.statistics[key][globals.systime] = rate
 
-                key = self.id + ":" + globals.FLOWRATE
-                globals.statistics[key][globals.systime] = rate
-
-
+    # Update the flow statistics for metric tracking
     def update_flow_statistics(self):
         if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
             rate = 0
@@ -441,7 +465,6 @@ class Flow_FAST:
                 rate = sum(self.frsteps)/(self.frwindow)
 
             key = self.id + ":" + globals.FLOWRATE
-            #print("STORING FLOW RATE")
             globals.statistics[key][globals.systime] = rate
 
         if (self.track and globals.WINDOWSIZE in globals.FLOWMETRICS):
