@@ -40,7 +40,7 @@ class Link:
         # converts delay from ms to s
         self.delay = delay * globals.MSTOS
         self.id = linkid
-        self.rate = rate
+        self.rate = rate * globals.MEGABITSTOBITS
 
         # variables for metric tracking
         self.droppedpackets = 0
