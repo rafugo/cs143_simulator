@@ -146,7 +146,7 @@
           "destination": "H1",
           "amount": 35,
           "start": 0.5,
-          "congestion_control": "nope",
+          "congestion_control": "reno",
           "track" : 1
       },
       {
@@ -155,7 +155,7 @@
           "destination": "H3",
           "amount": 15,
           "start": 10,
-          "congestion_control": "nope",
+          "congestion_control": "reno",
           "track" : 1
       },
       {
@@ -164,7 +164,7 @@
           "destination": "H5",
           "amount": 30,
           "start": 20,
-          "congestion_control": "nope",
+          "congestion_control": "reno",
           "track" : 1
       }
     ]

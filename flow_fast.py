@@ -7,7 +7,7 @@ from router import Router
 
 class Flow_FAST:
     def __init__(self, id, source, destination, amount,\
-                    start, congestion_control, track=True):
+                    start, track=True):
         # current size of the window used for the congestion controller
         self.window_size = 1
         self.window_start = 0

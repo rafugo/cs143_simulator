@@ -18,10 +18,8 @@ globals.initialize()
 if (len(sys.argv) < 2):
     sys.exit("Please include the input file as an argument.\n example: \
         python3 main.py test_case1.json")
-try:
-    sim = Simulator(sys.argv[1])
-except:
-    sys.exit("Please check the format of your input file.")
+
+sim = Simulator(sys.argv[1])
     
 sim.run()
 print("The simulation finished.")

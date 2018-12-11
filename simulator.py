@@ -69,10 +69,10 @@ class Simulator:
             # add to idmapping
             if f['congestion_control'] == 'reno':
                 flow = Flow(f['id'], f['source'], f['destination'], f['amount'], \
-                    f['start'], f['congestion_control'], f['track'] == 1)
+                    f['start'], f['track'] == 1)
             else:
                 flow = Flow_FAST(f['id'], f['source'], f['destination'], f['amount'], \
-                    f['start'], f['congestion_control'], f['track'] == 1)
+                    f['start'], f['track'] == 1)
 
 
             globals.idmapping['flows'][f['id']] = flow
@@ -166,7 +166,7 @@ class Simulator:
 
         # Run the simulation for so many dt's
         # For every dt
-        for i in range(100000):
+        for i in range(200000):
 
             # Send packets from links
             for link in globals.idmapping['links'].values():
