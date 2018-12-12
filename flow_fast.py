@@ -61,7 +61,7 @@ class Flow_FAST:
         self.next_cut_time = 0
         # Variables for metric tracking
         self.track = track
-        self.frwindow = 20000 * globals.dt
+        self.frwindow = 1000 * globals.dt
         self.frsteps = []
         self.rttwindow = 20000 * globals.dt
         self.rttsteps = []
@@ -310,6 +310,7 @@ class Flow_FAST:
 
             # retransmit
             self.source.send_packet(self.packets[p.data])
+            self.dup_count[p.data] = self.dup_count[p.data] + 1
 
             # window modifications
             self.ssthresh = self.window_size / 2
@@ -457,7 +458,7 @@ class Flow_FAST:
         if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
             rate = 0
             self.frsteps.append(0)
-            if (len(self.frsteps) < self.frwindow/globals.dt):
+            if (len(self.frsteps) <= self.frwindow/globals.dt):
                 if (globals.systime > self.start):
                     rate = sum(self.frsteps)/(globals.systime - self.start)
             else:
