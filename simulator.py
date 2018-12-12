@@ -11,11 +11,11 @@ import json
 from pprint import pprint
 
 # This class runs a simulation of a network with a certain congestion
-# control algorithm.
+# control algorithm. 
 class Simulator:
     """
     This function initializes a simulator object by loading the input
-    file and creating the objects according to their specifications.
+    file and creating the objects according to their specifications. 
     Input arguments:
         - filename : name of the input file
     Attributes:
@@ -85,12 +85,12 @@ class Simulator:
         for t in all_metrics:
             legend = []
             plot.figure(figsize = (12,4.5))
-            print(t)
             for s in globals.statistics.keys():
                 x = []
                 y = []
                 lines = 0
                 dict = globals.statistics[s]
+                print(s)
                 name = s.split(":")
                 name.pop()
                 name = ":".join(name)
@@ -132,7 +132,7 @@ class Simulator:
                     lines = plot.plot(x,y)
                     plot.ylabel("flow rate (in Mbps)")
                     legend.append(name)
-
+                
                 # Plot window size
                 if globals.WINDOWSIZE in s and globals.WINDOWSIZE == t:
                     for key in sorted(dict.keys()):
@@ -150,7 +150,6 @@ class Simulator:
                     lines = plot.plot(x,y)
                     plot.ylabel("round trip time (in seconds)")
                     legend.append(name)
-
                 if (lines != 0):
                     plot.setp(lines, linewidth = 0.5)
                     plot.xlabel("time (in seconds)")
@@ -161,14 +160,14 @@ class Simulator:
             plot.gcf().clear()
 
     # Function to actually run the simulator
-    def run(self):
+    def run(self, runtime):
         # Make handshakes to learn routing table
         for router in globals.idmapping['routers'].values():
             router.send_handshake()
 
         # Run the simulation for so many dt's
         # For every dt
-        for i in range(200000):
+        for i in range(runtime):
 
             # Send packets from links
             for link in globals.idmapping['links'].values():
@@ -192,3 +191,5 @@ class Simulator:
 
         for flow in globals.idmapping['flows'].values():
             print(flow.states_tracker)
+
+
