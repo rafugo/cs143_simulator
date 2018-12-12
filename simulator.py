@@ -157,7 +157,7 @@ class Simulator:
             plot.title(t)
             plot.legend(legend)
             filename = self.filename.split(".")[0]
-            plot.savefig(t+" "+filename)
+            plot.savefig(filename+" "+t)
             plot.gcf().clear()
 
     # Function to actually run the simulator
@@ -168,7 +168,7 @@ class Simulator:
 
         # Run the simulation for so many dt's
         # For every dt
-        for i in range(700000):
+        for i in range(200000):
 
             # Send packets from links
             for link in globals.idmapping['links'].values():
