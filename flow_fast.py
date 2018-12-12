@@ -471,17 +471,17 @@ class Flow_FAST:
             key = self.id + ":" + globals.WINDOWSIZE
             globals.statistics[key][globals.systime] = self.window_size
 
-        if  (self.track and globals.FLOWRTT in globals.FLOWMETRICS) and globals.SMOOTH:
-            avgrtt = 0
+        if  (self.track and globals.FLOWRTT in globals.FLOWMETRICS) and self.setRTT: #globals.SMOOTH:
+            """avgrtt = 0
             if (self.setRTT):
                 self.rttsteps.append(self.rtt)
                 if (len(self.rttsteps) < self.rttwindow/globals.dt) and globals.systime > 0:
                     avgrtt = sum(self.rttsteps)/(globals.systime) * globals.dt
                 else:
                     self.rttsteps.pop(0)
-                    avgrtt = sum(self.rttsteps)/(self.rttwindow) * globals.dt
-                key = self.id + ":" + globals.FLOWRTT
-                globals.statistics[key][globals.systime] = avgrtt
+                    avgrtt = sum(self.rttsteps)/(self.rttwindow) * globals.dt"""
+            key = self.id + ":" + globals.FLOWRTT
+            globals.statistics[key][globals.systime] = self.rtt
 
         self.added = False
 

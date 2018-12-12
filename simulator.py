@@ -156,7 +156,8 @@ class Simulator:
                     plot.xlabel("time (in seconds)")
             plot.title(t)
             plot.legend(legend)
-            plot.savefig(t)
+            filename = self.filename.split(".")[0]
+            plot.savefig(t+" "+filename)
             plot.gcf().clear()
 
     # Function to actually run the simulator
