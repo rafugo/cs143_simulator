@@ -261,6 +261,7 @@ class HalfLink:
                     next_packet_size = self.buffer[0].get_size()
                     self.next_packet_send_time = globals.systime + \
                         next_packet_size * (1/self.rate)
+                    bitstransmitted = globals.dt * self.rate
 
                 # the buffer is empty so we will just set the time to try to
                 # send the next packet to be the next time step.

@@ -17,7 +17,7 @@
             "rate" : 12.5,
             "delay" : 10,
             "buffersize" : 64,
-            "track1" : 1,
+            "track1" : 0,
             "track2" : 0
         },
         {

@@ -31,7 +31,7 @@
             "destination": "H2",
             "amount": 20,
             "start": 1,
-            "congestion_control": "fast",
+            "congestion_control": "reno",
             "track" : 1
         }
     ]

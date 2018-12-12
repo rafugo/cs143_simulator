@@ -18,7 +18,7 @@ class Flow:
             - amount (int): number of Megabytes to be sent
             - track (bool): used in determining if metrics should be tracked
 
-        Attributes: 
+        Attributes:
             - window_size (float) : size of the window used for sending packets
             - window_start (int) : packet number to start sending form
             - FR (int) : packet id of packet sent during fast recovery
@@ -47,13 +47,13 @@ class Flow:
 
             Variables for metric tracking:
             TODO: @Kelsi can you fill this in?
-            - track 
-            - frwindow 
-            - frsteps 
+            - track
+            - frwindow
+            - frsteps
             - rttwindow
             - rttsteps
-            - added 
-            - successfullytransmitted 
+            - added
+            - successfullytransmitted
         '''
         self.window_size = 1
         self.window_start = 0
@@ -127,7 +127,7 @@ class Flow:
         # Send any available packets otherwise
         self.send_packets()
 
-    # Process an acknowledgement once received 
+    # Process an acknowledgement once received
     def process_ack(self, p):
         # If we've received the acknowledgment for the last packet
         if p.data >= self.amount:
@@ -193,6 +193,7 @@ class Flow:
 
             # Retransmit the dropped packet
             self.source.send_packet(self.packets[p.data])
+            self.dup_count[p.data] = self.dup_count[p.data] + 1
             self.window_size = self.ssthresh + 3
             self.state = 'fast_recovery'
             self.states_tracker.append((self.state, globals.systime))
@@ -217,7 +218,7 @@ class Flow:
             self.next_cut_time = globals.systime + self.rto
             self.states_tracker.append((self.state, globals.systime))
 
-            # Retransmit timed out packet and update send times and 
+            # Retransmit timed out packet and update send times and
             #    dup_count
             self.source.send_packet(self.packets[self.window_start])
             self.send_times[self.window_start] = globals.systime
@@ -326,17 +327,17 @@ class Flow:
             key = self.id + ":" + globals.WINDOWSIZE
             globals.statistics[key][globals.systime] = self.window_size
 
-        if  (self.track and globals.FLOWRTT in globals.FLOWMETRICS) and globals.SMOOTH:
-            avgrtt = 0
+        if  (self.track and globals.FLOWRTT in globals.FLOWMETRICS) and self.setRTT: #globals.SMOOTH:
+            '''avgrtt = 0
             if (self.setRTT):
                 self.rttsteps.append(self.rtt)
                 if (len(self.rttsteps) < self.rttwindow/globals.dt) and globals.systime > 0:
                     avgrtt = sum(self.rttsteps)/(globals.systime) * globals.dt
                 else:
                     self.rttsteps.pop(0)
-                    avgrtt = sum(self.rttsteps)/(self.rttwindow) * globals.dt
-                key = self.id + ":" + globals.FLOWRTT
-                globals.statistics[key][globals.systime] = avgrtt
+                    avgrtt = sum(self.rttsteps)/(self.rttwindow) * globals.dt'''
+            key = self.id + ":" + globals.FLOWRTT
+            globals.statistics[key][globals.systime] = self.rtt
 
         self.added = False
 
