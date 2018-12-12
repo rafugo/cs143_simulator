@@ -456,7 +456,7 @@ class Flow_FAST:
 
     # Update the flow statistics for metric tracking
     def update_flow_statistics(self):
-        if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
+        if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS) and (not self.done):
             rate = 0
             self.frsteps.append(0)
             if (len(self.frsteps) <= self.frwindow/globals.dt):
@@ -469,11 +469,11 @@ class Flow_FAST:
             key = self.id + ":" + globals.FLOWRATE
             globals.statistics[key][globals.systime] = rate
 
-        if (self.track and globals.WINDOWSIZE in globals.FLOWMETRICS):
+        if (self.track and globals.WINDOWSIZE in globals.FLOWMETRICS) and (not self.done):
             key = self.id + ":" + globals.WINDOWSIZE
             globals.statistics[key][globals.systime] = self.window_size
 
-        if  (self.track and globals.FLOWRTT in globals.FLOWMETRICS) and self.setRTT: #globals.SMOOTH:
+        if  (self.track and globals.FLOWRTT in globals.FLOWMETRICS) and self.setRTT and (not self.done): #globals.SMOOTH:
             """avgrtt = 0
             if (self.setRTT):
                 self.rttsteps.append(self.rtt)

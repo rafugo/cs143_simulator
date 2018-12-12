@@ -24,6 +24,8 @@ def initialize():
         'flows' : {}
     }
 
+
+    # Conversion constants.
     global MEGABITSTOBITS
     MEGABITSTOBITS = 10**6
 
@@ -41,6 +43,9 @@ def initialize():
 
     global BITSTOKILOBITS
     BITSTOKILOBITS = 10**(-3)
+
+    global PRESENTATIONMODE
+    PRESENTATIONMODE = True
 
     global SMOOTH
     SMOOTH = True

@@ -1,7 +1,7 @@
 # This is the main script that runs the simulator class and holds all
 # the variables.
-import sys 
-import globals 
+import sys
+import globals
 import time
 # Supressing warnings about time clock being deprecated for higher versions of Python3
 import warnings
@@ -20,7 +20,7 @@ if (len(sys.argv) < 2):
         python3 main.py test_case1.json")
 
 sim = Simulator(sys.argv[1])
-    
+
 sim.run()
 print("The simulation finished.")
 sim.plot_metrics2()

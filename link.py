@@ -44,9 +44,10 @@ class Link:
 
         # Variables for metric tracking
         self.droppedpackets = 0
+        self.droppedpacketscounted = False
         self.track = (track1 or track2)
         # Sets up the dictionaries to track all necessary statistics for this
-            # link
+        # link
         if (self.track):
             for m in globals.LINKMETRICS:
                 globals.statistics[linkid+":"+m] = {}
@@ -55,8 +56,10 @@ class Link:
     def get_delay(self):
         return self.delay
 
+
     def get_effective_rate(self, sender):
         return self.links[sender].get_effective_rate()
+
 
     def add_to_buffer(self, packet, sender):
         """This function adds a packet to the buffer on the appropriate side of
@@ -69,22 +72,19 @@ class Link:
         # If added is 0, we added 0 bytes to the link buffer, so the packet was
         # dropped.
         if (added == 0):
-            if packet.is_ack == True:
-              print("dropped ACK for ". packet.packetid)
-            else:
-              print("dropped packet: ", packet.packetid)
             self.droppedpackets = self.droppedpackets + 1
 
         # If we are tracking this link and one of the metrics we are tracking
         # is packet loss, it updates the dictionary associated with this
         # link's packet loss metrics.
         if (added == 0) and (self.track and globals.PACKETLOSS in globals.LINKMETRICS):
+            self.droppedpacketscounted = True
             key = self.id + ":" + globals.PACKETLOSS
             globals.statistics[key][globals.systime] = self.droppedpackets
             # If the previous time was valid, update the dictionary to show
             # how many packets had been dropped at the previous time step.
-            if (globals.systime > 0):
-                globals.statistics[key][globals.systime-globals.dt] = self.droppedpackets -1
+            #if (globals.systime > 0):
+            #    globals.statistics[key][globals.systime-globals.dt] = self.droppedpackets -1
 
 
     def send_packet(self):
@@ -96,6 +96,11 @@ class Link:
     def update_link_statistics(self):
         for link in self.links.values():
             link.update_link_statistics()
+        if (not self.droppedpacketscounted) and (self.track and globals.PACKETLOSS in globals.LINKMETRICS):
+            key = self.id + ":" + globals.PACKETLOSS
+            globals.statistics[key][globals.systime] = self.droppedpackets
+        self.droppedpacketscounted = False
+        self.droppedpackets = 0
 
 
 # This class will represent one direction of the Link. (i.e. all packets

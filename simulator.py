@@ -79,6 +79,9 @@ class Simulator:
 
     # Plots metrics based on data collected while the simulations was running
     def plot_metrics2(self):
+        if (globals.PRESENTATIONMODE):
+            plot.rcParams.update({'font.size' : 16})
+            plot.tight_layout()
         # Access all metrics
         all_metrics = globals.LINKMETRICS + globals.HALFLINKMETRICS + globals.FLOWMETRICS
         # For every timestep
@@ -152,12 +155,18 @@ class Simulator:
                     legend.append(name)
 
                 if (lines != 0):
-                    plot.setp(lines, linewidth = 0.5)
+                    if globals.PRESENTATIONMODE:
+                        plot.setp(lines, linewidth = 1)
+                    else:
+                        plot.setp(lines, linewidth = 0.5)
                     plot.xlabel("time (in seconds)")
             plot.title(t)
             plot.legend(legend)
-            filename = self.filename.split(".")[0]
-            plot.savefig(filename+" "+t)
+            plotname = self.filename.split(".")[0] + " " + t
+            if globals.PRESENTATIONMODE:
+                plotname = plotname + " presentation"
+
+            plot.savefig(plotname, bbox_inches = "tight")
             plot.gcf().clear()
 
     # Function to actually run the simulator
@@ -168,7 +177,8 @@ class Simulator:
 
         # Run the simulation for so many dt's
         # For every dt
-        for i in range(800000):
+        # 800,000 for test case 2
+        for i in range(200000):
 
             # Send packets from links
             for link in globals.idmapping['links'].values():
