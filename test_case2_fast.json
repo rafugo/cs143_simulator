@@ -153,8 +153,8 @@
           "id": "F2",
           "source": "H2",
           "destination": "H3",
-          "amount": 15,
-          "start": 10,
+          "amount": 30,
+          "start": 20,
           "congestion_control": "fast",
           "track" : 1
       },
@@ -163,7 +163,7 @@
           "source": "H4",
           "destination": "H5",
           "amount": 30,
-          "start": 20,
+          "start": 40,
           "congestion_control": "fast",
           "track" : 1
       }

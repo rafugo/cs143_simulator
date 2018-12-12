@@ -205,6 +205,7 @@ class Flow_FAST:
         # if we done, we done
         if p.data >= self.amount:
             self.done = True
+            print("flow 3 ended at time ", globals.systime)
             return
 
         # we received a packet so count it in our interval
