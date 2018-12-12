@@ -168,7 +168,7 @@ class Simulator:
 
         # Run the simulation for so many dt's
         # For every dt
-        for i in range(200000):
+        for i in range(700000):
 
             # Send packets from links
             for link in globals.idmapping['links'].values():
