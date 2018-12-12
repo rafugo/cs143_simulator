@@ -1,0 +1,47 @@
+{
+    "hosts": [
+        {
+            "id": "H1",
+            "linkid" : "L1"
+        },
+        {
+            "id": "H2",
+            "linkid" : "L1"
+        }
+    ],
+    "links": [
+        {
+            "id": "L1",
+            "connection1" : "H1",
+            "connection2" : "H2",
+            "rate" : 10,
+            "delay" : 10,
+            "buffersize" : 64,
+            "track1" : 1,
+            "track2" : 0
+        }
+    ],
+    "routers": [
+        {}
+    ],
+    "flows": [
+        {
+            "id": "F1",
+            "source": "H1",
+            "destination": "H2",
+            "amount": 40,
+            "start": 1,
+            "congestion_control": "reno",
+            "track" : 1
+        },
+        {
+            "id": "F2",
+            "source": "H2",
+            "destination": "H1",
+            "amount": 40,
+            "start": 1,
+            "congestion_control": "fast",
+            "track" : 1
+        }
+    ]
+}
