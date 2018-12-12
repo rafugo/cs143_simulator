@@ -63,8 +63,8 @@
             "rate" : 10.0,
             "delay" : 10,
             "buffersize" : 128,
-            "track1" : 0,
-            "track2" : 1
+            "track1" : 1,
+            "track2" : 0
         },
         {
             "id": "L4",
@@ -144,7 +144,7 @@
           "id": "F1",
           "source": "H0",
           "destination": "H1",
-          "amount": 35,
+          "amount": 40,
           "start": 0.5,
           "congestion_control": "reno",
           "track" : 1
@@ -153,8 +153,8 @@
           "id": "F2",
           "source": "H2",
           "destination": "H3",
-          "amount": 15,
-          "start": 10,
+          "amount": 23,
+          "start": 30,
           "congestion_control": "reno",
           "track" : 1
       },
@@ -163,7 +163,7 @@
           "source": "H4",
           "destination": "H5",
           "amount": 30,
-          "start": 20,
+          "start": 40,
           "congestion_control": "reno",
           "track" : 1
       }

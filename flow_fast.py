@@ -61,7 +61,7 @@ class Flow_FAST:
         self.next_cut_time = 0
         # Variables for metric tracking
         self.track = track
-        self.frwindow = 20000 * globals.dt
+        self.frwindow = 1000 * globals.dt
         self.frsteps = []
         self.rttwindow = 20000 * globals.dt
         self.rttsteps = []
@@ -205,6 +205,7 @@ class Flow_FAST:
         # if we done, we done
         if p.data >= self.amount:
             self.done = True
+            print("flow 3 ended at time ", globals.systime)
             return
 
         # we received a packet so count it in our interval
@@ -310,6 +311,7 @@ class Flow_FAST:
 
             # retransmit
             self.source.send_packet(self.packets[p.data])
+            self.dup_count[p.data] = self.dup_count[p.data] + 1
 
             # window modifications
             self.ssthresh = self.window_size / 2
@@ -457,7 +459,7 @@ class Flow_FAST:
         if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
             rate = 0
             self.frsteps.append(0)
-            if (len(self.frsteps) < self.frwindow/globals.dt):
+            if (len(self.frsteps) <= self.frwindow/globals.dt):
                 if (globals.systime > self.start):
                     rate = sum(self.frsteps)/(globals.systime - self.start)
             else:
@@ -471,17 +473,17 @@ class Flow_FAST:
             key = self.id + ":" + globals.WINDOWSIZE
             globals.statistics[key][globals.systime] = self.window_size
 
-        if  (self.track and globals.FLOWRTT in globals.FLOWMETRICS) and globals.SMOOTH:
-            avgrtt = 0
+        if  (self.track and globals.FLOWRTT in globals.FLOWMETRICS) and self.setRTT: #globals.SMOOTH:
+            """avgrtt = 0
             if (self.setRTT):
                 self.rttsteps.append(self.rtt)
                 if (len(self.rttsteps) < self.rttwindow/globals.dt) and globals.systime > 0:
                     avgrtt = sum(self.rttsteps)/(globals.systime) * globals.dt
                 else:
                     self.rttsteps.pop(0)
-                    avgrtt = sum(self.rttsteps)/(self.rttwindow) * globals.dt
-                key = self.id + ":" + globals.FLOWRTT
-                globals.statistics[key][globals.systime] = avgrtt
+                    avgrtt = sum(self.rttsteps)/(self.rttwindow) * globals.dt"""
+            key = self.id + ":" + globals.FLOWRTT
+            globals.statistics[key][globals.systime] = self.rtt
 
         self.added = False
 

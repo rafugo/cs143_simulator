@@ -18,7 +18,7 @@
             "delay" : 10,
             "buffersize" : 64,
             "track1" : 1,
-            "track2" : 1
+            "track2" : 0
         }
     ],
     "routers": [
@@ -31,7 +31,7 @@
             "destination": "H2",
             "amount": 20,
             "start": 1,
-            "congestion_control": "fast",
+            "congestion_control": "reno",
             "track" : 1
         }
     ]

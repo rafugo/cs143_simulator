@@ -11,11 +11,11 @@ import json
 from pprint import pprint
 
 # This class runs a simulation of a network with a certain congestion
-# control algorithm. 
+# control algorithm.
 class Simulator:
     """
     This function initializes a simulator object by loading the input
-    file and creating the objects according to their specifications. 
+    file and creating the objects according to their specifications.
     Input arguments:
         - filename : name of the input file
     Attributes:
@@ -85,12 +85,12 @@ class Simulator:
         for t in all_metrics:
             legend = []
             plot.figure(figsize = (12,4.5))
+            print(t)
             for s in globals.statistics.keys():
                 x = []
                 y = []
                 lines = 0
                 dict = globals.statistics[s]
-                print(s)
                 name = s.split(":")
                 name.pop()
                 name = ":".join(name)
@@ -132,7 +132,7 @@ class Simulator:
                     lines = plot.plot(x,y)
                     plot.ylabel("flow rate (in Mbps)")
                     legend.append(name)
-                
+
                 # Plot window size
                 if globals.WINDOWSIZE in s and globals.WINDOWSIZE == t:
                     for key in sorted(dict.keys()):
@@ -150,12 +150,14 @@ class Simulator:
                     lines = plot.plot(x,y)
                     plot.ylabel("round trip time (in seconds)")
                     legend.append(name)
+
                 if (lines != 0):
                     plot.setp(lines, linewidth = 0.5)
                     plot.xlabel("time (in seconds)")
             plot.title(t)
             plot.legend(legend)
-            plot.savefig(t)
+            filename = self.filename.split(".")[0]
+            plot.savefig(filename+" "+t)
             plot.gcf().clear()
 
     # Function to actually run the simulator
