@@ -48,7 +48,7 @@ def initialize():
     PRESENTATIONMODE = True
 
     global SMOOTH
-    SMOOTH = True
+    SMOOTH = False
 
     global statistics
     statistics = {}
