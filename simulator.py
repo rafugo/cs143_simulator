@@ -87,7 +87,7 @@ class Simulator:
             for (id, flow) in globals.idmapping['flows'].items():
                 if flow.track and flow.source == host:
                     if not tracking:
-                        dict = globals.statistics[id+":"+globals.FLOWRATE]
+                        dict = globals.statistics[id+":"+globals.FLOWRATE].copy()
                         tracking = True
                     else:
                         newdict = globals.statistics[id+":"+globals.FLOWRATE]
@@ -101,13 +101,14 @@ class Simulator:
 
 
     # Plots metrics based on data collected while the simulations was running
-    def plot_metrics2(self):
+    def plot_metrics(self):
         self.prepare_host_metrics()
         if (globals.PRESENTATIONMODE):
             plot.rcParams.update({'font.size' : 12})
             plot.tight_layout()
         # Access all metrics
-        all_metrics = globals.LINKMETRICS + globals.HALFLINKMETRICS + globals.FLOWMETRICS + [globals.HOSTFLOWRATE]
+        all_metrics = globals.LINKMETRICS + globals.HALFLINKMETRICS + \
+                      globals.FLOWMETRICS + [globals.HOSTFLOWRATE]
         # For every timestep
         for t in all_metrics:
             legend = []

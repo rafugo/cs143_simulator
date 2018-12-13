@@ -28,7 +28,7 @@ sim = Simulator(sys.argv[1], val)
 print("Starting simulation for", sys.argv[1], ", running for", sys.argv[2], "seconds.")
 sim.run()
 print("The simulation finished.")
-sim.plot_metrics2()
+sim.plot_metrics()
 end = time.clock()
 elapsed = end - now
 print("TIME ELAPSED: ")
