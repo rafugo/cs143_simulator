@@ -188,7 +188,8 @@ class Flow:
     def handle_dup_ack(self, p):
         self.duplicate_count += 1
         # Time to enter fast recovery
-        if self.state != 'fast_recovery' and self.duplicate_count == 3:
+        if self.state != 'fast_recovery' and self.duplicate_count == 3 and self.next_cut_time <= globals.systime:
+            print("Entering fast recovery at time: ", globals.systime, " window size: ", self.window_size)
             self.ssthresh = self.window_size / 2
 
             # Retransmit the dropped packet
@@ -197,6 +198,7 @@ class Flow:
             self.window_size = self.ssthresh + 3
             self.state = 'fast_recovery'
             self.states_tracker.append((self.state, globals.systime))
+            self.next_cut_time = globals.systime + self.rto
 
         # Window inflation
         elif self.state == 'fast_recovery':
@@ -209,6 +211,7 @@ class Flow:
         # if we have timed out (not recently)
         if globals.systime >= self.timeout_marker and \
             globals.systime >= self.next_cut_time:
+            print("timed out at time: ", globals.systime, "window size: ", self.window_size)
             # Enter slow_start
             self.ssthresh = self.window_size / 2
             self.window_size = 1
@@ -267,7 +270,7 @@ class Flow:
 
     # Track the metrics on the flow
     def track_metrics(self, p):
-        if (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
+        if (self.track and globals.FLOWRATE in globals.FLOWMETRICS and (not self.done)):
             if p.packetid not in self.successfullytransmitted.keys():
                 self.successfullytransmitted[p.packetid] = 1
                 self.added = True
@@ -310,7 +313,7 @@ class Flow:
 
     # Update the flow statistics for metric tracking
     def update_flow_statistics(self):
-        if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
+        if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS) and (not self.done):
             rate = 0
             self.frsteps.append(0)
             if (len(self.frsteps) < self.frwindow/globals.dt):
@@ -323,11 +326,11 @@ class Flow:
             key = self.id + ":" + globals.FLOWRATE
             globals.statistics[key][globals.systime] = rate
 
-        if (self.track and globals.WINDOWSIZE in globals.FLOWMETRICS):
+        if (self.track and globals.WINDOWSIZE in globals.FLOWMETRICS) and (not self.done):
             key = self.id + ":" + globals.WINDOWSIZE
             globals.statistics[key][globals.systime] = self.window_size
 
-        if  (self.track and globals.FLOWRTT in globals.FLOWMETRICS) and self.setRTT: #globals.SMOOTH:
+        if  (self.track and globals.FLOWRTT in globals.FLOWMETRICS) and self.setRTT and (not self.done): #globals.SMOOTH:
             '''avgrtt = 0
             if (self.setRTT):
                 self.rttsteps.append(self.rtt)

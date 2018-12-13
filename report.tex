@@ -127,6 +127,148 @@ For packet timeouts, we use a timeout marker. This timeout marker is based on th
 
 \subsubsection{TCP Fast}
 
+\section{Analysis}
+
+\subsection{Test Case 0}
+
+\subsubsection{TCP Reno}
+
+\includegraphics[width = \textwidth]{"test_case0_reno buffer occupancy"}
+
+\includegraphics[width = \textwidth]{"test_case0_reno flow rate"}
+
+\includegraphics[width = \textwidth]{"test_case0_reno flow RTT"}
+
+\includegraphics[width = \textwidth]{"test_case0_reno link rate"}
+
+\includegraphics[width = \textwidth]{"test_case0_reno packet loss"}
+
+\includegraphics[width = \textwidth]{"test_case0_reno window size"}
+
+
+
+\subsubsection{TCP Fast}
+
+\includegraphics[width = \textwidth]{"test_case0_fast buffer occupancy"}
+
+\includegraphics[width = \textwidth]{"test_case0_fast flow rate"}
+
+\includegraphics[width = \textwidth]{"test_case0_fast flow RTT"}
+
+\includegraphics[width = \textwidth]{"test_case0_fast link rate"}
+
+\includegraphics[width = \textwidth]{"test_case0_fast packet loss"}
+
+\includegraphics[width = \textwidth]{"test_case0_fast window size"}
+
+
+
+\subsection{Test Case 1}
+
+\subsubsection{TCP Reno}
+
+\includegraphics[width = \textwidth]{"test_case1_reno buffer occupancy"}
+
+\includegraphics[width = \textwidth]{"test_case1_reno flow rate"}
+
+\includegraphics[width = \textwidth]{"test_case1_reno flow RTT"}
+
+\includegraphics[width = \textwidth]{"test_case1_reno link rate"}
+
+\includegraphics[width = \textwidth]{"test_case1_reno packet loss"}
+
+\includegraphics[width = \textwidth]{"test_case1_reno window size"}
+
+
+
+\subsubsection{TCP Fast}
+
+\includegraphics[width = \textwidth]{"test_case1_fast buffer occupancy"}
+
+\includegraphics[width = \textwidth]{"test_case1_fast flow rate"}
+
+\includegraphics[width = \textwidth]{"test_case1_fast flow RTT"}
+
+\includegraphics[width = \textwidth]{"test_case1_fast link rate"}
+
+\includegraphics[width = \textwidth]{"test_case1_fast packet loss"}
+
+\includegraphics[width = \textwidth]{"test_case1_fast window size"}
+
+
+
+\subsection{Test Case 2}
+
+\subsubsection{TCP Reno}
+
+\includegraphics[width = \textwidth]{"test_case2_reno buffer occupancy"}
+
+\includegraphics[width = \textwidth]{"test_case2_reno flow rate"}
+
+\includegraphics[width = \textwidth]{"test_case2_reno flow RTT"}
+
+\includegraphics[width = \textwidth]{"test_case2_reno link rate"}
+
+\includegraphics[width = \textwidth]{"test_case2_reno packet loss"}
+
+\includegraphics[width = \textwidth]{"test_case2_reno window size"}
+
+
+
+\subsubsection{TCP Fast}
+
+\includegraphics[width = \textwidth]{"test_case2_fast buffer occupancy"}
+
+\includegraphics[width = \textwidth]{"test_case2_fast flow rate"}
+
+\includegraphics[width = \textwidth]{"test_case2_fast flow RTT"}
+
+\includegraphics[width = \textwidth]{"test_case2_fast link rate"}
+
+\includegraphics[width = \textwidth]{"test_case2_fast packet loss"}
+
+\includegraphics[width = \textwidth]{"test_case2_fast window size"}
+
+
+\subsection{Test Case 3} 
+
+\includegraphics[width = \textwidth]{"test_case3 buffer occupancy"}
+
+\includegraphics[width = \textwidth]{"test_case3 flow rate"}
+
+\includegraphics[width = \textwidth]{"test_case3 flow RTT"}
+
+\includegraphics[width = \textwidth]{"test_case3 link rate"}
+
+\includegraphics[width = \textwidth]{"test_case3 packet loss"}
+
+\includegraphics[width = \textwidth]{"test_case3 window size"}
+
+
+\subsection{Test Case 4}
+
+
+\includegraphics[width = \textwidth]{"test_case4 buffer occupancy"}
+
+\includegraphics[width = \textwidth]{"test_case4 flow rate"}
+
+\includegraphics[width = \textwidth]{"test_case4 flow RTT"}
+
+\includegraphics[width = \textwidth]{"test_case4 link rate"}
+
+\includegraphics[width = \textwidth]{"test_case4 packet loss"}
+
+\includegraphics[width = \textwidth]{"test_case4 window size"}
+
+
+
+
+\subsection{Test Case 5}
+
+
+\subsection{Our Test Case}
+
+
 \section{Timeline \& Division of Labor}
 
 \subsection{Timeline}
@@ -144,7 +286,7 @@ For packet timeouts, we use a timeout marker. This timeout marker is based on th
 \begin{description}
 	\item[$\bullet$ Rafael Fueyo-Gomez:] Initial architecture design, routers, flow, congestion control (TCP Reno and TCP Fast)
 	\item[$\bullet$ Cortland Perry:] Initial architecture design, routers, congestion control (TCP Fast)
-	\item[$\bullet$ Kelsi Riley:] Initial architecture design, initial implementation, metric tracking, congestion control (TCP Fast)
+	\item[$\bullet$ Kelsi Riley:] Initial architecture design, links, initial implementation, metric tracking, congestion control (TCP Fast)
 	\item[$\bullet$ Sakthi Vetrivel:] Initial architecture design, flows, congestion control (TCP Reno), report \& presentation slides
 \end{description}
 

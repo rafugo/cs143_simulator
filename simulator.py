@@ -21,8 +21,10 @@ class Simulator:
     Attributes:
         - network_objects: 3-dimensional list of all network objects
     """
-    def __init__(self, filename):
+    def __init__(self, filename, duration):
         self.filename = filename
+        # the duration of the simulation, in number of timesteps
+        self.duration = int(duration / globals.dt)
         # Import the network object parameters
         with open(self.filename) as f:
             network_objects = json.load(f)
@@ -79,18 +81,23 @@ class Simulator:
 
     # Plots metrics based on data collected while the simulations was running
     def plot_metrics2(self):
+        if (globals.PRESENTATIONMODE):
+            plot.rcParams.update({'font.size' : 16})
+            plot.tight_layout()
         # Access all metrics
         all_metrics = globals.LINKMETRICS + globals.HALFLINKMETRICS + globals.FLOWMETRICS
         # For every timestep
         for t in all_metrics:
             legend = []
             plot.figure(figsize = (12,4.5))
-            print(t)
+            plot.xlim(xmax = self.duration*globals.dt)
+            print("Plotting ", t)
             for s in globals.statistics.keys():
                 x = []
                 y = []
                 lines = 0
                 dict = globals.statistics[s]
+                #print(s)
                 name = s.split(":")
                 name.pop()
                 name = ":".join(name)
@@ -150,14 +157,19 @@ class Simulator:
                     lines = plot.plot(x,y)
                     plot.ylabel("round trip time (in seconds)")
                     legend.append(name)
-
                 if (lines != 0):
-                    plot.setp(lines, linewidth = 0.5)
+                    if globals.PRESENTATIONMODE:
+                        plot.setp(lines, linewidth = 1)
+                    else:
+                        plot.setp(lines, linewidth = 0.5)
                     plot.xlabel("time (in seconds)")
             plot.title(t)
             plot.legend(legend)
-            filename = self.filename.split(".")[0]
-            plot.savefig(filename+" "+t)
+            plotname = self.filename.split(".")[0] + " " + t
+            #if globals.PRESENTATIONMODE:
+                #plotname = plotname + " presentation"
+
+            plot.savefig(plotname, bbox_inches = "tight")
             plot.gcf().clear()
 
     # Function to actually run the simulator
@@ -168,7 +180,7 @@ class Simulator:
 
         # Run the simulation for so many dt's
         # For every dt
-        for i in range(1200000):
+        for i in range(self.duration):
 
             # Send packets from links
             for link in globals.idmapping['links'].values():
@@ -192,15 +204,3 @@ class Simulator:
 
         for flow in globals.idmapping['flows'].values():
             print(flow.states_tracker)
-
-    # Function to dest dijkstra's algorithm
-    def test_dijkstra(self):
-        router = Router('R1', [])
-        router.link_state_array = [['R1', 'H1', 'L0', 367957.3433311556], \
-        ['H1', 'R1', 'L0', 5887317.343342742], ['R1', 'R2', 'L1', 6010853.3433503], \
-        ['R2', 'R1', 'L1', 367957.3433311556], ['R1', 'R3', 'L2', 0.01], ['R3', 'R1', 'L2', 0.01], \
-        ['R2', 'R4', 'L3', 6056544.010017095], ['R4', 'R2', 'L3', 367957.3433311556], \
-        ['R3', 'R4', 'L4', 0.01], ['R4', 'R3', 'L4', 0.01], ['R4', 'H2', 'L5', 6870814.676676182], \
-        ['H2', 'R4', 'L5', 1268640.00999782]]
-        router.run_dijkstra()
-        print (router.routing_table)
