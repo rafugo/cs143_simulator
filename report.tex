@@ -5,6 +5,7 @@
 \usepackage{hyperref}
 \usepackage[margin=1in]{geometry}
 \usepackage{parskip}
+\usepackage{float}
 
 \begin{document}
 %
@@ -79,7 +80,7 @@ Our host class simulates the behavior of a host in our network.
 	\item [$\bullet$ \_\_init\_\_(self, int linkid, int connection1, int connection2, float rate, float delay, int buffersize, bool track1=True, bool track2=True)] Initializes a link object for our network. linkid is the ID for this link object. connection1 and connection2 are the id's of the hosts/routers at the ends of the link. rate and delay are floats that refer to the rate and propagation delay of the link. buffersize is the size of the buffer for this link. track1 and track2 are boolean values to determine if we should track metrics for this link. 
 	\item [$\bullet$ add\_to\_buffer(self, Packet packet, int sender)] Add packet to buffer based on the sender of the packet.
 	\item [$\bullet$ send\_packet(self)] Tries to send a packet on both of the half links corresponding to the link.
-	\item [$\bullet$ HalfLink] Represents one direction of the Link. (i.e. all packets travelling across a given HalfLink will be going to the same destination) Class has its own definitions for add\_to\_buffer and send\_packet.
+	\item [$\bullet$ HalfLink] Represents one direction of the Link. (i.e. all packets traveling across a given HalfLink will be going to the same destination) Class has its own definitions for add\_to\_buffer and send\_packet.
 	
 \end{description}
 
@@ -126,14 +127,18 @@ For our RTTs, we used the same algorithm as in Reno. We also followed the same t
 
 \section{Results}
 
-
 \subsection{Test Case 2}
 
 \subsubsection{TCP Reno}
 
 Run using \textbf{python3 main.py test\_case2\_reno.json 70}.
 
-\includegraphics[width = \textwidth]{"test_case2_reno window size"}
+\begin{figure}[H]
+\centering
+\includegraphics{slike/visina8}
+\caption{Write some caption here}\label{visina8}
+\end{figure}
+
 Initially, since we are running Reno, we have a very aggressive start to Flow 1 window size, resulting in 3 duplicate ACKs, fast recovery, and eventually timeout. Our congestion avoidance works well, starting at the threshold at around half + 3 of the window size. At around 10 seconds, Flow 2 enters the system aggressively and causes the loss of packets, timing out both Flow 1 and Flow 2 after fast recovery fails. Flow 1 congestion avoidance triggers at a higher window size than Flow 2 because of how the thresholds were set. At around 20 seconds, Flow 3 enters aggressively and causes link 3 to congest and packet loss for both itself and Flow 1. Flow 2 remains not only unscathed, but has an increase in RTT (due to Flow 1 timing out) and thus increments its window size quicker momentarily. Since Flow 1 has a significantly higher RTT than Flow 2 and Flow 3, it takes longer to get to its threshold. Flow 3 is more aggressive because of its smaller RTT and thus it grows to a higher window size. In addition, the bottleneck at this point is both in link 1 and link 3, so Flow 1 remains at a smaller window size until 30 seconds in. At 30 seconds in, Flow 2 dies off, leaving Flow 1 with just one bottleneck at link 3. Coincidentally, Flow 3 drops a packet around that time, and Flow 1 takes advantage of increased RTT due to lowered buffer occupancy contribution from Flow 3. 
 
 Here the system enters an interesting scenario where it seems like if a packet is dropped, it is only from Flow 3 and not Flow 1. We believe that this is due to our implementation of the underlying links. The links are ordered by priority, albeit not intentionally. Our implementation fires off each link one at a time. Link 2 will be fired before link 6, and thus if the buffer is too full for link 6 to put all the packets it can in the buffer, then it will drop packets. Thus, Flow 1 will not experience packet loss while Flow 3 will. Therefore, we believe that if the links were given equal priority when it comes to which sends packets first, we would have a more similar graph to that in the sample traces.
@@ -154,12 +159,9 @@ This obviously mirrors the buffer occupancy. As the occupancy goes up, the queue
 
 Initially, we cap out the link rate for all the links (cannot be seen as link 3 takes priority in the graph). At around 10 seconds, Flow 2 enters and causes packet loss, dropping the link rates. As we re-equilibrate, we have that link 1 is the bottleneck, so the other links experience lower rates. Around 20 seconds, Flow 3 enters and after the packet loss events, link 1 and link 3 are the new bottlenecks, with link 2 being smaller because of that. Thus, they are maxed out while link 2 sits low. At 30 seconds, Flow 2 exits the system and then link 3 is the only bottleneck, so it remains maxed out. Meanwhile, link 1 and 2 experience the effects of the congestion avoidance/fast recovery. The reason for link 2's rate being higher than link 1's rate is that, since there were already packets in the buffer for link 2, when the system re-equilibrates, those packets have an influence and thus cause the link rate to be higher in general. At the end, link rate 3 drops slightly as Flow 1 exits, and then recuperates as Flow 3 ups its window size and output.
 
-\includegraphics[width = \textwidth]{"test_case2_reno packet loss"}
+\includegraphics[width = \textwidth]{"test_case2_reno packet loss"}[H]
 
 This matches up with the timeouts we experience, as well as the entries into fast recovery, across all the flows.
-
-
-
 
 \subsubsection{TCP Fast}
 
@@ -268,18 +270,28 @@ Run using \textbf{python3 main.py test\_case5\_reno.json 20}.
 
 \includegraphics[width = \textwidth]{"test_case5_reno window size"}
 
+We see that the dominant flow in this graph is F1, which makes sense since it starts at 0.5s. So for 14.5 s, this is the only flow moving through L5, allowing it to dominate the link capacity. While the flows sends packets as the only flow in the network, we see classic TCP Reno behavior. We have a slow start, where the window size increases dramatically, until we have a dropped packet and halve our window size. Then, we have a packet timeout, which causes us to re-enter slow start with a new threshold, after which we enter congestion avoidance. We then stabilize into a pattern of congestion avoidance and FRFR when a packet is dropped.
+
+However, at about 15 s, we see the other flows in the network start up. But the peaks of their slow start states is significantly smaller since they must share the network with the other flows. Moreover, our links are built with an inherent priority in terms the order links have their packets processed by the router and then added to the buffer of L5. This is especially evident in this graph, since the router prioritizes packets from L1 then L2 then L3 and then L4, so it's more likely that packets from L4 are dropped more frequently because by the time R1 processes them, the buffer of L5 is already full. As the packets from L2, L3, and L4 get dropped, we see that the corresponding flows repeatedly enter congestion avoidance and timing out. So, we see these flows have all timed outs and are waiting until 23 s to start sending again.
+
+We also see a packet timeout at around L5, and this results in F1 re-entering slow start, as a result of it exceeding its threshold. This behavior is surprising, since we expected to see a continuation of the sawtooth pattern. 
+
 \includegraphics[width = \textwidth]{"test_case5_reno buffer occupancy"}
+A major feature of this graph is massive spike in buffer occupancy at around 15 s when all of the remaining flows start. This makes sense as all packets from all flows are trying to access L5. Moreover, we see a large dropoff at 20s, when we enter a timeout and stop sending packets until our retransmission is successful. 
 
 \includegraphics[width = \textwidth]{"test_case5_reno flow rate"}
+We see our total flow rate remains consistent throughout the simulation. We see that the drops in flow rate in the first 15s correspond to when the simulator enters CA. Afterwards, we see the flow rate of F0 occasionally decreases as it makes way for other flows to send their packets.
 
 \includegraphics[width = \textwidth]{"test_case5_reno flow RTT"}
+The flow RTT is consistent with what we'd expect TCP Reno to look like for F1 for the first 15s. However, the behavior of the RTT then increasing for every sawtooth pattern afterwards is unexpected. The other flows have very similar RTT graphs to each other as expected as they have the same properties.
 
 \includegraphics[width = \textwidth]{"test_case5_reno link rate"}
 
+The link rate graph has dips that match when F1 enters FRFR and congestion avoidance. Moreover, it contains one large dip at 20s which matches when F1 times out and F2, F3< and F4 are waiting for their timeouts to end, and no packets are being sent at all.
+
 \includegraphics[width = \textwidth]{"test_case5_reno packet loss"}
 
-
-
+Our packet loss graph has a few notable traits, specifically the number of losses at around 15s. This occurs because as flows 2, 3, and 4 start at 15 s, all of the hosts send their packets to R1. Once R1 receives these packets, it tries to add them to the buffer of L5 to send them to H5. However, the buffer quickly fills, and as a result packets are dropped. We note that this pattern repeats afterwards as the packets timeout for F2, F3, F4 after the previous timeout ends.
 
 \subsubsection{TCP Fast}
 
@@ -310,8 +322,6 @@ Our link rate makes sense, because once our first flow starts using the link, it
 We lose packets once we are sending multiple different flows down one link (4). These packets are lost in our flow 3 going into FRFR stages as they are trying to reach equilibrium but cannot because the buffer becomes full from the other flows because the other flows are prioritized in the algorithm that we use.
 
 
-
-
 \subsection{Our Test Case}
 
 Run using \textbf{python3 main.py test\_case\_custom.json 20}.
@@ -327,8 +337,6 @@ Run using \textbf{python3 main.py test\_case\_custom.json 20}.
 \includegraphics[width = \textwidth]{"test_case_custom link rate"}
 
 \includegraphics[width = \textwidth]{"test_case_custom packet loss"}
-
-
 
 
 \section{Timeline \& Division of Labor}
