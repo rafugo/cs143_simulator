@@ -3,6 +3,13 @@ from host import Host
 from link import Link
 from packet import Packet
 
+'''
+Initializes the globals class.
+
+This class is where we store all the global variables used within the simulator.
+We keep track of the dt, the total simulation time, and various other metrics
+and constants.
+'''
 def initialize():
     # Time for the whole system
     global systime

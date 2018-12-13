@@ -8,6 +8,80 @@ from router import Router
 class Flow_FAST:
     def __init__(self, id, source, destination, amount,\
                     start, track=True):
+    '''
+        The function initializes a flow object:
+        Initial Arguments:
+            - id (string) : id of the flow
+            - source (string): id of the source of the flow
+            - destination (string): id of the destination of the flow
+            - amount (int): number of Megabytes to be sent
+            - track (bool): used in determining if metrics should be tracked
+
+        Attributes:
+            - window_size (float) : size of the window used for sending packets
+            - window_start (int) : packet number to start sending form
+            - FR (int) : packet id of packet sent during fast recovery
+            - rtt (float) : current round trip time
+            - rto (float) : current timeout value
+            - id (int) : id of the flow
+            - source (Host/Router) : refers to source object of the flow
+            - destination (Host/Router) : refers to the dest object of the flow
+            - amount (int) : number of packets within the flow
+            - start (float) : time the flow is scheduled to start
+            - setRTT (bool) : determine if we have set an RTT yet
+            - state (string) : determines what start the congestion control is in
+                can take on values of "slow_start", "congestion_avoidance", "fast_recovery"
+            - packets (List<Packet>) : List of packets to be sent for the flow
+            - done (bool) : flag to demonstrate if the flow has all been sent
+            - ssthresh (int) : threshold for TCP Reno window size
+            - send_times (dict) : dictionary of packet ids to send times of the packet
+                 contains only packets that have not yet been acked
+            - dup_count (dict) : a dictionary of packet id and the number of times they
+                have been sent, used to calculate the RTT using Karn's algo
+            - duplicate_count (int) : number of consecutive duplicative acks received
+            - duplicate_packet (int) : value of the duplicate acknowledgements
+            - timeout_marker (float) : earliest time at which a packet has timed out
+            - next_cut_time (float) : next time we can cut the window size, created to make sure
+                we don't trigger a dangerous loop
+
+        
+            For TCP FAST
+            - alpha 
+            - gamma
+
+            For TCP FAST next window and goal window in CA
+            - next_window
+            - goal_window
+
+            For handling next_window updates
+            - window_upd_interval_size = 0.020       # in seconds
+            - window_upd_interval = 0
+
+            For handling which RTT the flow is in during SS or CA
+            - rtt_interval
+            - rtt_interval_time 
+            - rtt_interval_size 
+            - rtt_interval_prev_size
+            - window_increment
+        
+            - min_rtt : the minimum rtt experienced
+
+            For estimating the target and actual throughput, so that SS
+                transitions to CA:
+            estimate_packets_received
+            actual_packets_received
+
+            Variables for metric tracking:
+            - track
+            - frwindow
+            - frsteps
+            - rttwindow
+            - rttsteps
+            - added
+            - successfullytransmitted
+            - states_tracker : tracks the states the flow is in and when they switch.
+        '''
+
         # current size of the window used for the congestion controller
         self.window_size = 1
         self.window_start = 0
@@ -59,6 +133,7 @@ class Flow_FAST:
 
         self.timeout_marker = 1000
         self.next_cut_time = 0
+
         # Variables for metric tracking
         self.track = track
         self.frwindow = 600 * globals.dt
@@ -209,6 +284,14 @@ class Flow_FAST:
         # send any available packets
         self.send_packets()
 
+
+    '''
+    p is the packet that we are acknowledging.
+
+    This function processes an ACK received by the host. It handles it according
+    to what state the flow is in, so slow_start, congestion_avoidance, or 
+    fast_recovery.
+    '''
     def process_ack(self, p):
 
         # if we done, we done
@@ -276,7 +359,11 @@ class Flow_FAST:
         self.track_metrics(p)
         return
 
+    '''
+    p is the packet that we are acknowledging.
 
+    This function processes an ACK according to Reno's slow_start procedure.
+    '''
     def process_ack_ss(self, p):
 
         # only double window size if in the first rtt window
@@ -296,7 +383,12 @@ class Flow_FAST:
 
             self.states_tracker.append((self.state, globals.systime))
 
+    '''
+    p is the packet that we are acknowledging.
 
+    This function processes an ACK according to Reno's congestion_avoidance
+    procedure.
+    '''
     def process_ack_ca(self, p):
 
         # if past the 20 ms, then calculate the next window
@@ -309,6 +401,12 @@ class Flow_FAST:
 
             self.window_upd_interval = 0
 
+
+    '''
+    p is the packet that we are acknowledging.
+
+    This function handles duplicate ACKs according to the state the flow is in.
+    '''
     def handle_dup_ack(self, p):
 
         self.duplicate_count += 1
@@ -335,6 +433,13 @@ class Flow_FAST:
             self.send_packets()
 
 
+    '''
+    This function does 2 things.
+
+    1) Handles if the flow times out.
+
+    2) Sends all available packets if not timed out.
+    '''
     # gets called every dt
     def send_packets(self):
         # if we have timed out (not recently)
@@ -362,17 +467,6 @@ class Flow_FAST:
             # we dont have an estimate anymore, so set it to -1
             self.estimate_packets_received = -1
 
-            '''
-            THIS IS JANK YO
-            vvvvvvvvvvvvvvvvvv
-            '''
-            # print(self.window_start)
-            # dup_count_keys_copy = list(self.dup_count.keys()).copy()
-            # # need to resend window_start
-            # for k in dup_count_keys_copy:
-            #     if k > self.window_start:
-            #         del self.dup_count[k]
-
             self.source.send_packet(self.packets[self.window_start])
             self.send_times[self.window_start] = globals.systime
             self.dup_count[self.window_start] += 1
@@ -384,9 +478,6 @@ class Flow_FAST:
                 if i > self.window_start:
                     del self.send_times[i]
 
-            '''
-            ^^^^^^^^^^^^^^^^^^
-            '''
             self.rto = 2 * self.rto
             self.next_cut_time += self.rto
 
@@ -395,6 +486,10 @@ class Flow_FAST:
             self.send_window()
 
 
+    '''
+    This function goes through the window and sends all packets that have not
+    been sent.
+    '''
     def send_window(self):
         # send everything in the window that has not been sent
         for i in range(self.window_start, min(round(self.window_start + self.window_size), self.amount)):
@@ -412,6 +507,10 @@ class Flow_FAST:
                 self.source.send_packet(self.packets[i])
                 # print("sending packet ", i)
 
+
+    '''
+    Starts tracking metrics for this flow.
+    '''
     def start_metrics(self):
         self.setRTT = True
         if ((self.track) and globals.FLOWRTT in globals.FLOWMETRICS) and (not globals.SMOOTH):
@@ -419,7 +518,9 @@ class Flow_FAST:
             globals.statistics[key][globals.systime] = self.rtt
         return
 
-
+    '''
+    Handles tracking metrics for this flow.
+    '''
     def track_metrics(self, p):
         if (self.track and globals.FLOWRATE in globals.FLOWMETRICS):
             if p.packetid not in self.successfullytransmitted.keys():
@@ -462,6 +563,10 @@ class Flow_FAST:
                     key = self.id + ":" + globals.FLOWRATE
                     globals.statistics[key][globals.systime] = rate
 
+
+    '''
+    Updates the flow statistics accordingly.
+    '''
     # Update the flow statistics for metric tracking
     def update_flow_statistics(self):
         if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS) and (not self.done):
@@ -495,5 +600,9 @@ class Flow_FAST:
 
         self.added = False
 
+
+    '''
+    Whether or not the flow is done.
+    '''
     def completed(self):
         return self.done

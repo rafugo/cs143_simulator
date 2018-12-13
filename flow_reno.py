@@ -46,7 +46,6 @@ class Flow:
                 we don't trigger a dangerous loop
 
             Variables for metric tracking:
-            TODO: @Kelsi can you fill this in?
             - track
             - frwindow
             - frsteps
@@ -54,6 +53,7 @@ class Flow:
             - rttsteps
             - added
             - successfullytransmitted
+            - states_tracker : tracks the states the flow is in and when they switch.
         '''
         self.window_size = 1
         self.window_start = 0
@@ -116,6 +116,8 @@ class Flow:
                 globals.statistics[id+":"+m] = {}
         # Tracking what states we are in and the time
         self.states_tracker = []
+
+
 
     # Run the flow, this is the function called every dt for the flow
     def run(self):
