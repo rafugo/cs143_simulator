@@ -124,6 +124,9 @@ For our RTTs, we used the same algorithm as in Reno. We also followed the same t
 
 \section{Metrics Tracking}
 
+To track metrics during our simulation, we created a global dictionary with string keys of the form {\em object : metric}, where {\em object} is the ID of the specific object that the dictionary is tracking, which will be a flow, link, half-link or host and {\em metric} is the metric that the dictionary is tracking. Each of these keys maps o a value of another dictionary, where the dictionary mapped to contains items of the form (time, value), where the time is the key, and the value is the value for that metric at that time. In our simulation, we also kept track of which objects we would be tracking statistics for and we would only add entries to our global dictionary of statistics corresponding to those being tracked. This served to save both time and space, so our simulation wouldn't spend time computing and storing values we didn't intend to use. 
+
+
 \section{Results}
 
 
