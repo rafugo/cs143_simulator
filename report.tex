@@ -83,22 +83,12 @@ Our host class simulates the behavior of a host in our network.
 	
 \end{description}
 
-\section{Dynamic / Static Routing}
-
-Our routing tables are calculated in the following way. First, all of our routers send "handshakes" along each of the links that they are connected to. These handshakes go down each of these links, and then are received by either the host or routing table that is at the other end of the link. These routers / hosts then send back an acknowledgement packet that tells the router information about who is at the end of the link. 
-
-Using this information, each of our routers creates an initial representation of what we call the "link state array". This link state array contains all information about the cost of each link, and which nodes are connecting each of the links. This information is sorted in each routers own array like so: [Source, Dest, LinkID, Cost]. Note that the cost of each link is based on the link delay and the link rate. Our routers then every 5 seconds send their link state array to their neighboring routers, and then, after recalculating the costs of links adjacent to them send it to all the other routers / hosts in the network. Each router receives these link state arrays and updates their own for all links that are not connected to them. (Every link cost that has changed that is not connected to a given router is updated based on the information that was just sent to them).
-
-Every time that a router updates its own link state array, it will then update its routing table and send its new link state array to neighbors. The routing table is updated and calculated using Dijkstra's shortest path algorithm using all of the information about the network that is stored in the link state array. 
-
-This process and methodology allows our routers to dynamically compute and change their routing tables based on the current state of our network. 
-
 \section{Congestion Control}
 
 Our congestion control takes place in our flow class. For our project, we've implemented two congestion control algorithms, TCP Reno and TCP Fast. To do this, we have two different Flow classes (flow\_reno.py and flow\_fast.py), with different implementations of the same public methods. Here's an overview of all of the public methods. 
 
 \begin{description}
-	\item [$\bullet$ run(self)] This function is called at every timestep by the simulator for the flow to process any acknowledgements or send any packets as necessary for that timestep.
+	\item [$\bullet$ run(self)] This function is called at every timestep by the simulator for the flow to send any packets as necessary for that timestep.
 	\item [$\bullet$ process\_ack(self, Packet p)] Process an acknowledgement once it's received by a host. Checks for duplicate acknowledgements and changes congestion control states, window size, and threshold accordingly.
 	\item [$\bullet$ send\_packets(self)] Send the packets for the flow depending on the current system time and the acknowledgements that have been received thus far.
 \end{description}
@@ -114,6 +104,23 @@ To send packets for our flow, at every timestep, we see if there are any packets
 Morever, to calculate the round trip time for our packets, we use Karn's algorithm, which states that the round trip time calculation is only based on packets that are sent and acknowledged only once. All other packets are ignored in the metric. To keep track of round trip times, we have a dictionary send\_times as an attribute of the flow\_reno class. This maps packet IDs to the time at which they were last attempted to be sent. This dictionary only includes packets that have been sent but not yet acknowledged. Likewise, we have a dictionary dup\_count that maps packet ids to the number of times they have been sent. So if a packet has a dup\_count larger than 1, then we do not consider it in the calculation of the round trip time. Thus, every time we process an acknowledgment, we check the dup\_count of the packet that is acknowledged, and then access its send\_time to calculate the latest RTT. 
 
 For packet timeouts, we use a timeout marker. This timeout marker is based on the last non-duplicate acknowledgement received and an RTO value. This RTO value is calculated as $2 \times RTT$. Thus, every time an acknowledgement is processed, the timeout marker is reset to be the current system time $+$ RTO. Then, at every time step, we check if we have passed this timeout marker, meaning a packet has timed out -- specifically the first packet that we have sent but have not received an acknowledgement for. Upon recognizing a packet timeout, we set our slow start threshold to half of the current window size and set our window size to 1 and enter the slow start state. We also retransmit the lost packet and then double the RTO for future timeouts. Additionally, to avoid entering a loop where packets timeout repeatedly, resulting in overpenalizing the network for dropping packets, we keep track of a next\_cut\_time. This variable refers to the next time that cut our threshold in half and ensures that we wait 1 RTO before cutting the threshold again. 
+
+\subsection{TCP FAST}
+
+In our TCP FAST implementation, we also have three possible states for the algorithm to be in: slow start, congestion avoidance, or fast recovery. The way TCP FAST works, it is not so much dependent on ACKs to modify its state, but moreso on the RTT.
+
+In the slow start state, we increment the window size by one for every ACK, similar to in Reno. However, we limit this behavior to every other RTT. That is, we have an active RTT and a frozen RTT. During the "active" RTT, we increment the window size and during the "frozen" one, we do not do anything. Our implementation then exits slow start and enters congestion avoidance when it thinks that it is approaching the estimated throughput. It also may exit slow start when there are three duplicate ACKs, and then enters fast recovery.
+
+To calculate when we may be nearing our estimated throughput, we do a simple estimate. We keep track of how many packets we receive during each frozen RTT (in reality, just the current and the previous frozen RTTs). Thus, we have the given throughput of an RTT as $\frac{m_{current}}{RTT}$ with $m_{current}$ being the amount of packets received in the current frozen RTT. Note that, since we are doubling the window size every other RTT, we should expect $$\frac{2 * m_{previous}}{RTT_{previous}} = \frac{m_{current}}{RTT_{current}} \Rightarrow \frac{2 * m_{previous} * RTT_{current}}{RTT_{previous}} = m_{current}$$
+If we receive $90\%$ less than the predicted $m_{current}$, then we believe to be increasing the buffer size in the bottleneck link along the path, so we go into congestion avoidance in order to avoid dropping packets. We chose $90\%$ in order to be conservative and not drop any packets by being too aggressive.
+
+We enter fast recovery in the same way we would enter it in Reno, and it is handled exactly the same way. Duplicate ACKs are also handled the same as in Reno.
+
+Once we enter congestion avoidance, we continue with the alternating active and frozen RTTs. Every time we enter a new active RTT, we set a goal window size that we want our window size to be by the end of the active RTT. This goal window size is whatever the "next window size" is at that given moment. The next window size is updated every 20 ms, according to the following equation: $$ w \leftarrow \textrm{min}(2w, (1-\gamma)w + \gamma(\frac{\textrm{baseRTT}}{\textrm{RTT}}w + \alpha)) $$
+where $w$ on the right hand side is the current window and the $w$ on the left hand side is the next window size. We chose $\alpha = 15$ and $\gamma = 0.5$. 
+
+For our RTTs, we used the same algorithm as in Reno. We also followed the same timeout procedure.
+
 
 \section{Metrics Tracking}
 
