@@ -122,8 +122,7 @@ class Simulator:
                 dict = globals.statistics[s]
                 #print(s)
                 name = s.split(":")
-                if name[0][0] != "H":
-                    name.pop()
+                name.pop()
                 name = ":".join(name)
 
                 # Plot buffer occupancy
@@ -155,7 +154,7 @@ class Simulator:
                     legend.append(name)
 
                 # Plot flow rates
-                if globals.FLOWRATE in s and globals.FLOWRATE == t:
+                if (globals.HOSTFLOWRATE not in s) and globals.FLOWRATE in s and globals.FLOWRATE == t:
                     for key in sorted(dict.keys()):
                         x.append(key)
                         # converts flow rate from bps to Mbps
