@@ -61,7 +61,7 @@ class Flow_FAST:
         self.next_cut_time = 0
         # Variables for metric tracking
         self.track = track
-        self.frwindow = 1000 * globals.dt
+        self.frwindow = 600 * globals.dt
         self.frsteps = []
         self.rttwindow = 20000 * globals.dt
         self.rttsteps = []
@@ -205,7 +205,6 @@ class Flow_FAST:
         # if we done, we done
         if p.data >= self.amount:
             self.done = True
-            print("flow 3 ended at time ", globals.systime)
             return
 
         # we received a packet so count it in our interval

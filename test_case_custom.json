@@ -41,8 +41,8 @@
             "rate" : 10.0,
             "delay" : 10,
             "buffersize" : 64,
-            "track1" : 1,
-            "track2" : 0
+            "track1" : 0,
+            "track2" : 1
         }
     ],
     "routers": [
