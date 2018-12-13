@@ -131,6 +131,8 @@ For our RTTs, we used the same algorithm as in Reno. We also followed the same t
 
 \subsubsection{TCP Reno}
 
+Run using \textbf{python3 main.py test\_case2\_reno.json 70}.
+
 \includegraphics[width = \textwidth]{"test_case2_reno window size"}
 Initially, since we are running Reno, we have a very aggressive start to Flow 1 window size, resulting in 3 duplicate ACKs, fast recovery, and eventually timeout. Our congestion avoidance works well, starting at the threshold at around half + 3 of the window size. At around 10 seconds, Flow 2 enters the system aggressively and causes the loss of packets, timing out both Flow 1 and Flow 2 after fast recovery fails. Flow 1 congestion avoidance triggers at a higher window size than Flow 2 because of how the thresholds were set. At around 20 seconds, Flow 3 enters aggressively and causes link 3 to congest and packet loss for both itself and Flow 1. Flow 2 remains not only unscathed, but has an increase in RTT (due to Flow 1 timing out) and thus increments its window size quicker momentarily. Since Flow 1 has a significantly higher RTT than Flow 2 and Flow 3, it takes longer to get to its threshold. Flow 3 is more aggressive because of its smaller RTT and thus it grows to a higher window size. In addition, the bottleneck at this point is both in link 1 and link 3, so Flow 1 remains at a smaller window size until 30 seconds in. At 30 seconds in, Flow 2 dies off, leaving Flow 1 with just one bottleneck at link 3. Coincidentally, Flow 3 drops a packet around that time, and Flow 1 takes advantage of increased RTT due to lowered buffer occupancy contribution from Flow 3. 
 
@@ -160,6 +162,8 @@ This matches up with the timeouts we experience, as well as the entries into fas
 
 
 \subsubsection{TCP Fast}
+
+Run using \textbf{python3 main.py test\_case2\_fast.json 70}.
 
 \includegraphics[width = \textwidth]{"test_case2_fast window size"}
 
@@ -207,6 +211,8 @@ This is expected behavior because we do not lose any packets using fast.
 
 \subsection{Test Case 3} 
 
+Run using \textbf{python3 main.py test\_case3.json 20}.
+
 
 \includegraphics[width = \textwidth]{"test_case3 window size"}
 
@@ -225,6 +231,8 @@ This is expected behavior because we do not lose any packets using fast.
 
 
 \subsection{Test Case 4}
+
+Run using \textbf{python3 main.py test\_case4.json 20}.
 
 \includegraphics[width = \textwidth]{"test_case4 window size"}
 
@@ -256,6 +264,8 @@ Packet loss correlates with buffer occupancy reaches 64 as expected.
 
 \subsubsection{TCP Reno}
 
+Run using \textbf{python3 main.py test\_case5\_reno.json 20}.
+
 \includegraphics[width = \textwidth]{"test_case5_reno window size"}
 
 \includegraphics[width = \textwidth]{"test_case5_reno buffer occupancy"}
@@ -272,6 +282,8 @@ Packet loss correlates with buffer occupancy reaches 64 as expected.
 
 
 \subsubsection{TCP Fast}
+
+Run using \textbf{python3 main.py test\_case5\_fast.json 20}.
 
 \includegraphics[width = \textwidth]{"test_case5_fast window size"}
 
@@ -301,6 +313,8 @@ We lose packets once we are sending multiple different flows down one link (4). 
 
 
 \subsection{Our Test Case}
+
+Run using \textbf{python3 main.py test\_case\_custom.json 20}.
 
 \includegraphics[width = \textwidth]{"test_case_custom window size"}
 

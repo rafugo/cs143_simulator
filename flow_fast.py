@@ -105,7 +105,16 @@ class Flow_FAST:
         # tracking what states we are in and the time
         self.states_tracker = []
 
+    '''
+    Called every time increment. 
 
+    Does a few things.
+
+    1) If we are past the end of the RTT for slow_start/congestion_avoidance,
+        switch to the other interval.
+
+    2) Sends all available packets through the host.
+    '''
     def run(self):
         # if we shouldn't do anything, leave
         if self.start >= globals.systime or self.done == True:
