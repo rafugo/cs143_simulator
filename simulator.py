@@ -79,6 +79,7 @@ class Simulator:
 
             globals.idmapping['flows'][f['id']] = flow
 
+    # prepares host metrics for tracking
     def prepare_host_metrics(self):
         for (h, host) in globals.idmapping['hosts'].items():
             tracking = False
