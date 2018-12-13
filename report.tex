@@ -173,13 +173,11 @@ Here we have the window size graph of our flow for TCP fast. Looking at three cr
 
 \includegraphics[width = \textwidth]{"test_case2_fast link rate"}
 
-Here we have the link rate measurements of link 1, 2, and 3 in test case 2. Initially, we only have 1 flow using all three links, which means that all three links can be used to full capacity with the one flow. When our second flow enters, it is only using link 1, which then means that link 1 is going to be used to full capacity, whereas the flow rate of our first flow will be lowered, and thus will make the link rate of links 2 and 3 lower because they will not be used to their full potential. Then, when our third flow starts and all three flows are running simultaneously, we can see that link 1 and 3 are being used by two flows and thus will be used to their full capacity, whereas the second link will be used only by flow 1. Finally, when just flow 1 and flow 3 are active, we can see that 
-
-
-\includegraphics[width = \textwidth]{"test_case2_fast buffer occupancy"}
-
+Here we have the link rate measurements of link 1, 2, and 3 in test case 2. Initially, we only have 1 flow using all three links, which means that all three links can be used to full capacity with the one flow. When our second flow enters, it is only using link 1, which then means that link 1 is going to be used to full capacity, whereas the flow rate of our first flow will be lowered, and thus will make the link rate of links 2 and 3 lower because they will not be used to their full potential. Then, when our third flow starts and all three flows are running simultaneously, we can see that link 1 and 3 are being used by two flows and thus will be used to their full capacity, whereas the second link will be used only by flow 1. Finally, when just flow 1 and flow 3 are active, we can see that link 3 is being used to full capacity. Link 1 and link 2 are only being used by flow 1, but when flow 2 died flow 1 sees link 2 as having some small amount of packets in the buffer, (because of how our links have priorities) which is why it will then be used slightly faster than link 1.
 
 \includegraphics[width = \textwidth]{"test_case2_fast flow rate"}
+
+First, we will explain the flow rates seen in the graph, and then we will quantitatively explain the behavior some unexpected behavior that we observe.
 
 Note that in the flow rate for fast, we have unexplained behavior in which flow 2 has a larger rate than flow 1, and has the same flow rate as flow 3. 
 
@@ -193,6 +191,7 @@ We also know, $x_1 = \frac{\alpha}{p_1 + p_2} = \frac{x_2}{ 2}$ because we know 
 
 Thus, we get a ratio between $x_1$ and $x_2$ of 1:2, which is what we see in the graphs and thus explains our interesting behavior.
 
+\includegraphics[width = \textwidth]{"test_case2_fast buffer occupancy"}
 
 
 \includegraphics[width = \textwidth]{"test_case2_fast flow RTT"}
