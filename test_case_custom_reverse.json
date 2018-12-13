@@ -1,0 +1,74 @@
+{
+    "hosts": [
+        {
+            "id": "H1",
+            "linkid" : "L1"
+        },
+        {
+            "id": "H2",
+            "linkid" : "L2"
+        },
+        {
+            "id": "H3",
+            "linkid" : "L3"
+        }
+    ],
+    "links": [
+        {
+            "id": "L1",
+            "connection1" : "H1",
+            "connection2" : "R1",
+            "rate" : 12.5,
+            "delay" : 10,
+            "buffersize" : 64,
+            "track1" : 1,
+            "track2" : 0
+        },
+        {
+            "id": "L2",
+            "connection1" : "H2",
+            "connection2" : "R1",
+            "rate" : 12.5,
+            "delay" : 10,
+            "buffersize" : 64,
+            "track1" : 1,
+            "track2" : 0
+        },
+        {
+            "id": "L3",
+            "connection1" : "H3",
+            "connection2" : "R1",
+            "rate" : 10.0,
+            "delay" : 10,
+            "buffersize" : 64,
+            "track1" : 0,
+            "track2" : 1
+        }
+    ],
+    "routers": [
+        {
+            "id": "R1",
+            "links": ["L1", "L2", "L3"]
+        }
+    ],
+    "flows": [
+      {
+          "id": "F1",
+          "source": "H1",
+          "destination": "H3",
+          "amount": 50,
+          "start": 0.5,
+          "congestion_control": "reno",
+          "track" : 1
+      },
+      {
+          "id": "F2",
+          "source": "H2",
+          "destination": "H3",
+          "amount": 50,
+          "start": 0.5,
+          "congestion_control": "fast",
+          "track" : 1
+      }
+    ]
+}

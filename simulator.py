@@ -91,6 +91,7 @@ class Simulator:
             legend = []
             plot.figure(figsize = (12,4.5))
             plot.xlim(xmax = self.duration*globals.dt)
+            #plot.ylim(ymin = 0)
             print("Plotting ", t)
             for s in globals.statistics.keys():
                 x = []
