@@ -9,3 +9,4 @@ python3 main.py test_case4.json 20
 python3 main.py test_case5_fast.json 30
 python3 main.py test_case5_reno.json 30
 python3 main.py test_case_custom.json 20
+python3 main.py test_case_custom_reverse.json 20

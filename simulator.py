@@ -79,13 +79,34 @@ class Simulator:
 
             globals.idmapping['flows'][f['id']] = flow
 
+    def prepare_host_metrics(self):
+        for (h, host) in globals.idmapping['hosts'].items():
+            tracking = False
+            dict = {}
+            for (id, flow) in globals.idmapping['flows'].items():
+                if flow.track and flow.source == host:
+                    if not tracking:
+                        dict = globals.statistics[id+":"+globals.FLOWRATE]
+                        tracking = True
+                    else:
+                        newdict = globals.statistics[id+":"+globals.FLOWRATE]
+                        for i in dict.keys() | newdict.keys():
+                            if i in dict.keys() & newdict.keys():
+                                dict[i] = dict[i] + newdict[i]
+                            elif i in newdict.keys():
+                                dict[i] = newdict[i]
+            if tracking:
+                globals.statistics[h+":"+globals.HOSTFLOWRATE] = dict
+
+
     # Plots metrics based on data collected while the simulations was running
     def plot_metrics2(self):
+        self.prepare_host_metrics()
         if (globals.PRESENTATIONMODE):
             plot.rcParams.update({'font.size' : 12})
             plot.tight_layout()
         # Access all metrics
-        all_metrics = globals.LINKMETRICS + globals.HALFLINKMETRICS + globals.FLOWMETRICS
+        all_metrics = globals.LINKMETRICS + globals.HALFLINKMETRICS + globals.FLOWMETRICS + [globals.HOSTFLOWRATE]
         # For every timestep
         for t in all_metrics:
             legend = []
@@ -100,7 +121,8 @@ class Simulator:
                 dict = globals.statistics[s]
                 #print(s)
                 name = s.split(":")
-                name.pop()
+                if name[0][0] != "H":
+                    name.pop()
                 name = ":".join(name)
 
                 # Plot buffer occupancy
@@ -158,12 +180,24 @@ class Simulator:
                     lines = plot.plot(x,y)
                     plot.ylabel("round trip time (in seconds)")
                     legend.append(name)
+
+                # Plot per host flow rate
+                if globals.HOSTFLOWRATE in s and globals.HOSTFLOWRATE == t:
+                    for key in sorted(dict.keys()):
+                        x.append(key)
+                        y.append(dict[key]*globals.BITSTOMEGABITS)
+                    lines = plot.plot(x,y)
+                    plot.ylabel("flow rate (in Mbps)")
+                    legend.append(name)
+
                 if (lines != 0):
                     if globals.PRESENTATIONMODE:
                         plot.setp(lines, linewidth = 1)
                     else:
                         plot.setp(lines, linewidth = 0.5)
                     plot.xlabel("time (in seconds)")
+
+
             plot.title(t)
             plot.legend(legend)
             plotname = self.filename.split(".")[0] + " " + t

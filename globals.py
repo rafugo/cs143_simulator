@@ -65,6 +65,9 @@ def initialize():
     global PACKETLOSS
     PACKETLOSS = "packet loss"
 
+    global HOSTFLOWRATE
+    HOSTFLOWRATE = "host flow rate"
+
     global LINKMETRICS
     LINKMETRICS = [PACKETLOSS]
 
