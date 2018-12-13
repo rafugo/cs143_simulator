@@ -164,7 +164,7 @@ The first time the flow sets its RTT, it sets {\em setRTT} to be true and adds t
 For the per host send/receive rate, we added a function prepare\_host\_metrics() to the Simulator class. This function goes through all of the hosts in the simulation and checks if it is the source for any flows being tracked. If it is, it creates a new dictionary to track flow rate for that host which is essentially the summation of the flow rates for all flows for which it is a source. Then, the dictionary is added to the global dictionary, with a key indicating that the dictionary corresponds to the flow rate for specific the host. 
 
 \subsection{Graphing}
-All graphing of the simulation statistics is handled by the plot\_metrics() function of the Simulator class. For each of the statistics, we plot all of the dictionaries corresponding to that statistic on the same plot, with a maximum x value of the duration of the simulation in seconds. This ensures that all of the plots will have the same x scale, even if all of the flows finish before the end of the simulation is reached. In this function, we also convert the y values to be in the correct units and add the proper title, x axis label, and y axis label. This function also saves the ginal 
+All graphing of the simulation statistics is handled by the plot\_metrics() function of the Simulator class. For each of the statistics, we plot all of the dictionaries corresponding to that statistic on the same plot, with a maximum x value of the duration of the simulation in seconds. This ensures that all of the plots will have the same x scale, even if all of the flows finish before the end of the simulation is reached. In this function, we also convert the y values to be in the correct units and add the proper title, x axis label, and y axis label. This function also saves the graphs with names of the form {\em filename metric} where {\em filename} is the name of the .json file before the .json suffix of the test case for which the simulation is being run and {\em metric} is the metric which the graph is displaying. 
 
 \section{Results}
 
@@ -290,6 +290,17 @@ This is expected behavior because we do not lose any packets using fast.
 
 Run using \textbf{python3 main.py test\_case3.json 20}.
 
+In this test case, there two flows, F1 and F2, which use Reno and FAST respectively for congestion control. These flows start at the same time and are oriented in opposite directions, with F1 having source H1 and destination H2 and F2 having source H2 and destination H1. 
+
+The window size for F1 starts out with exponential growth during the SS phase, until its window size grows too large, resulting in packet loss. This packet loss causes F1 to receive three duplicate acknowledgements and then timeout shortly thereafter. After it times out, it re-enters slow start and then transitions to congestion avoidance when the window size reaches about 45 packets. 
+
+The window size for F2 starts growing with exponential growth every other round trip time, but then it suddenly 
+
+\begin{figure}[H]
+\centering
+\includegraphics[width = \textwidth]{test_case3 flow RTT.png}
+\end{figure}
+
 \begin{figure}[H]
 \centering
 \includegraphics[width = \textwidth]{test_case3 window size.png}
@@ -303,11 +314,6 @@ Run using \textbf{python3 main.py test\_case3.json 20}.
 \begin{figure}[H]
 \centering
 \includegraphics[width = \textwidth]{test_case3 flow rate.png}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width = \textwidth]{test_case3 flow RTT.png}
 \end{figure}
 
 \begin{figure}[H]
