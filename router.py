@@ -46,7 +46,7 @@ class Router:
     # Function to manage forwarding packets along the routing table
     def forward_packet(self, packet):
         # Looks up destination on routing table
-        print(self.routing_table)
+        #print(self.routing_table)
         link_path = self.routing_table.get(packet.get_destination())
         globals.idmapping['links'][link_path].add_to_buffer(packet, self.id)
 
