@@ -83,6 +83,16 @@ Our host class simulates the behavior of a host in our network.
 	
 \end{description}
 
+\section{Dynamic / Static Routing}
+
+Our routing tables are calculated in the following way. First, all of our routers send "handshakes" along each of the links that they are connected to. These handshakes go down each of these links, and then are received by either the host or routing table that is at the other end of the link. These routers / hosts then send back an acknowledgement packet that tells the router information about who is at the end of the link. 
+
+Using this information, each of our routers creates an initial representation of what we call the "link state array". This link state array contains all information about the cost of each link, and which nodes are connecting each of the links. This information is sorted in each routers own array like so: [Source, Dest, LinkID, Cost]. Note that the cost of each link is based on the link delay and the link rate. Our routers then every 5 seconds send their link state array to their neighboring routers, and then, after recalculating the costs of links adjacent to them send it to all the other routers / hosts in the network. Each router receives these link state arrays and updates their own for all links that are not connected to them. (Every link cost that has changed that is not connected to a given router is updated based on the information that was just sent to them).
+
+Every time that a router updates its own link state array, it will then update its routing table and send its new link state array to neighbors. The routing table is updated and calculated using Dijkstra's shortest path algorithm using all of the information about the network that is stored in the link state array. 
+
+This process and methodology allows our routers to dynamically compute and change their routing tables based on the current state of our network. 
+
 \section{Congestion Control}
 
 Our congestion control takes place in our flow class. For our project, we've implemented two congestion control algorithms, TCP Reno and TCP Fast. To do this, we have two different Flow classes (flow\_reno.py and flow\_fast.py), with different implementations of the same public methods. Here's an overview of all of the public methods. 
