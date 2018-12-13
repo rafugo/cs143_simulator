@@ -144,7 +144,7 @@
           "id": "F1",
           "source": "H0",
           "destination": "H1",
-          "amount": 35,
+          "amount": 55,
           "start": 0.5,
           "congestion_control": "fast",
           "track" : 1
@@ -153,8 +153,8 @@
           "id": "F2",
           "source": "H2",
           "destination": "H3",
-          "amount": 30,
-          "start": 20,
+          "amount": 23,
+          "start": 30,
           "congestion_control": "fast",
           "track" : 1
       },
@@ -162,7 +162,7 @@
           "id": "F3",
           "source": "H4",
           "destination": "H5",
-          "amount": 30,
+          "amount": 50,
           "start": 40,
           "congestion_control": "fast",
           "track" : 1
