@@ -102,7 +102,7 @@
           "id": "F3",
           "source": "H3",
           "destination": "H5",
-          "amount": 50,
+          "amount": 30,
           "start": 15,
           "congestion_control": "reno",
           "track" : 1
@@ -111,7 +111,7 @@
           "id": "F4",
           "source": "H4",
           "destination": "H5",
-          "amount": 50,
+          "amount": 30,
           "start": 15,
           "congestion_control": "reno",
           "track" : 1
