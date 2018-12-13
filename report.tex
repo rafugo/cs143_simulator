@@ -227,9 +227,27 @@ For packet timeouts, we use a timeout marker. This timeout marker is based on th
 
 \subsubsection{TCP Fast}
 
+\includegraphics[width = \textwidth]{"test_case2_fast window size"}
+
+Here we have the window size graph of our flow for TCP fast. Looking at three critical points, 0, 10, and 20 seconds, where each flow starts. Each flow initially starts in the fast slow start state, which causes each flow to increase its window size until the amount of ack packets that the flow received in the last round trip time is less than 90 percent of what was expected. At that point, each of our flows enters congestion control and reaches equilibrium. 
+
 \includegraphics[width = \textwidth]{"test_case2_fast buffer occupancy"}
 
 \includegraphics[width = \textwidth]{"test_case2_fast flow rate"}
+
+Note that in the flow rate for fast, we have unexplained behavior in which flow 2 has a larger rate than flow 1, and has the same flow rate as flow 3. 
+
+We can explain this with the following derivation. First, we can model the throughput of our function using FAST for some flow i as: $ x_i = \frac{\alpha}{q_i} $
+
+In the time in question, we see that flows 1 and 2 share L1, and flows 1 and 3 share L3, which then we know both become the bottleneck links. We then have $x_1 + x_2 = 10 $ and $x_1 + x_3 = 10 $. We know that L2 is underutilized, which means there are no queues on L2 and thus $p_2 = 0 $ where p is the queuing delay on link 2.
+
+We know, based on our initial claim, $ x_2 = \frac{\alpha}{p_1} = \frac{\alpha}{p_3}  = x_3$
+
+We also know, $x_1 = \frac{\alpha}{p_1 + p_2} = \frac{x_2}{ 2}$ because we know the queuing delay is the same on both $p_1 and p_2$ (because of how we defined the links).
+
+Thus, we get a ratio between $x_1$ and $x_2$ of 1:2, which is what we see in the graphs and thus explains our interesting behavior.
+
+
 
 \includegraphics[width = \textwidth]{"test_case2_fast flow RTT"}
 
@@ -237,7 +255,8 @@ For packet timeouts, we use a timeout marker. This timeout marker is based on th
 
 \includegraphics[width = \textwidth]{"test_case2_fast packet loss"}
 
-\includegraphics[width = \textwidth]{"test_case2_fast window size"}
+
+
 
 
 \subsection{Test Case 3} 
