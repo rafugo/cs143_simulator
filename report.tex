@@ -138,7 +138,7 @@ Run using \textbf{python3 main.py test\_case2\_reno.json 70}.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case2_reno window size.png}
+\includegraphics[width = \textwidth]{"test_case2_reno window size"}
 \end{figure}
 
 Initially, since we are running Reno, we have a very aggressive start to Flow 1 window size, resulting in 3 duplicate ACKs, fast recovery, and eventually timeout. Our congestion avoidance works well, starting at the threshold at around half + 3 of the window size. At around 10 seconds, Flow 2 enters the system aggressively and causes the loss of packets, timing out both Flow 1 and Flow 2 after fast recovery fails. Flow 1 congestion avoidance triggers at a higher window size than Flow 2 because of how the thresholds were set. At around 20 seconds, Flow 3 enters aggressively and causes link 3 to congest and packet loss for both itself and Flow 1. Flow 2 remains not only unscathed, but has an increase in RTT (due to Flow 1 timing out) and thus increments its window size quicker momentarily. Since Flow 1 has a significantly higher RTT than Flow 2 and Flow 3, it takes longer to get to its threshold. Flow 3 is more aggressive because of its smaller RTT and thus it grows to a higher window size. In addition, the bottleneck at this point is both in link 1 and link 3, so Flow 1 remains at a smaller window size until 30 seconds in. At 30 seconds in, Flow 2 dies off, leaving Flow 1 with just one bottleneck at link 3. Coincidentally, Flow 3 drops a packet around that time, and Flow 1 takes advantage of increased RTT due to lowered buffer occupancy contribution from Flow 3. 
@@ -147,35 +147,35 @@ Here the system enters an interesting scenario where it seems like if a packet i
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case2_reno buffer occupancy.png}
+\includegraphics[width = \textwidth]{"test_case2_reno buffer occupancy"}
 \end{figure}
 
 The buffer occupancy closely mirrors our window sizes. As window size increases, the buffer occupancy increases. Note the spikes at 0, 10, and 20 seconds as flows enter and exit the system. This is due to window sizes exponentiating. At 30 seconds we see that there is a quick increase in the buffer occupancy for L3.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case2_reno flow rate.png}
+\includegraphics[width = \textwidth]{"test_case2_reno flow rate"}
 \end{figure}
 
 The flow rate caps out initially for link 1, because it is the bottleneck. At 10 seconds, when Flow 2 enters the system, it becomes a tighter bottleneck since both Flow 1 and 2 are using link 1. Thus, the flow rates drop. The flow rate for Flow 2 is faster due to smaller RTT, even if the window size is smaller. At 20 seconds, Flow 3 enters the system. It first crashes the Flow for Flow 1 and 3, but then creates a bottleneck at link 2 for Flow 1. At this moment, Flow 2 and Flow 3 have the same flow rate, while Flow 1 experiences a lower rate. At 30 seconds, Flow 2 dies off and then Flow 1 and Flow 3 share the same bottleneck and equilibrate flows.  Over time, the flows have to re-equilibrate due to Flow 3 dropping packets and also general congestion avoidance/fast recovery interactions.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case2_reno flow RTT.png}
+\includegraphics[width = \textwidth]{"test_case2_reno flow RTT"}
 \end{figure}
 
 This obviously mirrors the buffer occupancy. As the occupancy goes up, the queueing delay increases and thus the RTT increases.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case2_reno link rate.png}
+\includegraphics[width = \textwidth]{"test_case2_reno link rate"}
 \end{figure}
 
 Initially, we cap out the link rate for all the links (cannot be seen as link 3 takes priority in the graph). At around 10 seconds, Flow 2 enters and causes packet loss, dropping the link rates. As we re-equilibrate, we have that link 1 is the bottleneck, so the other links experience lower rates. Around 20 seconds, Flow 3 enters and after the packet loss events, link 1 and link 3 are the new bottlenecks, with link 2 being smaller because of that. Thus, they are maxed out while link 2 sits low. At 30 seconds, Flow 2 exits the system and then link 3 is the only bottleneck, so it remains maxed out. Meanwhile, link 1 and 2 experience the effects of the congestion avoidance/fast recovery. The reason for link 2's rate being higher than link 1's rate is that, since there were already packets in the buffer for link 2, when the system re-equilibrates, those packets have an influence and thus cause the link rate to be higher in general. At the end, link rate 3 drops slightly as Flow 1 exits, and then recuperates as Flow 3 ups its window size and output.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case2_reno packet loss.png}
+\includegraphics[width = \textwidth]{"test_case2_reno packet loss"}
 \end{figure}
 
 This matches up with the timeouts we experience, as well as the entries into fast recovery, across all the flows.
@@ -186,21 +186,21 @@ Run using \textbf{python3 main.py test\_case2\_fast.json 70}.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case2_fast window size.png}
+\includegraphics[width = \textwidth]{"test_case2_fast window size"}
 \end{figure}
 
 Here we have the window size graph of our flow for TCP fast. Looking at three critical points, 0, 10, and 20 seconds, where each flow starts. Each flow initially starts in the fast slow start state, which causes each flow to increase its window size until the throughput that the flow is using in the last round trip time is less than 90 percent of the expected throughput. At that point, each of our flows enters congestion control and reaches equilibrium. Then, when the next flow starts, our equilibrium window size will lower in order to adjust to the window size that the new flow is contributing.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case2_fast link rate.png}
+\includegraphics[width = \textwidth]{"test_case2_fast link rate"}
 \end{figure}
 
 Here we have the link rate measurements of link 1, 2, and 3 in test case 2. Initially, we only have 1 flow using all three links, which means that all three links can be used to full capacity with the one flow. When our second flow enters, it is only using link 1, which then means that link 1 is going to be used to full capacity, whereas the flow rate of our first flow will be lowered, and thus will make the link rate of links 2 and 3 lower because they will not be used to their full potential. Then, when our third flow starts and all three flows are running simultaneously, we can see that link 1 and 3 are being used by two flows and thus will be used to their full capacity, whereas the second link will be used only by flow 1. Finally, when just flow 1 and flow 3 are active, we can see that link 3 is being used to full capacity. Link 1 and link 2 are only being used by flow 1, but when flow 2 died flow 1 sees link 2 as having some small amount of packets in the buffer, (because of how our links have priorities) which is why it will then be used slightly faster than link 1. The dip that occurs in link 3 at the very end occurs because when flow 1 finishes, flow 3 does not immediately realize that flow 1 is no longer sending packets, so it takes some time for it to increase its window size to use the link to full capacity.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case2_fast flow rate.png}
+\includegraphics[width = \textwidth]{"test_case2_fast flow rate"}
 \end{figure}
 
 First, we will explain the flow rates seen in the graph, and then we will quantitatively explain the behavior some unexpected behavior that we observe. First, we can see that our flow rate for our first flow correctly utilizes the given links. Then, once our second flow emerges, both of our flows have to share link one, and thus the flow rates for both of them combine to the rate of where the bottleneck occurs. Then, when our third flow starts, we have two bottlenecks that our first flow has to go through, whereas there is only bottleneck for both flow 2 and 3 to transmit packets through (this can be slightly unexpected and will be quantitatively explained below). Thus, each of those will have a flow rate that twice that of flow 1. Finally, when flow 2 ends, flow 1 and flow 3 share the capacity of link 3, and thus their flow rate is the same as well. 
@@ -219,7 +219,7 @@ Thus, we get a ratio between $x_1$ and $x_2$ of 1:2, which is what we see in the
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case2_fast buffer occupancy.png}
+\includegraphics[width = \textwidth]{"test_case2_fast buffer occupancy"}
 \end{figure}
 
 The buffer occupancy that we observe on all our links can be explained by a couple different things. First, when we just have one flow, we know that only the buffer for link one is going to be used. We can see that this buffer has an occupancy of 15, because our alpha parameter for our flows is 15 which represents the amount of packets that flow 1 has in buffers along its route. 
@@ -234,14 +234,14 @@ Once flow 1 finishes, we can see that flow 3 needs time to start sending packets
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case2_fast flow RTT.png}
+\includegraphics[width = \textwidth]{"test_case2_fast flow RTT"}
 \end{figure}
 
 We can see that our round trip times are very closely correlated to how full our buffers are, because the more full that our buffers are, the longer each packet has to spend in the link queue and thus will have longer queuing delays.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case2_fast packet loss.png}
+\includegraphics[width = \textwidth]{"test_case2_fast packet loss"}
 \end{figure}
 
 This is expected behavior because we do not lose any packets using fast.
@@ -254,32 +254,32 @@ Run using \textbf{python3 main.py test\_case3.json 20}.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case3 window size.png}
+\includegraphics[width = \textwidth]{"test_case3 window size"}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case3 buffer occupancy.png}
+\includegraphics[width = \textwidth]{"test_case3 buffer occupancy"}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case3 flow rate.png}
+\includegraphics[width = \textwidth]{"test_case3 flow rate"}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case3 flow RTT.png}
+\includegraphics[width = \textwidth]{"test_case3 flow RTT"}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case3 link rate.png}
+\includegraphics[width = \textwidth]{"test_case3 link rate"}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case3 packet loss.png}
+\includegraphics[width = \textwidth]{"test_case3 packet loss"}
 \end{figure}
 
 
@@ -289,42 +289,42 @@ Run using \textbf{python3 main.py test\_case4.json 20}.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case4 window size.png}
+\includegraphics[width = \textwidth]{"test_case4 window size"}
 \end{figure}
 
 Initially, we see both the explosion from Reno and the slow start into congestion avoidance from FAST. As Flow 1 gets faster, Flow 2 anticipates dropping packets and backs off, only giving Flow 1 more space to grow until eventually entering fast recovery around 11.25 seconds. Flow 2 experiences a strange result. It continuously drops packets and enters fast recovery and congestion avoidance, even timing out once. This is again only explained by the way link priority works in our system, which was not intentional. Our implementation fires off each link one at a time every time increment. In this case, based on how we created our links, L1 has priority over L2; L1 sends packets before L2 at a given time increment. Thus, Flow 2 is more likely to drop packets and react, while Flow 1 can expand and dominate Flow 2. This is an unfortunate result due to our implementation but it was not evident until the final week. As you can see, given this explanation, everything works as it would, and when Flow 1 times out completely, Flow 2 gains more space to increase its window size before having to adjust once more.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case4 buffer occupancy.png}
+\includegraphics[width = \textwidth]{"test_case4 buffer occupancy"}
 \end{figure}
 
 The buffer occupancy closely mirrors the two window sizes. When Flow 1, which is the most dominant flow, experiences fast recovery, the buffer almost completely clears out, but then quickly fills up again as the flow continues with its congestion avoidance.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case4 flow rate.png}
+\includegraphics[width = \textwidth]{"test_case4 flow rate"}
 \end{figure}
 
 The flow rate also closely mirrors window size, becoming zero around the same times as the fast recovery and timeouts occur. In general, Flow 1 is dominant and aggressive and dominates the flow rate competition, minimizing FAST's flow rate, except when Flow 1 times out and Flow 2 has an opportunity to increase its flow rate, only to come down once more.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case4 flow RTT.png}
+\includegraphics[width = \textwidth]{"test_case4 flow RTT"}
 \end{figure}
 
 Flow RTT very closely mirrors the buffer occupancy, which makes sense as in general the propagation delay remains the same and the queueing delay changes. The few times that the F2 flow RTT remains constant is because we are in fast recovery and we do not update our RTT in this case given Karn's algorithm.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case4 link rate.png}
+\includegraphics[width = \textwidth]{"test_case4 link rate"}
 \end{figure}
 
 Link rate is as we would expect. Mostly constant with a big drop when Flow 1 times out.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case4 packet loss.png}
+\includegraphics[width = \textwidth]{"test_case4 packet loss"}
 \end{figure}
 
 Packet loss correlates with buffer occupancy reaches 64 as expected.
@@ -339,7 +339,7 @@ Run using \textbf{python3 main.py test\_case5\_reno.json 20}.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case5_reno window size.png}
+\includegraphics[width = \textwidth]{"test_case5_reno window size"}
 \end{figure}
 
 We see that the dominant flow in this graph is F1, which makes sense since it starts at 0.5s. So for 14.5 s, this is the only flow moving through L5, allowing it to dominate the link capacity. While the flows sends packets as the only flow in the network, we see classic TCP Reno behavior. We have a slow start, where the window size increases dramatically, until we have a dropped packet and halve our window size. Then, we have a packet timeout, which causes us to re-enter slow start with a new threshold, after which we enter congestion avoidance. We then stabilize into a pattern of congestion avoidance and FRFR when a packet is dropped.
@@ -350,28 +350,28 @@ We also see a packet timeout at around L5, and this results in F1 re-entering sl
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case5_reno buffer occupancy.png}
+\includegraphics[width = \textwidth]{"test_case5_reno buffer occupancy"}
 \end{figure}
 
 A major feature of this graph is massive spike in buffer occupancy at around 15 s when all of the remaining flows start. This makes sense as all packets from all flows are trying to access L5. Moreover, we see a large dropoff at 20s, when we enter a timeout and stop sending packets until our retransmission is successful. 
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case5_reno flow rate.png}
+\includegraphics[width = \textwidth]{"test_case5_reno flow rate"}
 \end{figure}
 
 We see our total flow rate remains consistent throughout the simulation. We see that the drops in flow rate in the first 15s correspond to when the simulator enters CA. Afterwards, we see the flow rate of F0 occasionally decreases as it makes way for other flows to send their packets.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case5_reno flow RTT.png}
+\includegraphics[width = \textwidth]{"test_case5_reno flow RTT"}
 \end{figure}
 
 The flow RTT is consistent with what we'd expect TCP Reno to look like for F1 for the first 15s. However, the behavior of the RTT then increasing for every sawtooth pattern afterwards is unexpected. The other flows have very similar RTT graphs to each other as expected as they have the same properties.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case5_reno link rate.png}
+\includegraphics[width = \textwidth]{"test_case5_reno link rate"}
 \end{figure}
 
 
@@ -379,7 +379,7 @@ The link rate graph has dips that match when F1 enters FRFR and congestion avoid
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case5_reno packet loss.png}
+\includegraphics[width = \textwidth]{"test_case5_reno packet loss"}
 \end{figure}
 
 
@@ -391,7 +391,7 @@ Run using \textbf{python3 main.py test\_case5\_fast.json 20}.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case5_fast window size.png}
+\includegraphics[width = \textwidth]{"test_case5_fast window size"}
 \end{figure}
 
 
@@ -401,28 +401,28 @@ The expected behavior is that all 4 flows should have a comparable window size t
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case5_fast buffer occupancy.png}
+\includegraphics[width = \textwidth]{"test_case5_fast buffer occupancy"}
 \end{figure}
 
 Our buffer occupancy can easily be explained by the behavior of all of our flows. We can see that our buffer tries to have 15 packets per flow in it at all times, but when one flow (flow 3) drops its packets, its window size will drop and is unable to add 15 packets at certain points. This then causes our buffer occupancy to drop suddenly, because flow 3 is will be adding less packets to the buffer than expected.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case5_fast flow rate.png}
+\includegraphics[width = \textwidth]{"test_case5_fast flow rate"}
 \end{figure}
 
 The flow rate graph can be explained with similar logic as our other graphs. We can see that the flow rate is dependent on the window size of each of our flows. Since we know that flow 3 never reaches equilibrium in its congestion avoidance stage, it is clear that when it continually drops packets, its flow rate cannot reach equilibrium. However, since none of the other flows are dropping any packets, it makes sense for them all to have the same equilibrium state and flow rate as each other, which is sharing the rate of link 5.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case5_fast flow RTT.png}
+\includegraphics[width = \textwidth]{"test_case5_fast flow RTT"}
 \end{figure}
 
 Our round trip times are easily modeled by our buffer occupancy. Clearly, packets take more time to send when there is more information in each of the buffers because the packet will have more queuing delay. Thus, our RTT time mirrors our buffer occupancy.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case5_fast link rate.png}
+\includegraphics[width = \textwidth]{"test_case5_fast link rate"}
 \end{figure}
 
 
@@ -430,7 +430,7 @@ Our link rate makes sense, because once our first flow starts using the link, it
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case5_fast packet loss.png}
+\includegraphics[width = \textwidth]{"test_case5_fast packet loss"}
 \end{figure}
 
 We lose packets once we are sending multiple different flows down one link (4). These packets are lost in our flow 3 going into FRFR stages as they are trying to reach equilibrium but cannot because the buffer becomes full from the other flows because the other flows are prioritized in the algorithm that we use.
@@ -442,32 +442,32 @@ Run using \textbf{python3 main.py test\_case\_custom.json 20}.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case_custom window size.png}
+\includegraphics[width = \textwidth]{"test_case_custom window size"}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case_custom buffer occupancy.png}
+\includegraphics[width = \textwidth]{"test_case_custom buffer occupancy"}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case_custom flow rate.png}
+\includegraphics[width = \textwidth]{"test_case_custom flow rate"}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case_custom flow RTT.png}
+\includegraphics[width = \textwidth]{"test_case_custom flow RTT"}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case_custom link rate.png}
+\includegraphics[width = \textwidth]{"test_case_custom link rate"}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width = \textwidth]{test_case_custom packet loss.png}
+\includegraphics[width = \textwidth]{"test_case_custom packet loss"}
 \end{figure}
 
 
