@@ -102,7 +102,7 @@ class Flow:
 
         # Variables for metric tracking
         self.track = track
-        self.frwindow = 1000 * globals.dt
+        self.frwindow = 600 * globals.dt
         self.frsteps = []
         self.rttwindow = 20000 * globals.dt
         self.rttsteps = []
