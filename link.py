@@ -216,7 +216,6 @@ class HalfLink:
         # if there isn't room in the buffer, we return 0 to indicate that the
         # packet was dropped.
         else:
-            print("Dropped packet at time ", globals.systime)
             return 0
 
         """ I DONT KNOW IF THIS IS BETTER THAN JUST UPDATING BUFFEROCCUPANCY
