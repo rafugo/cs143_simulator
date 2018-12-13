@@ -8,12 +8,14 @@ class Router:
         Initial Arguments:
             - id : id of the router
             - links : list of links connected to the router
-        Attributes: 
+        Attributes:
+            - id : id of the router
             - ip : IP address of the the router
+            - links : list of links connected to the router
             - routing_table : routing table to get packets to their dest
             - link_state_array : keeps track of states of all links
             - handshakes_acked : keep strack of how many handshake acknowledgements are
-        # received, so that we know when our routing table is done
+              received, so that we know when our routing table is done
         '''
         self.id = id
         self.ip = 0
@@ -39,14 +41,15 @@ class Router:
             self.receive_link_state(packet.data)
 
         else:
-            self.forward_packet(packet) 
+            self.forward_packet(packet)
 
     # Function to manage forwarding packets along the routing table
     def forward_packet(self, packet):
         # Looks up destination on routing table
+        print(self.routing_table)
         link_path = self.routing_table.get(packet.get_destination())
         globals.idmapping['links'][link_path].add_to_buffer(packet, self.id)
-        
+
     # Send the initial handshake packet to the adjacent routers to determine which nodes are connected
     def send_handshake(self):
         # Define the handshake packet with the router id as its data
@@ -87,13 +90,14 @@ class Router:
 
         if self.handshakes_acked == len(self.links):
             self.recalc_link_state()
+            self.run_dijkstra()
             self.handshakes_acked = 0
 
     # Upon receiving a link state, the router must update its own link state array
     def receive_link_state(self, state_array_actual):
         state_array = state_array_actual.copy()
         is_updated = False
-        
+
         for value in state_array:
             if self.id in (value[0], value[1]):
                 state_array.remove(value)
@@ -102,7 +106,7 @@ class Router:
             in_array = False
             for value in self.link_state_array:
                 if (item[0], item[1]) == (value[0], value[1]):
-                    in_array = True     
+                    in_array = True
                     if(value[3] != item[3]):
                         value[3] = item[3]
                         is_updated = True
@@ -136,7 +140,7 @@ class Router:
         nodes[start_node] = [0, '']
         current_node = start_node
         seen_nodes.append(start_node)
-  
+
         # While we have unvisited nodes
         while unvisited_nodes != []:
 
@@ -164,9 +168,3 @@ class Router:
         for key in nodes:
             rt[key] = nodes.get(key)[1]
         self.routing_table = rt
-
-
-
-
-
-

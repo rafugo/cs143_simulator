@@ -82,7 +82,7 @@ class Simulator:
     # Plots metrics based on data collected while the simulations was running
     def plot_metrics2(self):
         if (globals.PRESENTATIONMODE):
-            plot.rcParams.update({'font.size' : 16})
+            plot.rcParams.update({'font.size' : 12})
             plot.tight_layout()
         # Access all metrics
         all_metrics = globals.LINKMETRICS + globals.HALFLINKMETRICS + globals.FLOWMETRICS
