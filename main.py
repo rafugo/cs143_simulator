@@ -22,7 +22,7 @@ except ValueError:
    sys.exit("Please enter an integer value in seconds for the runtime")
 
 if (val > 100):
-    sys.exit("This runtime seems too large. \n Please enter an integer value in seconds for the runtime.")
+    sys.exit("This runtime seems too large. \n Please enter an integer value in seconds (less than 100) for the runtime.")
 
 sim = Simulator(sys.argv[1], val)
 print("Starting simulation for", sys.argv[1], ", running for", sys.argv[2], "seconds.")
