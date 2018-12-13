@@ -125,7 +125,7 @@ where $w$ on the right hand side is the current window and the $w$ on the left h
 For our RTTs, we used the same algorithm as in Reno. We also followed the same timeout procedure.
 
 
-\section{Metrics Tracking}
+\section{Metric Tracking}
 
 To track metrics during our simulation, we created a global dictionary with string keys of the form {\em object : metric}, where {\em object} is the ID of the specific object that the dictionary is tracking, which will be a flow, link, half-link or host and {\em metric} is the metric that the dictionary is tracking. Each of these keys maps o a value of another dictionary, where the dictionary mapped to contains items of the form (time, value), where the time is the key, and the value is the value for that metric at that time. In our simulation, we also kept track of which objects we would be tracking statistics for and we would only add entries to our global dictionary of statistics corresponding to those being tracked. This served to save both time and space, so our simulation wouldn't spend time computing and storing values we didn't intend to use. 
 
@@ -161,7 +161,10 @@ The first time the flow sets its RTT, it sets {\em setRTT} to be true and adds t
 
 \subsection{Host Statistics}
 \subsubsection{Host Flow Rate}
+For the per host send/receive rate, we added a function prepare\_host\_metrics() to the Simulator class. This function goes through all of the hosts in the simulation and checks if it is the source for any flows being tracked. If it is, it creates a new dictionary to track flow rate for that host which is essentially the summation of the flow rates for all flows for which it is a source. Then, the dictionary is added to the global dictionary, with a key indicating that the dictionary corresponds to the flow rate for specific the host. 
 
+\subsection{Graphing}
+All graphing of the simulation statistics is handled by the plot\_metrics() function of the Simulator class. For each of the statistics, we plot all of the dictionaries corresponding to that statistic on the same plot, with a maximum x value of the duration of the simulation in seconds. This ensures that all of the plots will have the same x scale, even if all of the flows finish before the end of the simulation is reached. In this function, we also convert the y values to be in the correct units and add the proper title, x axis label, and y axis label. This function also saves the ginal 
 
 \section{Results}
 
