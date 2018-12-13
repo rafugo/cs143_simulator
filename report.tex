@@ -219,17 +219,27 @@ Thus, we get a ratio between $x_1$ and $x_2$ of 1:2, which is what we see in the
 
 \includegraphics[width = \textwidth]{"test_case4 window size"}
 
+Initially, we see both the explosion from Reno and the slow start into congestion avoidance from FAST. As Flow 1 gets faster, Flow 2 anticipates dropping packets and backs off, only giving Flow 1 more space to grow until eventually entering fast recovery around 11.25 seconds. Flow 2 experiences a strange result. It continuously drops packets and enters fast recovery and congestion avoidance, even timing out once. This is again only explained by the way link priority works in our system, which was not intentional. Our implementation fires off each link one at a time every time increment. In this case, based on how we created our links, L1 has priority over L2; L1 sends packets before L2 at a given time increment. Thus, Flow 2 is more likely to drop packets and react, while Flow 1 can expand and dominate Flow 2. This is an unfortunate result due to our implementation but it was not evident until the final week. As you can see, given this explanation, everything works as it would, and when Flow 1 times out completely, Flow 2 gains more space to increase its window size before having to adjust once more.
+
 \includegraphics[width = \textwidth]{"test_case4 buffer occupancy"}
+
+The buffer occupancy closely mirrors the two window sizes. When Flow 1, which is the most dominant flow, experiences fast recovery, the buffer almost completely clears out, but then quickly fills up again as the flow continues with its congestion avoidance.
 
 \includegraphics[width = \textwidth]{"test_case4 flow rate"}
 
+The flow rate also closely mirrors window size, becoming zero around the same times as the fast recovery and timeouts occur. In general, Flow 1 is dominant and aggressive and dominates the flow rate competition, minimizing FAST's flow rate, except when Flow 1 times out and Flow 2 has an opportunity to increase its flow rate, only to come down once more.
+
 \includegraphics[width = \textwidth]{"test_case4 flow RTT"}
+
+Flow RTT very closely mirrors the buffer occupancy, which makes sense as in general the propagation delay remains the same and the queueing delay changes. The few times that the F2 flow RTT remains constant is because we are in fast recovery and we do not update our RTT in this case given Karn's algorithm.
 
 \includegraphics[width = \textwidth]{"test_case4 link rate"}
 
+Link rate is as we would expect. Mostly constant with a big drop when Flow 1 times out.
+
 \includegraphics[width = \textwidth]{"test_case4 packet loss"}
 
-
+Packet loss correlates with buffer occupancy reaches 64 as expected.
 
 
 
