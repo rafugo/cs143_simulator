@@ -169,9 +169,15 @@ For our RTTs, we used the same algorithm as in Reno. We also followed the same t
 
 \includegraphics[width = \textwidth]{"test_case2_fast window size"}
 
-Here we have the window size graph of our flow for TCP fast. Looking at three critical points, 0, 10, and 20 seconds, where each flow starts. Each flow initially starts in the fast slow start state, which causes each flow to increase its window size until the amount of ack packets that the flow received in the last round trip time is less than 90 percent of what was expected. At that point, each of our flows enters congestion control and reaches equilibrium. 
+Here we have the window size graph of our flow for TCP fast. Looking at three critical points, 0, 10, and 20 seconds, where each flow starts. Each flow initially starts in the fast slow start state, which causes each flow to increase its window size until the throughput that the flow is using in the last round trip time is less than 90 percent of the expected throughput. At that point, each of our flows enters congestion control and reaches equilibrium. Then, when the next flow starts, our equilibrium window size will lower in order to adjust to the window size that the new flow is contributing.
+
+\includegraphics[width = \textwidth]{"test_case2_fast link rate"}
+
+Here we have the link rate measurements of link 1, 2, and 3 in test case 2. Initially, we only have 1 flow using all three links, which means that all three links can be used to full capacity with the one flow. When our second flow enters, it is only using link 1, which then means that link 1 is going to be used to full capacity, whereas the flow rate of our first flow will be lowered, and thus will make the link rate of links 2 and 3 lower because they will not be used to their full potential. Then, when our third flow starts and all three flows are running simultaneously, we can see that link 1 and 3 are being used by two flows and thus will be used to their full capacity, whereas the second link will be used only by flow 1. Finally, when just flow 1 and flow 3 are active, we can see that 
+
 
 \includegraphics[width = \textwidth]{"test_case2_fast buffer occupancy"}
+
 
 \includegraphics[width = \textwidth]{"test_case2_fast flow rate"}
 
@@ -191,7 +197,6 @@ Thus, we get a ratio between $x_1$ and $x_2$ of 1:2, which is what we see in the
 
 \includegraphics[width = \textwidth]{"test_case2_fast flow RTT"}
 
-\includegraphics[width = \textwidth]{"test_case2_fast link rate"}
 
 \includegraphics[width = \textwidth]{"test_case2_fast packet loss"}
 
