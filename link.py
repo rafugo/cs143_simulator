@@ -218,19 +218,6 @@ class HalfLink:
         else:
             return 0
 
-        """ I DONT KNOW IF THIS IS BETTER THAN JUST UPDATING BUFFEROCCUPANCY
-            EVERY TIME. THINK WE SHOULD GET RID OF GLOBALS.SMOOTH. """
-        # If we are tracking this link and we are tracking buffer occupancy
-        # statistics, we will update the corresponding dictionary accordingly.
-        if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) \
-            and (not globals.SMOOTH):
-            key = self.id+":"+self.source+"->"+self.destination+":"+globals.BUFFEROCCUPANCY
-            globals.statistics[key][globals.systime] = self.buffersize
-            if (globals.systime > 0) and not (globals.systime-globals.dt in \
-                globals.statistics[key].keys()):
-                globals.statistics[key][globals.systime-globals.dt] = self.buffersize - \
-                    packet.get_size()
-
         # returns the size of the packet that was succesfully added to the
         # buffer.
         return packet.get_size()
@@ -255,15 +242,6 @@ class HalfLink:
                 # Updates buffersize to reflect that we removed the packet
                 # at the front of the buffer from the buffer.
                 self.buffersize = self.buffersize - amountfreed
-
-                if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) \
-                    and (not globals.SMOOTH):
-                    key = self.id+":"+self.source+"->"+self.destination+":"+globals.BUFFEROCCUPANCY
-                    globals.statistics[key][globals.systime] = self.buffersize
-                    if (globals.systime > 0) and not (globals.systime-globals.dt \
-                        in globals.statistics[key].keys()):
-                        globals.statistics[key][globals.systime-globals.dt] = self.buffersize \
-                            + amountfreed
 
                 # Time represents the amount of time in the previous dt that we
                 # were transmitting. (i.e. between the previous systime and the
@@ -347,24 +325,10 @@ class HalfLink:
 
 
     def update_link_statistics(self):
-        if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS) \
-            and globals.SMOOTH:
-            avgocc = 0
-            if(globals.systime <= self.bufferwindow):
-                if (globals.systime != 0):
-                    self.buffersteps.append(self.buffersize)
-                    avgocc = sum(self.buffersteps)*(globals.dt/(globals.systime))
-                # When the time is 0, we will just set the rate to be 0.
-                else:
-                    pass
-            else:
-                self.buffersteps.pop(0)
-                self.buffersteps.append(self.buffersize)
-                avgocc = sum(self.buffersteps)/self.bufferwindow
+        if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS):
             key = self.id + ":" + self.source + "->" + self.destination + ":" \
                   + globals.BUFFEROCCUPANCY
-            dict = globals.statistics[key][globals.systime] = avgocc * globals.dt
-
+            globals.statistics[key][globals.systime] = self.buffersize
 
     def get_effective_rate(self):
         return self.effectiverate

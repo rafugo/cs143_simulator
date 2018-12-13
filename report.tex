@@ -46,6 +46,13 @@ Our simulator class contains all of the network objects needed to simulate our n
 
 \end{description}
 
+
+\subsection{Packet Class}
+
+\begin{description}
+	\item [$\bullet$ \_\_init\_\_(self, int sourceid, int flowid, int destinationid, int packetid, string packet\_type, string data = '')] Initialize a packet object. sourceid referes to the id of the source (whether it's a router or a host). flowid refers to the id of the flow the packet belongs to. destinationid referes to the id of the destination (whether it's a router or a host). packetid is the identification of the packet within the flow and is its number in the sequence. packet\_type is the type of the packet and can take on the values of STANDARDPACKET: a normal packet, ACKPACKET: an acknowledgement packet, ROUTINGPACKET: a routing table packet, SYNPACKET: a synchronization packet, SYNACK: a synchronization packet acknowledgement. 
+\end{description}
+
 \subsection{Host Class}
 
 Our host class simulates the behavior of a host in our network.
@@ -70,11 +77,6 @@ Our host class simulates the behavior of a host in our network.
 	\item [$\bullet$ run\_dijkstra(self)] Run's Dijkstra's algorithm to determine the routing table.
 \end{description}
 
-\subsection{Packet Class}
-
-\begin{description}
-	\item [$\bullet$ \_\_init\_\_(self, int sourceid, int flowid, int destinationid, int packetid, string packet\_type, string data = '')] Initialize a packet object. sourceid referes to the id of the source (whether it's a router or a host). flowid refers to the id of the flow the packet belongs to. destinationid referes to the id of the destination (whether it's a router or a host). packetid is the identification of the packet within the flow and is its number in the sequence. packet\_type is the type of the packet and can take on the values of STANDARDPACKET: a normal packet, ACKPACKET: an acknowledgement packet, ROUTINGPACKET: a routing table packet, SYNPACKET: a synchronization packet, SYNACK: a synchronization packet acknowledgement. 
-\end{description}
 
 \subsection{Link Class}
 \begin{description}
@@ -127,6 +129,39 @@ For our RTTs, we used the same algorithm as in Reno. We also followed the same t
 \section{Metrics Tracking}
 
 To track metrics during our simulation, we created a global dictionary with string keys of the form {\em object : metric}, where {\em object} is the ID of the specific object that the dictionary is tracking, which will be a flow, link, half-link or host and {\em metric} is the metric that the dictionary is tracking. Each of these keys maps o a value of another dictionary, where the dictionary mapped to contains items of the form (time, value), where the time is the key, and the value is the value for that metric at that time. In our simulation, we also kept track of which objects we would be tracking statistics for and we would only add entries to our global dictionary of statistics corresponding to those being tracked. This served to save both time and space, so our simulation wouldn't spend time computing and storing values we didn't intend to use. 
+
+\subsection{Link Statistics}
+The only metric we ended up tracking at the link level was the number of dropped packets, for links that we track metrics for, we track packet loss for both directions of the link.
+\subsubsection{Dropped Packets}
+To track packet loss along links, we added a field droppedpackets to the Link class. Then, when any network object tries to add a packet to either buffer associated with a link, the link checks if the packet was dropped, and if it was, increments the value stored in droppedpackets. Then, at each time step of the simulation, each link calls update\_link\_statistics(), which adds the current value of droppedpackets to the dictionary with key value which is the current time of the global clock and then resets the value of droppedpackets to be 0. Thus, each point in our packet loss graph corresponds to a single time step of the simulation and represents the number of packets dropped during that time step. 
+
+\subsection{HalfLink Statistics}
+We tracked both link rate and buffer occupancy at the half-link level so that we could really focus on the behavior of the link in the direction of interest. 
+
+\subsubsection{Link Rate}
+To track the link rate of a half-link we added a couple fields to the HalfLink class, {\em lrwindow} and {\em lrsteps}. {\em lrwindow} stores the window of time over which we are computing the link rate for, and is a multiple of the size of a time step. Then {\em lrsteps} stores a list of values corresponding to each time step in the window, where each value indicates the amount of data transmitted by the link in the corresponding time step in bits. All of the link rate tracking occurs in the  send\_packet() function, which updates these values and computes the current estimate for rate by taking the sum of all the values in {\em lrsteps} and dividing them by the minimum of the amount of time that has passed and {\em lrwindow}. Then, if we add the estimated rate to the corresponding dictionary with a key of the current time of the global clock. 
+
+\subsubsection{Buffer Occupancy}
+Each half-link stores {\em buffersize} and {\em buffercapacity}, which store the current occupancy of the buffer and its capacity, respectively. As packets are added and removed from the buffer, {\em buffersize} is updated accordingly. The half-link calls update\_link\_statistics() at each times step, which then adds {\em buffersize} as a value to the corresponding dictionary with a key value that is the current time. 
+
+\subsection{Flow Statistics}
+For each flow which the simulator is tracking, window size, flow rate, and flow round trip time (RTT) were tracked. All flow statistics are only updated if {\em done} is false and if the current time is greater than or equal to the flow's start time. This ensures that we only track flows once they have started and while they are still active. Flows call update\_flow\_statistics() at each time step to update these statistics. 
+
+\subsubsection{Window Size} 
+When update\_flow\_statistics() is called, the current window size of the flow, which is updated and managed by the congestion control for the flow, is added to the dictionary corresponding to this flow's window size with a key value that is the current time. 
+
+\subsubsection{Flow Rate}
+To track the flow rate, {\em frwindow}, {\em frsteps} and {\em added} were added to the Flow class.  {\em frwindow} stores the window of time over which we are computing the flow rate for, and is a multiple of the size of a time step. Then {\em frsteps} stores a list of values corresponding to each time step in the window, where each value indicates the amount of data for which we received a new acknowledgment in the corresponding time step in bits. Because the flow will only be able to receive at most one ACK per time step in our simulation (due to the link rates which we are calibrated for, size of ACK packets, and size of our time step), each value in this list will be either 0 or the size of a packet in bits. {\em added} is a boolean value which indicates whether or not we have already added a value to {\em frsteps} on a given time step. 
+
+When the flow receives an ACK packet p, it calls track\_metrics(p), which checks if the packet being acknowledged by has already been acknowledged. If so, it does nothing. Otherwise, it updates the dictionary storing successfully transmitted packets to show that the packet being acknowledged was successfully transmitted, appends the size of a packet in bits to {\em frsteps} and sets {\em added} to be true. 
+
+The flow calls update\_flow\_statistics() at every time step. If {\em added} is false, 0  is appended to {\em frsteps}. If {\em frsteps} is has fewer or as many elements as time steps which {\em frwindow} covers, the rate is computed as the sum of its elements divided by the amount of time for which the flow has been flowing. Otherwise, we remove its first element and compute the rate as the sum of its elements divided by the window size. Then, the computed rate is added to the dictionary corresponding to the flow's flow rate with a key of the current time of the global clock.
+
+\subsubsection{Flow RTT}
+The first time the flow sets its RTT, it sets {\em setRTT} to be true and adds the current RTT to the dictionary corresponding to its RTT with a key that is the current time. When update\_flow\_statistics() is called and {\em setRTT} is true, the current RTT of the flow, which is updated and managed by the congestion control for the flow, is added to the dictionary corresponding to this flow's RTT with a key value that is the current time. 
+
+\subsection{Host Statistics}
+\subsubsection{Host Flow Rate}
 
 
 \section{Results}

@@ -104,8 +104,6 @@ class Flow:
         self.track = track
         self.frwindow = 600 * globals.dt
         self.frsteps = []
-        self.rttwindow = 20000 * globals.dt
-        self.rttsteps = []
         self.added = False
         self.successfullytransmitted = {}
 
@@ -264,84 +262,44 @@ class Flow:
     # Initialize info to start tracking metrics for the flow
     def start_metrics(self):
         self.setRTT = True
-        if ((self.track) and globals.FLOWRTT in globals.FLOWMETRICS) and (not globals.SMOOTH):
+        if (self.track):
             key = self.id + ":" + globals.FLOWRTT
             globals.statistics[key][globals.systime] = self.rtt
         return
 
     # Track the metrics on the flow
     def track_metrics(self, p):
-        if (self.track and globals.FLOWRATE in globals.FLOWMETRICS and (not self.done)):
-            if p.packetid not in self.successfullytransmitted.keys():
-                self.successfullytransmitted[p.packetid] = 1
-                self.added = True
-                rate = 0
-                assert globals.systime >= self.start
+        if self.track and (not self.done) and \
+           p.packetid not in self.successfullytransmitted.keys():
+            self.successfullytransmitted[p.packetid] = 1
+            self.frsteps.append(globals.PACKETSIZE)
+            self.added = True
+            assert globals.systime >= self.start
 
-                if (True):
-                    self.frsteps.append(globals.PACKETSIZE)
-                    if (len(self.frsteps) <= self.frwindow/globals.dt):
-                        if (globals.systime != self.start ):
-                            rate = sum(self.frsteps)/(globals.systime - self.start)
-                    else:
-                        self.frsteps.pop(0)
-                        rate = sum(self.frsteps)/(self.frwindow)
-
-                    key = self.id + ":" + globals.FLOWRATE
-                    globals.statistics[key][globals.systime] = rate
-
-                else:
-                    self.frsteps.append(0)
-                    link = globals.idmapping['links'][self.source.linkid]
-                    linkrate = link.rate
-                    transmission_time = globals.PACKETSIZE/link.rate
-                    if (len(self.frsteps) <= self.frwindow/globals.dt):
-                        segments = min(len(self.frsteps), transmission_time/globals.dt)
-                        segments = math.ceil(segments)
-                        for i in range(segments):
-                            self.frsteps[len(self.frsteps)-1-i] += float(globals.PACKETSIZE)/segments
-                        if (globals.systime != self.start):
-                            rate = sum(self.frsteps)/(globals.systime - self.start)
-                    else:
-                        self.frsteps.pop(0)
-                        segments = min(len(self.frsteps), transmission_time/globals.dt)
-                        segments = math.ceil(segments)
-                        for i in range(segments):
-                            self.frsteps[len(self.frsteps)-1-i] += float(globals.PACKETSIZE)/segments
-                        rate = sum(self.frsteps)/(self.frwindow)
-                    key = self.id + ":" + globals.FLOWRATE
-                    globals.statistics[key][globals.systime] = rate
 
     # Update the flow statistics for metric tracking
     def update_flow_statistics(self):
-        if (not self.added) and (self.track and globals.FLOWRATE in globals.FLOWMETRICS) and (not self.done):
+        if self.track and (not self.done) and globals.systime >= self.start:
+            # Flow Rate
             rate = 0
-            self.frsteps.append(0)
-            if (len(self.frsteps) < self.frwindow/globals.dt):
-                if (globals.systime > self.start):
-                    rate = sum(self.frsteps)/(globals.systime - self.start)
+            if (not self.added):
+                self.frsteps.append(0)
+            if (len(self.frsteps) <= self.frwindow/globals.dt):
+                rate = sum(self.frsteps)/(globals.systime - self.start)
             else:
                 self.frsteps.pop(0)
                 rate = sum(self.frsteps)/(self.frwindow)
-
             key = self.id + ":" + globals.FLOWRATE
             globals.statistics[key][globals.systime] = rate
 
-        if (self.track and globals.WINDOWSIZE in globals.FLOWMETRICS) and (not self.done):
+            # Window size
             key = self.id + ":" + globals.WINDOWSIZE
             globals.statistics[key][globals.systime] = self.window_size
 
-        if  (self.track and globals.FLOWRTT in globals.FLOWMETRICS) and self.setRTT and (not self.done): #globals.SMOOTH:
-            '''avgrtt = 0
+            # RTT
             if (self.setRTT):
-                self.rttsteps.append(self.rtt)
-                if (len(self.rttsteps) < self.rttwindow/globals.dt) and globals.systime > 0:
-                    avgrtt = sum(self.rttsteps)/(globals.systime) * globals.dt
-                else:
-                    self.rttsteps.pop(0)
-                    avgrtt = sum(self.rttsteps)/(self.rttwindow) * globals.dt'''
-            key = self.id + ":" + globals.FLOWRTT
-            globals.statistics[key][globals.systime] = self.rtt
+                key = self.id + ":" + globals.FLOWRTT
+                globals.statistics[key][globals.systime] = self.rtt
 
         self.added = False
 

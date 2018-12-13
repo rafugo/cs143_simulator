@@ -8,8 +8,7 @@ from router import Router
 class Flow_FAST:
     def __init__(self, id, source, destination, amount,\
                     start, track=True):
-    '''
-        The function initializes a flow object:
+    """ The function initializes a flow object:
         Initial Arguments:
             - id (string) : id of the flow
             - source (string): id of the source of the flow
@@ -44,9 +43,9 @@ class Flow_FAST:
             - next_cut_time (float) : next time we can cut the window size, created to make sure
                 we don't trigger a dangerous loop
 
-        
+
             For TCP FAST
-            - alpha 
+            - alpha
             - gamma
 
             For TCP FAST next window and goal window in CA
@@ -59,11 +58,11 @@ class Flow_FAST:
 
             For handling which RTT the flow is in during SS or CA
             - rtt_interval
-            - rtt_interval_time 
-            - rtt_interval_size 
+            - rtt_interval_time
+            - rtt_interval_size
             - rtt_interval_prev_size
             - window_increment
-        
+
             - min_rtt : the minimum rtt experienced
 
             For estimating the target and actual throughput, so that SS
@@ -79,9 +78,7 @@ class Flow_FAST:
             - rttsteps
             - added
             - successfullytransmitted
-            - states_tracker : tracks the states the flow is in and when they switch.
-        '''
-
+            - states_tracker : tracks the states the flow is in and when they switch"""
         # current size of the window used for the congestion controller
         self.window_size = 1
         self.window_start = 0
@@ -181,7 +178,7 @@ class Flow_FAST:
         self.states_tracker = []
 
     '''
-    Called every time increment. 
+    Called every time increment.
 
     Does a few things.
 
@@ -289,7 +286,7 @@ class Flow_FAST:
     p is the packet that we are acknowledging.
 
     This function processes an ACK received by the host. It handles it according
-    to what state the flow is in, so slow_start, congestion_avoidance, or 
+    to what state the flow is in, so slow_start, congestion_avoidance, or
     fast_recovery.
     '''
     def process_ack(self, p):

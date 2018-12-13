@@ -3,7 +3,7 @@ import globals
 from host import Host
 from link import Link
 from packet import Packet
-from flow_fast import Flow_FAST
+#from flow_fast import Flow_FAST
 from router import Router
 from flow_reno import Flow
 
