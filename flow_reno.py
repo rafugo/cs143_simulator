@@ -120,8 +120,7 @@ class Flow:
     # Run the flow, this is the function called every dt for the flow
     def run(self):
         # If we shouldn't do anything, leave
-        if self.start >= globals.systime or self.done == True or \
-            self.state == "fast_recovery":
+        if self.start >= globals.systime or self.done == True:
             return
 
         # Send any available packets otherwise
@@ -190,7 +189,7 @@ class Flow:
         # Time to enter fast recovery
         if self.state != 'fast_recovery' and self.duplicate_count == 3 and self.next_cut_time <= globals.systime:
             print("Entering fast recovery at time: ", globals.systime, " window size: ", self.window_size)
-            self.ssthresh = self.window_size / 2
+            self.ssthresh = max(self.window_size / 2, 2)
 
             # Retransmit the dropped packet
             self.source.send_packet(self.packets[p.data])
@@ -202,7 +201,7 @@ class Flow:
 
         # Window inflation
         elif self.state == 'fast_recovery':
-            self.window_start += 1
+            #self.window_size += 1
             # Send any packets we can send
             self.send_packets()
 
@@ -213,7 +212,7 @@ class Flow:
             globals.systime >= self.next_cut_time:
             print("timed out at time: ", globals.systime, "window size: ", self.window_size)
             # Enter slow_start
-            self.ssthresh = self.window_size / 2
+            self.ssthresh = max(self.window_size / 2, 2)
             self.window_size = 1
 
             # Update state and track timeout
@@ -238,7 +237,7 @@ class Flow:
             self.rto = 2 * self.rto
             self.next_cut_time += self.rto
 
-        else:
+        elif self.state != "fast_recovery":
             # Send everything in the window that has not been sent
             self.send_window()
 
