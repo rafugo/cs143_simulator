@@ -8,7 +8,8 @@ from router import Router
 class Flow_FAST:
     def __init__(self, id, source, destination, amount,\
                     start, track=True):
-    """ The function initializes a flow object:
+        '''
+        The function initializes a flow object:
         Initial Arguments:
             - id (string) : id of the flow
             - source (string): id of the source of the flow
@@ -177,6 +178,7 @@ class Flow_FAST:
         # tracking what states we are in and the time
         self.states_tracker = []
 
+    '''
     '''
     Called every time increment.
 
