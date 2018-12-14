@@ -81,6 +81,8 @@ class Simulator:
 
     # prepares host metrics for tracking
     def prepare_host_metrics(self):
+        """This function constructs a dictionaries tracking host send/recive
+           rates using the recorded flow send/recieve rates"""
         for (h, host) in globals.idmapping['hosts'].items():
             tracking = False
             dict = {}

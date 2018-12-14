@@ -136,8 +136,6 @@ class Flow_FAST:
         self.track = track
         self.frwindow = 600 * globals.dt
         self.frsteps = []
-        self.rttwindow = 20000 * globals.dt
-        self.rttsteps = []
         self.added = False
         self.successfullytransmitted = {}
 
@@ -200,12 +198,9 @@ class Flow_FAST:
             return
 
         if self.ssthresh == 0:
-            print(globals.systime)
             sys.exit()
 
         if self.window_size <= 0:
-            print(self.ssthresh)
-            print(globals.systime)
             sys.exit()
 
 
@@ -443,7 +438,6 @@ class Flow_FAST:
         # if we have timed out (not recently)
         if globals.systime >= self.timeout_marker and \
             globals.systime >= self.next_cut_time:
-            print("entering slow_start")
 
             # enter slow_start
             self.ssthresh = self.window_size / 2
@@ -503,7 +497,6 @@ class Flow_FAST:
 
                 # send the packet
                 self.source.send_packet(self.packets[i])
-                # print("sending packet ", i)
 
 
     '''
@@ -511,7 +504,7 @@ class Flow_FAST:
     '''
     def start_metrics(self):
         self.setRTT = True
-        if ((self.track) and globals.FLOWRTT in globals.FLOWMETRICS) and (not globals.SMOOTH):
+        if ((self.track) and globals.FLOWRTT in globals.FLOWMETRICS):
             key = self.id + ":" + globals.FLOWRTT
             globals.statistics[key][globals.systime] = self.rtt
         return

@@ -63,6 +63,11 @@ class Link:
 
 
     def run(self):
+        """This function performs both actions that each link must complete at
+            each time step- updating statistics and sending packets. We update
+            the statistics before sending the packet because if we sent packets
+            first it would seem like the buffer is not being used to capacity
+            although it is."""
         self.update_link_statistics()
         self.send_packet()
 
@@ -93,9 +98,12 @@ class Link:
 
 
     def update_link_statistics(self):
+        """This function will update the link statistics for both HalfLinks
+           associated with the link, as well as updating the packetloss for
+           this link. """
         for link in self.links.values():
             link.update_link_statistics()
-        if (self.track and globals.PACKETLOSS in globals.LINKMETRICS):
+        if self.track:
             key = self.id + ":" + globals.PACKETLOSS
             globals.statistics[key][globals.systime] = self.droppedpackets
             self.droppedpackets = 0
@@ -179,17 +187,11 @@ class HalfLink:
         # track indicates whether or not to track metrics for this half-link
         self.track = track
         # lrwindow stores the window over which we are estimating link rate.
-        self.lrwindow = 5000 * globals.dt #was 15000
+        self.lrwindow = 5000 * globals.dt
         # lrsteps stores a list of values corresponding to each time step in
-        # the window, where a value of 0 indicates that the flow recieved no
-        # new acknowledgements during the corresponding time step, and a
-        # value of the size of our packets in bits indicates that the flow
-        # recieved a new acknowledgement during the corresponding time step.
+        # the window, where the value indicates the number of bits transmitted
+        # by the half link during the corresponding time step.
         self.lrsteps = []
-        """I THINK WE SHOULD GET RID OF THIS ENTIRELY"""
-        self.buffersteps = []
-        self.bufferwindow = 1 * globals.dt
-        """END SHIT I WANT TO DELETE"""
         # stores the current link rate achieved by this half-link
         self.effectiverate = 0
         # If we are tracking this half link, we set up dictionaries for all of
@@ -224,6 +226,12 @@ class HalfLink:
 
 
     def send_packet(self):
+        """This function will send a packet if it is the correct time for it to
+           be sent. It manages removing packets from the buffer, adding them
+           to the list of packets in transmission, and removing them and
+           communicating them to the destination object on the HalfLink at the
+           proper time, as well as updating the link's effective rate and
+           tracking it."""
         amountfreed = 0
         bitstransmitted = 0
         # If we are at or have passed the time at which we should send the next
@@ -255,15 +263,17 @@ class HalfLink:
                 # buffer to the lists that keep track of the propegation of the
                 # packets.
                 self.packets_in_transmission.append(packet_to_send)
-                self.packet_arrival_times.append(globals.systime + self.delay)
+                self.packet_arrival_times.append(self.next_packet_send_time + self.delay)
 
                 # If there are still packets in the buffer, update the time
                 # to send the next packet to be when it would finish transmitting
                 if (len(self.buffer) > 0):
                     next_packet_size = self.buffer[0].get_size()
-                    # replace globals.systime with self.next_packet_send_time
-                    self.next_packet_send_time = globals.systime + \
+                    self.next_packet_send_time = self.next_packet_send_time + \
                         next_packet_size * (1/self.rate)
+                    # If we finished transmitting a packet and immediately
+                    # started sending another, we transmitted the entire time
+                    # step.
                     bitstransmitted = globals.dt * self.rate
 
                 # the buffer is empty so we will just set the time to try to
@@ -275,35 +285,36 @@ class HalfLink:
         # in one of two cases: either buffer is empty or we used link to capacity
         # in last dt.
         else:
+            # if the buffer is nonempty, we must have been transmitting for
+            # the entire duration of the last timestep.
             if (len(self.buffer) != 0):
-                time = globals.dt
-                bitstransmitted = time * self.rate
+                bitstransmitted = globals.dt * self.rate
             else:
                 pass
 
-        # If we are tracking this link and we are tracking link rate for half
-        # links, we compute the link rate and update the statistics disctionary
-        # appropriately.
-        if ((globals.LINKRATE in globals.HALFLINKMETRICS)):
-            rate = 0
-            self.lrsteps.append(bitstransmitted)
-            if(globals.systime <= self.lrwindow):
-                if (globals.systime != 0):
-                    rate = sum(self.lrsteps)/(globals.systime + globals.dt)
-                # when the time is 0, we will just set the rate to be 0.
-                else:
-                    pass
+        # Now, we compute and update the effective rate of the link.
+        rate = 0
+        self.lrsteps.append(bitstransmitted)
+        if(globals.systime <= self.lrwindow):
+            if (globals.systime != 0):
+                rate = sum(self.lrsteps)/(globals.systime + globals.dt)
+            # when the time is 0, we will just set the rate to be 0.
             else:
-                self.lrsteps.pop(0)
-                rate = sum(self.lrsteps)/self.lrwindow
-            self.effectiverate = rate
-            if (self.track):
-                key = self.id + ":" + self.source + "->" + self.destination + ":" \
-                        + globals.LINKRATE
-                dict = globals.statistics[key][globals.systime] = rate
+                pass
+        else:
+            self.lrsteps.pop(0)
+            rate = sum(self.lrsteps)/self.lrwindow
+        self.effectiverate = rate
 
-        # If there are no packets in transmission, we don't need to check if
-        # any would have arrived at their destination during the last dt.
+        # If we are tracking this HalfLink, we will also record its current
+        # rate.
+        if (self.track):
+            key = self.id + ":" + self.source + "->" + self.destination + ":" \
+                    + globals.LINKRATE
+            dict = globals.statistics[key][globals.systime] = rate
+
+        # Now we will check if any packets should be arriving at their
+        # destination.
         if (len(self.packet_arrival_times) > 0):
             # If the time has passed the arrival time at the front of the list
             # of packet_arrival_times, we should remove the first item of the
@@ -311,7 +322,6 @@ class HalfLink:
             # element of the list of packets_in_transmission and we should send
             # that packet to its destination.
             if (self.packet_arrival_times[0] <= globals.systime):
-                # pop the packet and arrival time
                 packet_to_send = self.packets_in_transmission.pop(0)
                 self.packet_arrival_times.pop(0)
                 dest_type = ''
@@ -325,10 +335,13 @@ class HalfLink:
 
 
     def update_link_statistics(self):
-        if (self.track and globals.BUFFEROCCUPANCY in globals.HALFLINKMETRICS):
+        """This function updates the tracking of bufferoccupancy for this
+           HalfLink if we are tracking it."""
+        if (self.track):
             key = self.id + ":" + self.source + "->" + self.destination + ":" \
                   + globals.BUFFEROCCUPANCY
             globals.statistics[key][globals.systime] = self.buffersize
+
 
     def get_effective_rate(self):
         return self.effectiverate

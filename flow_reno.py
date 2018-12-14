@@ -187,10 +187,9 @@ class Flow:
     def handle_dup_ack(self, p):
         self.duplicate_count += 1
         # Time to enter fast recovery
-        if self.state != 'fast_recovery' and self.duplicate_count == 3 and self.next_cut_time <= globals.systime:
-            print("Entering fast recovery at time: ", globals.systime, " window size: ", self.window_size)
+        if self.state != 'fast_recovery' and self.duplicate_count == 3 and \
+                      self.next_cut_time <= globals.systime:
             self.ssthresh = max(self.window_size / 2, 2)
-
             # Retransmit the dropped packet
             self.source.send_packet(self.packets[p.data])
             self.dup_count[p.data] = self.dup_count[p.data] + 1
@@ -201,7 +200,6 @@ class Flow:
 
         # Window inflation
         elif self.state == 'fast_recovery':
-            #self.window_size += 1
             # Send any packets we can send
             self.send_packets()
 

@@ -24,33 +24,48 @@ class Router:
         self.link_state_array = []
         self.handshakes_acked = 0
 
-    # Simulates router behavior upon receiving a packet
+    '''
+    This function simulates what each router should do when it recieves a packet
+    Arguments:
+        - packet: this is the packet that the router is recieving
+        - linkid: this is the id of the link that the packet is sent from
+    '''
     def receive_packet(self, packet, linkid):
-        # Perform different actions depending on what type of packet is sent to the router
+        # If the packet is a handshake packet, send back a handshake acknowledgement
         if (packet.is_handshake()):
-            # Send back an acknoledgement packet if it recieves a handshake
             data = self.id
             ack = Packet(self.id, None, packet.get_source(), None, globals.HANDSHAKEACK, data = data)
+
             # Add the acknowledgement packet to the buffer on the link that sent the data
             globals.idmapping['links'][linkid].add_to_buffer(ack, self.id)
 
+        # Process a handshack acknowledgement
         elif(packet.is_handshake_ack()):
             self.receive_handshake_ack(packet, linkid)
 
+        # Process a routing (link state array) packet
         elif(packet.is_routing()):
             self.receive_link_state(packet.data)
 
+        # forward any other type of packet
         else:
             self.forward_packet(packet)
 
-    # Function to manage forwarding packets along the routing table
+    '''
+    This function takes a standard packet with data in it and forwards it according to the routers routing table
+    Arguments:
+        - packet: the packet to be forwarded
+    '''
     def forward_packet(self, packet):
         # Looks up destination on routing table
-        #print(self.routing_table)
         link_path = self.routing_table.get(packet.get_destination())
         globals.idmapping['links'][link_path].add_to_buffer(packet, self.id)
 
-    # Send the initial handshake packet to the adjacent routers to determine which nodes are connected
+
+    '''
+    This function sends the initial handshake packet along the routers connected link which then
+    determines which nodes are adjacent to our router given their acknowledgements
+    '''
     def send_handshake(self):
         # Define the handshake packet with the router id as its data
         handshake_packet = Packet(self.id, None, None, None, globals.HANDSHAKEPACKET, data = self.id)
@@ -60,48 +75,74 @@ class Router:
 
 
     # Recalculates the link states
+    '''
+    This function recalculates our link state array for all links that are connected to 
+    our router and sends the updated link state array to the adjacent
+    '''
     def recalc_link_state(self):
         # Updating the link_state_array
         for l in self.links:
-            # For every connection in the link state array
+            # For every connection in the link state array, check if it uses one of our links
             for conn in self.link_state_array:
                 if (l.id == conn[2]):
                     lin = globals.idmapping['links'][conn[2]]
                     conn[3] = lin.get_effective_rate(conn[0]) + lin.get_delay()
+        # send our new link state array
         self.send_link_state()
 
-    # Send out our link state array to neighbors
+    '''
+    This function sends the current link state array for our router down all of the 
+    routers connected links
+    '''
     def send_link_state(self):
         for l in self.links:
             routing_table_packet = \
                 Packet(self.id, None, None, None, globals.ROUTINGPACKET, data = self.link_state_array)
             l.add_to_buffer(routing_table_packet, self.id)
 
-    # What to do when you recieve a handshake acknowledgement
+    '''
+    This function takes a handshake acknowledgement packet and then adds the information
+    in that packet to the routers knowledge of which hosts and routers are adjacent to it
+    Arguments:
+        - packet: the handshake packet that is recieved
+        - linkid: the id of the link that the packet was recieved from
+    '''
     def receive_handshake_ack(self, packet, linkid):
+        # increment the amount of acknowledgements we recieved
         self.handshakes_acked += 1
         link = globals.idmapping['links'][linkid]
         other_router = packet.get_data().split(' ')[0]
 
+        # add to our link state array both directions of the connection that we just determined
         self.link_state_array.append([self.id, other_router, linkid, link.get_delay() \
             + link.get_effective_rate(self.id)])
         self.link_state_array.append([other_router, self.id, linkid, link.get_delay() + \
             link.get_effective_rate(other_router)])
 
+        # if we acknowledged all of our links, send out our link state array to adjacent routers,
+        # and then recaclulate our routing table using dijsktras
         if self.handshakes_acked == len(self.links):
             self.recalc_link_state()
             self.run_dijkstra()
             self.handshakes_acked = 0
 
-    # Upon receiving a link state, the router must update its own link state array
+    '''
+    This function determines what a router should do when it recieves the link state array from 
+    an adjacent router
+    Arguments:
+        - state_array_actual: this is the link state array that the router is recieving
+    '''
     def receive_link_state(self, state_array_actual):
         state_array = state_array_actual.copy()
         is_updated = False
 
+        # remove all values in the recieved array that contain our current router
         for value in state_array:
             if self.id in (value[0], value[1]):
                 state_array.remove(value)
 
+
+        # check if we need to update anything based on the state array that we recieved
         for item in state_array:
             in_array = False
             for value in self.link_state_array:
@@ -115,11 +156,16 @@ class Router:
                 self.link_state_array.append(item)
                 is_updated = True
 
+        # run dijkstras and send our link state after we recieve someone elses link state
         self.run_dijkstra()
         if is_updated:
             self.send_link_state()
 
-    # Runs Dijkstra's algorithm to determine routing table
+
+    '''
+    This function runs dijkstras shortest path algorithm on the routers link state array to determine
+    the routers routing table
+    '''
     def run_dijkstra(self):
         unvisited_nodes = []
         nodes = {}
@@ -141,7 +187,7 @@ class Router:
         current_node = start_node
         seen_nodes.append(start_node)
 
-        # While we have unvisited nodes
+        # While we have unvisited nodes, continue loopping
         while unvisited_nodes != []:
 
             # Remove the node we are currently on
@@ -158,7 +204,8 @@ class Router:
                                 nodes[current_node][1]]
                     if item[1] not in seen_nodes:
                         seen_nodes.append(item[1])
-
+                        
+            # determine which node we should use next
             if unvisited_nodes != []:
                 for node in unvisited_nodes:
                     if node in seen_nodes:
